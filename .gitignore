@@ -1,2 +1,9 @@
 .DS_Store
 docs/.DS_Store
+node_modules/
+.next/
+out/
+dist/
+coverage/
+.env*.local
+npm-debug.log*
