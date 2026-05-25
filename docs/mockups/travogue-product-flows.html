@@ -1,0 +1,2042 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Travogue Product Flows</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --paper: #fffefa;
+      --ink: #111111;
+      --muted: #74706a;
+      --line: #e7e1d8;
+      --soft: #efebe5;
+      --soft-2: #e1ddd5;
+      --dark: #151515;
+      --dark-2: #272727;
+      --white: #ffffff;
+      --green: #71866f;
+      --blue: #315a7d;
+      --clay: #a46946;
+      --wine: #7d2637;
+      --cream: #efe6d3;
+      --shadow: 0 18px 45px rgba(20, 20, 20, 0.12);
+      --radius: 8px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .page {
+      max-width: 1220px;
+      margin: 0 auto;
+      padding: 28px 18px 64px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 12px 0 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 760;
+      font-size: 18px;
+    }
+
+    .mark {
+      width: 31px;
+      height: 31px;
+      display: grid;
+      place-items: center;
+      color: var(--white);
+      background: var(--ink);
+      border-radius: 50%;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .nav {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+
+    .nav a {
+      padding: 9px 12px;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.55);
+      color: #393734;
+      font-size: 13px;
+    }
+
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1.05fr) minmax(320px, 0.95fr);
+      gap: 24px;
+      align-items: stretch;
+      margin-bottom: 34px;
+    }
+
+    .hero-copy {
+      padding: 34px 0 16px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 13px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-bottom: 16px;
+    }
+
+    h1 {
+      font-size: clamp(34px, 6vw, 74px);
+      line-height: 0.96;
+      max-width: 740px;
+      margin: 0 0 18px;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 610px;
+      color: #4e4a45;
+      font-size: 18px;
+      line-height: 1.55;
+      margin: 0 0 24px;
+    }
+
+    .hero-actions,
+    .row-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--white);
+      padding: 12px 18px;
+      font-weight: 720;
+      font-size: 14px;
+      min-height: 44px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .button.secondary {
+      background: var(--white);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .button.ghost {
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    .hero-panel {
+      min-height: 520px;
+      border-radius: 8px;
+      background: #f9f7f3;
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      padding: 18px;
+      display: grid;
+      align-items: center;
+    }
+
+    .flow-map {
+      display: grid;
+      gap: 8px;
+    }
+
+    .flow-step {
+      display: grid;
+      grid-template-columns: 34px minmax(0, 1fr) auto;
+      gap: 12px;
+      align-items: center;
+      padding: 13px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+    }
+
+    .flow-step strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 3px;
+    }
+
+    .flow-step span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .num {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 13px;
+      font-weight: 780;
+    }
+
+    .arrow {
+      color: #9a948c;
+      font-size: 14px;
+      font-weight: 800;
+    }
+
+    .section {
+      margin-top: 56px;
+      scroll-margin-top: 20px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: end;
+      justify-content: space-between;
+      gap: 18px;
+      padding: 0 0 18px;
+      border-bottom: 1px solid var(--line);
+      margin-bottom: 22px;
+    }
+
+    .section-title {
+      max-width: 780px;
+    }
+
+    .kicker {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin: 0 0 8px;
+    }
+
+    h2 {
+      margin: 0;
+      font-size: clamp(25px, 3.3vw, 44px);
+      line-height: 1.04;
+      letter-spacing: 0;
+    }
+
+    .section-note {
+      margin: 8px 0 0;
+      max-width: 720px;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 15px;
+    }
+
+    .story-list {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 10px;
+      margin-bottom: 22px;
+    }
+
+    .story {
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      padding: 14px;
+    }
+
+    .story strong {
+      display: block;
+      font-size: 14px;
+      margin-bottom: 6px;
+    }
+
+    .story p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    .screens {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 18px;
+      align-items: start;
+    }
+
+    .screens.two {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .phone {
+      width: min(100%, 375px);
+      margin: 0 auto;
+      background: var(--white);
+      border: 1px solid #ded8d0;
+      border-radius: 30px;
+      box-shadow: var(--shadow);
+      overflow: hidden;
+    }
+
+    .phone.dark {
+      background: #0f0f0f;
+      color: var(--white);
+      border-color: #1f1f1f;
+    }
+
+    .phone-screen {
+      min-height: 720px;
+      padding: 18px 16px 76px;
+      position: relative;
+    }
+
+    .phone.dark .phone-screen {
+      background: radial-gradient(circle at 50% 0%, #242424 0, #101010 48%, #070707 100%);
+    }
+
+    .status {
+      height: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-size: 11px;
+      font-weight: 720;
+      margin-bottom: 18px;
+    }
+
+    .status-icons {
+      letter-spacing: 2px;
+      color: currentColor;
+      opacity: 0.75;
+    }
+
+    .appbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .appbar.center {
+      justify-content: center;
+      position: relative;
+    }
+
+    .appbar.center .circle-button:first-child {
+      position: absolute;
+      left: 0;
+    }
+
+    .appbar.center .circle-button:last-child {
+      position: absolute;
+      right: 0;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 18px;
+      line-height: 1.1;
+      font-weight: 780;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .phone.dark .subtle {
+      color: #b7b7b7;
+    }
+
+    .circle-button {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      display: grid;
+      place-items: center;
+      background: var(--white);
+      color: var(--ink);
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    .phone.dark .circle-button {
+      background: rgba(255, 255, 255, 0.12);
+      color: var(--white);
+      border-color: rgba(255, 255, 255, 0.14);
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      min-height: 32px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: var(--ink);
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 680;
+      white-space: nowrap;
+    }
+
+    .pill.dark {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .pill.line {
+      background: transparent;
+      border: 1px solid var(--line);
+    }
+
+    .phone.dark .pill {
+      background: rgba(255, 255, 255, 0.14);
+      color: var(--white);
+    }
+
+    .hero-card {
+      background: #f4f0e9;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      padding: 18px;
+      min-height: 210px;
+      display: grid;
+      gap: 14px;
+      align-content: center;
+      margin-bottom: 18px;
+    }
+
+    .big-word {
+      font-size: 44px;
+      line-height: 0.95;
+      font-weight: 820;
+      margin: 0;
+    }
+
+    .profile-row,
+    .chip-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .profile-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 11px 8px 8px;
+      border-radius: 999px;
+      background: var(--white);
+      border: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .avatar-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--clay), var(--blue));
+    }
+
+    .bottom-cta {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: grid;
+      gap: 9px;
+    }
+
+    .full-button {
+      min-height: 54px;
+      border-radius: 999px;
+      border: 0;
+      background: var(--ink);
+      color: var(--white);
+      font-weight: 760;
+      font-size: 15px;
+    }
+
+    .full-button.light {
+      background: var(--white);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .ghost-link {
+      text-align: center;
+      color: var(--muted);
+      font-size: 13px;
+      font-weight: 650;
+    }
+
+    .upload-grid {
+      display: grid;
+      gap: 10px;
+    }
+
+    .upload-tile {
+      min-height: 116px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f8f5ef;
+      padding: 14px;
+      display: grid;
+      align-content: space-between;
+    }
+
+    .upload-tile strong {
+      font-size: 15px;
+    }
+
+    .upload-tile span {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+    }
+
+    .before-after {
+      display: grid;
+      grid-template-columns: 1fr 34px 1fr;
+      align-items: center;
+      gap: 10px;
+      margin: 34px 0 22px;
+    }
+
+    .arrow-line {
+      height: 2px;
+      background: #bcb7af;
+      position: relative;
+    }
+
+    .arrow-line:after {
+      content: "";
+      position: absolute;
+      right: -2px;
+      top: -5px;
+      width: 10px;
+      height: 10px;
+      border-top: 2px solid #bcb7af;
+      border-right: 2px solid #bcb7af;
+      transform: rotate(45deg);
+    }
+
+    .studio-box,
+    .rough-box {
+      min-height: 170px;
+      border-radius: 8px;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      background: #ece7df;
+    }
+
+    .rough-box {
+      background:
+        linear-gradient(135deg, rgba(255,255,255,0.15), rgba(0,0,0,0.08)),
+        repeating-linear-gradient(90deg, #e9e4dc, #e9e4dc 12px, #ddd7cc 12px, #ddd7cc 18px);
+    }
+
+    .studio-box {
+      background: #f7f7f5;
+      box-shadow: inset 0 0 0 12px #efefec;
+    }
+
+    .garment {
+      position: relative;
+      width: 104px;
+      height: 132px;
+      filter: drop-shadow(0 8px 10px rgba(0, 0, 0, 0.12));
+    }
+
+    .garment .body {
+      position: absolute;
+      left: 27px;
+      top: 26px;
+      width: 50px;
+      height: 82px;
+      border-radius: 9px 9px 6px 6px;
+      background: var(--blue);
+    }
+
+    .garment .sleeve {
+      position: absolute;
+      top: 35px;
+      width: 24px;
+      height: 72px;
+      border-radius: 10px;
+      background: var(--blue);
+    }
+
+    .garment .left {
+      left: 11px;
+      transform: rotate(10deg);
+    }
+
+    .garment .right {
+      right: 11px;
+      transform: rotate(-10deg);
+    }
+
+    .garment .neck {
+      position: absolute;
+      left: 41px;
+      top: 22px;
+      width: 22px;
+      height: 18px;
+      border-radius: 0 0 16px 16px;
+      background: #f7f7f5;
+      z-index: 2;
+    }
+
+    .garment.striped .body,
+    .garment.striped .sleeve {
+      background: repeating-linear-gradient(90deg, #d9d5cb 0, #d9d5cb 5px, #6f7777 5px, #6f7777 7px, #f4f1e9 7px, #f4f1e9 12px);
+    }
+
+    .garment.wine .body,
+    .garment.wine .sleeve {
+      background: var(--wine);
+    }
+
+    .garment.cream .body,
+    .garment.cream .sleeve {
+      background: var(--cream);
+    }
+
+    .garment.jacket .body,
+    .garment.jacket .sleeve {
+      background: var(--clay);
+    }
+
+    .garment.jacket .body:after {
+      content: "";
+      position: absolute;
+      left: 23px;
+      top: 10px;
+      width: 3px;
+      height: 68px;
+      background: rgba(0, 0, 0, 0.28);
+    }
+
+    .review-list {
+      display: grid;
+      gap: 13px;
+    }
+
+    .review-card {
+      background: rgba(255, 255, 255, 0.14);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 11px;
+      display: grid;
+      grid-template-columns: 88px minmax(0, 1fr);
+      gap: 12px;
+      align-items: center;
+    }
+
+    .review-img {
+      height: 102px;
+      border-radius: 6px;
+      background: #575757;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .review-meta {
+      display: grid;
+      gap: 8px;
+      min-width: 0;
+    }
+
+    .review-meta strong {
+      font-size: 14px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .field-line {
+      height: 31px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.18);
+      color: #bfbfbf;
+      display: flex;
+      align-items: center;
+      font-size: 13px;
+    }
+
+    .mini-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .mini-button {
+      border: 0;
+      border-radius: 999px;
+      padding: 8px 11px;
+      background: rgba(255, 255, 255, 0.12);
+      color: inherit;
+      font-size: 12px;
+      font-weight: 720;
+    }
+
+    .mini-button.light {
+      background: var(--white);
+      color: var(--ink);
+    }
+
+    .tabs {
+      display: flex;
+      gap: 7px;
+      overflow: auto;
+      padding-bottom: 6px;
+      margin-bottom: 14px;
+    }
+
+    .tab {
+      flex: 0 0 auto;
+      padding: 8px 11px;
+      border-radius: 999px;
+      background: var(--soft);
+      color: #514d48;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .tab.active {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .closet-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+    }
+
+    .item-tile {
+      min-height: 160px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #f5f2ec;
+      padding: 10px;
+      display: grid;
+      gap: 8px;
+      align-content: space-between;
+    }
+
+    .item-art {
+      min-height: 105px;
+      border-radius: 6px;
+      background: #fdfdfb;
+      display: grid;
+      place-items: center;
+    }
+
+    .item-name {
+      font-size: 12px;
+      font-weight: 720;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .item-tags {
+      display: flex;
+      gap: 5px;
+      flex-wrap: wrap;
+    }
+
+    .tiny-tag {
+      padding: 4px 6px;
+      border-radius: 999px;
+      background: var(--white);
+      color: var(--muted);
+      border: 1px solid var(--line);
+      font-size: 10px;
+      font-weight: 700;
+    }
+
+    .body-stage {
+      min-height: 372px;
+      border-radius: 8px;
+      background: linear-gradient(180deg, #f7f5f0 0%, #eeebe5 100%);
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+    }
+
+    .person {
+      width: 132px;
+      height: 295px;
+      position: relative;
+    }
+
+    .head {
+      position: absolute;
+      left: 45px;
+      top: 0;
+      width: 42px;
+      height: 50px;
+      border-radius: 42% 42% 48% 48%;
+      background: #a46f50;
+      z-index: 5;
+      box-shadow: inset 0 7px 0 rgba(0,0,0,0.22);
+    }
+
+    .neck-body {
+      position: absolute;
+      left: 58px;
+      top: 46px;
+      width: 16px;
+      height: 18px;
+      background: #a46f50;
+      z-index: 2;
+    }
+
+    .torso {
+      position: absolute;
+      left: 31px;
+      top: 58px;
+      width: 70px;
+      height: 86px;
+      border-radius: 12px 12px 8px 8px;
+      background: #ffffff;
+      z-index: 3;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .torso.denim {
+      background: linear-gradient(90deg, #315a7d 0 44%, #ffffff 44% 56%, #315a7d 56% 100%);
+    }
+
+    .torso.wine {
+      background: var(--wine);
+    }
+
+    .arm {
+      position: absolute;
+      top: 62px;
+      width: 22px;
+      height: 105px;
+      border-radius: 12px;
+      background: #315a7d;
+      z-index: 2;
+    }
+
+    .arm.left-arm {
+      left: 12px;
+      transform: rotate(9deg);
+    }
+
+    .arm.right-arm {
+      right: 12px;
+      transform: rotate(-9deg);
+    }
+
+    .pants {
+      position: absolute;
+      left: 38px;
+      top: 142px;
+      width: 56px;
+      height: 122px;
+      z-index: 2;
+    }
+
+    .leg {
+      position: absolute;
+      top: 0;
+      width: 25px;
+      height: 122px;
+      border-radius: 0 0 11px 11px;
+      background: #d7c7ad;
+    }
+
+    .leg.left-leg {
+      left: 0;
+      transform: rotate(2deg);
+    }
+
+    .leg.right-leg {
+      right: 0;
+      transform: rotate(-2deg);
+    }
+
+    .shoe {
+      position: absolute;
+      bottom: 6px;
+      width: 38px;
+      height: 15px;
+      border-radius: 10px 14px 7px 7px;
+      background: #2a1812;
+      z-index: 4;
+    }
+
+    .shoe.left-shoe {
+      left: 23px;
+    }
+
+    .shoe.right-shoe {
+      right: 23px;
+    }
+
+    .carousel-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      font-weight: 760;
+      margin: 10px 0 7px;
+    }
+
+    .rail {
+      display: flex;
+      gap: 9px;
+      overflow: hidden;
+      padding: 3px 0 6px;
+    }
+
+    .rail-item {
+      flex: 0 0 74px;
+      height: 74px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #f6f3ee;
+      display: grid;
+      place-items: center;
+    }
+
+    .rail-item.active {
+      outline: 2px solid var(--ink);
+      outline-offset: 2px;
+    }
+
+    .rail-item .garment {
+      transform: scale(0.42);
+    }
+
+    .pants-art {
+      width: 54px;
+      height: 72px;
+      position: relative;
+    }
+
+    .pants-art:before,
+    .pants-art:after {
+      content: "";
+      position: absolute;
+      top: 0;
+      width: 23px;
+      height: 72px;
+      border-radius: 2px 2px 8px 8px;
+      background: #d7c7ad;
+    }
+
+    .pants-art:before {
+      left: 4px;
+    }
+
+    .pants-art:after {
+      right: 4px;
+    }
+
+    .pants-art.dark:before,
+    .pants-art.dark:after {
+      background: #222833;
+    }
+
+    .pants-art.green:before,
+    .pants-art.green:after {
+      background: var(--green);
+    }
+
+    .shoe-art {
+      width: 58px;
+      height: 24px;
+      border-radius: 18px 24px 9px 9px;
+      background: #3a2118;
+      box-shadow: inset 0 -5px 0 rgba(255, 255, 255, 0.14);
+    }
+
+    .shoe-art.white {
+      background: #efeadf;
+      border: 1px solid #cfc8bd;
+    }
+
+    .form-stack {
+      display: grid;
+      gap: 10px;
+    }
+
+    .input-row {
+      border: 1px solid var(--line);
+      background: #fbfaf7;
+      border-radius: 8px;
+      min-height: 54px;
+      padding: 10px 12px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+    }
+
+    .input-row label {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+    }
+
+    .input-row strong {
+      font-size: 14px;
+    }
+
+    .split-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+    }
+
+    .mode-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .mode {
+      min-height: 70px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--soft);
+      padding: 10px;
+      display: grid;
+      align-content: center;
+      gap: 4px;
+    }
+
+    .mode.active {
+      background: var(--ink);
+      color: var(--white);
+      border-color: var(--ink);
+    }
+
+    .mode strong {
+      font-size: 13px;
+    }
+
+    .mode span {
+      font-size: 11px;
+      color: inherit;
+      opacity: 0.74;
+      line-height: 1.35;
+    }
+
+    .date-strip {
+      display: flex;
+      gap: 9px;
+      margin-bottom: 16px;
+      overflow: hidden;
+    }
+
+    .day-pill {
+      flex: 0 0 48px;
+      min-height: 62px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: #fbfaf7;
+      display: grid;
+      place-items: center;
+      gap: 2px;
+      padding: 8px 0;
+    }
+
+    .day-pill.active {
+      background: var(--ink);
+      color: var(--white);
+    }
+
+    .day-pill span {
+      font-size: 10px;
+      color: inherit;
+      opacity: 0.72;
+    }
+
+    .day-pill strong {
+      font-size: 15px;
+    }
+
+    .look-card {
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fbfaf7;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .look-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: baseline;
+      margin-bottom: 9px;
+    }
+
+    .look-head strong {
+      font-size: 14px;
+    }
+
+    .look-head span {
+      color: var(--muted);
+      font-size: 11px;
+      font-weight: 700;
+    }
+
+    .outfit-board {
+      min-height: 170px;
+      background: #f2efe9;
+      border-radius: 8px;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      padding: 14px;
+      margin-bottom: 10px;
+    }
+
+    .board-cell {
+      border-radius: 6px;
+      background: rgba(255,255,255,0.72);
+      display: grid;
+      place-items: center;
+      min-height: 64px;
+    }
+
+    .board-cell .garment {
+      transform: scale(0.52);
+    }
+
+    .board-cell .pants-art {
+      transform: scale(0.82);
+    }
+
+    .board-cell .shoe-art {
+      transform: scale(0.78);
+    }
+
+    .reason {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      margin: 0 0 10px;
+    }
+
+    .check-list {
+      display: grid;
+      gap: 9px;
+    }
+
+    .check-row {
+      display: grid;
+      grid-template-columns: 20px minmax(0, 1fr) auto;
+      gap: 9px;
+      align-items: center;
+      border-bottom: 1px solid var(--line);
+      padding: 8px 0;
+    }
+
+    .box {
+      width: 19px;
+      height: 19px;
+      border: 1px solid #b8b1a7;
+      border-radius: 4px;
+      background: var(--white);
+    }
+
+    .check-row strong {
+      font-size: 13px;
+    }
+
+    .check-row span {
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .render-panel {
+      min-height: 455px;
+      border-radius: 8px;
+      background: #f8f8f6;
+      display: grid;
+      place-items: center;
+      border: 1px solid var(--line);
+      margin-bottom: 16px;
+    }
+
+    .render-panel .person {
+      transform: scale(1.14);
+    }
+
+    .memory-card {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #fbfaf7;
+      padding: 13px;
+      margin-bottom: 11px;
+    }
+
+    .memory-card strong {
+      display: block;
+      margin-bottom: 6px;
+      font-size: 14px;
+    }
+
+    .memory-actions {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .memory-actions button {
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--white);
+      font-weight: 720;
+      font-size: 12px;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 58px;
+      background: rgba(255, 255, 255, 0.92);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      text-align: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--muted);
+    }
+
+    .phone.dark .bottom-nav {
+      background: rgba(12, 12, 12, 0.92);
+      border-color: rgba(255, 255, 255, 0.08);
+      color: #a8a8a8;
+    }
+
+    .nav-item {
+      display: grid;
+      gap: 3px;
+      justify-items: center;
+    }
+
+    .nav-icon {
+      width: 18px;
+      height: 18px;
+      border-radius: 5px;
+      border: 2px solid currentColor;
+    }
+
+    .nav-item.active {
+      color: var(--ink);
+    }
+
+    .phone.dark .nav-item.active {
+      color: var(--white);
+    }
+
+    .floating-plus {
+      width: 48px;
+      height: 48px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: var(--white);
+      display: grid;
+      place-items: center;
+      font-size: 26px;
+      transform: translateY(-18px);
+      border: 4px solid var(--white);
+    }
+
+    .phone.dark .floating-plus {
+      background: var(--white);
+      color: var(--ink);
+      border-color: #0f0f0f;
+    }
+
+    .desktop-note {
+      padding: 13px 15px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-top: 18px;
+    }
+
+    @media (max-width: 980px) {
+      .hero,
+      .screens,
+      .screens.two,
+      .story-list {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-panel {
+        min-height: auto;
+      }
+    }
+
+    @media (max-width: 520px) {
+      .page {
+        padding: 18px 10px 48px;
+      }
+
+      .topbar,
+      .section-head {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .nav {
+        justify-content: flex-start;
+      }
+
+      .phone-screen {
+        min-height: 680px;
+      }
+
+      .split-row,
+      .mode-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <a class="brand" href="#">
+        <span class="mark">TV</span>
+        <span>Travogue</span>
+      </a>
+      <nav class="nav" aria-label="Flow index">
+        <a href="#stories">Stories</a>
+        <a href="#onboarding">Onboarding</a>
+        <a href="#prettify">Auto-Prettify</a>
+        <a href="#mixer">Mixer</a>
+        <a href="#trip">Trip</a>
+        <a href="#avatar">Avatar</a>
+      </nav>
+    </header>
+
+    <section class="hero">
+      <div class="hero-copy">
+        <p class="eyebrow">Mobile web product map</p>
+        <h1>A travel-first wardrobe planner built around clean closet assets.</h1>
+        <p>
+          These static screens show the MVP from first run to upload, Auto-Prettify, closet review,
+          swipable outfit mixing, trip looks, packing, avatar rendering, and wear memory.
+        </p>
+        <div class="hero-actions">
+          <a class="button" href="#onboarding">Start The Flow</a>
+          <a class="button secondary" href="#stories">View User Stories</a>
+        </div>
+      </div>
+
+      <aside class="hero-panel" aria-label="Product flow map">
+        <div class="flow-map">
+          <a class="flow-step" href="#onboarding">
+            <span class="num">1</span>
+            <span><strong>Set up household</strong>Profiles, preferences, avatar capture, and demo mode.</span>
+            <span class="arrow">-></span>
+          </a>
+          <a class="flow-step" href="#prettify">
+            <span class="num">2</span>
+            <span><strong>Upload and prettify</strong>Photos become standardized closet-ready assets.</span>
+            <span class="arrow">-></span>
+          </a>
+          <a class="flow-step" href="#mixer">
+            <span class="num">3</span>
+            <span><strong>Play with the closet</strong>Swipe tops, bottoms, shoes, and layers on your body photo.</span>
+            <span class="arrow">-></span>
+          </a>
+          <a class="flow-step" href="#trip">
+            <span class="num">4</span>
+            <span><strong>Plan trip looks</strong>Build weather-aware day-by-day outfits and packing lists.</span>
+            <span class="arrow">-></span>
+          </a>
+          <a class="flow-step" href="#avatar">
+            <span class="num">5</span>
+            <span><strong>Render and remember</strong>Generate final avatar previews and log what was worn.</span>
+            <span class="arrow">-></span>
+          </a>
+        </div>
+      </aside>
+    </section>
+
+    <section class="section" id="stories">
+      <div class="section-head">
+        <div class="section-title">
+          <p class="kicker">User stories</p>
+          <h2>What the MVP must let people do.</h2>
+          <p class="section-note">
+            Each story maps to one or more screens below. The visual language is intentionally clean,
+            quiet, and modern: mostly black, white, grey, and garment color as the accent.
+          </p>
+        </div>
+      </div>
+
+      <div class="story-list">
+        <article class="story">
+          <strong>As a household owner</strong>
+          <p>I can create profiles for myself and my wife so wardrobes and trip looks stay separate but coordinated.</p>
+        </article>
+        <article class="story">
+          <strong>As a new user</strong>
+          <p>I can use demo mode to test the whole product flow without spending AI credits.</p>
+        </article>
+        <article class="story">
+          <strong>As a wardrobe builder</strong>
+          <p>I can upload outfit or item photos and receive standardized closet items for review.</p>
+        </article>
+        <article class="story">
+          <strong>As a quality-conscious user</strong>
+          <p>I can retry, delete, rename, and edit detected items before they enter the closet.</p>
+        </article>
+        <article class="story">
+          <strong>As a style explorer</strong>
+          <p>I can swipe through tops, bottoms, shoes, and accessories on my body photo to build looks quickly.</p>
+        </article>
+        <article class="story">
+          <strong>As a traveler</strong>
+          <p>I can create a trip and get day-by-day outfits that consider weather, activities, style, and baggage mode.</p>
+        </article>
+        <article class="story">
+          <strong>As a practical packer</strong>
+          <p>I can approve trip looks and get a packing list derived from the clothes actually used.</p>
+        </article>
+        <article class="story">
+          <strong>As a visual person</strong>
+          <p>I can generate a polished avatar render for a selected outfit instead of paying to render every swipe.</p>
+        </article>
+        <article class="story">
+          <strong>As a repeat user</strong>
+          <p>I can mark outfits as worn, skipped, or changed so future suggestions become more personal.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="onboarding">
+      <div class="section-head">
+        <div class="section-title">
+          <p class="kicker">Flow 1</p>
+          <h2>Onboarding, profiles, and avatar setup.</h2>
+          <p class="section-note">
+            First-run setup keeps the real MVP small: household profiles, style guardrails,
+            optional avatar, and a clear demo mode for cheap flow testing.
+          </p>
+        </div>
+      </div>
+
+      <div class="screens">
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="status"><span>9:41</span><span class="status-icons">|||</span></div>
+            <div class="hero-card">
+              <span class="pill line">Travel closet</span>
+              <p class="big-word">Pack looks, not doubts.</p>
+              <p class="subtle">Build a closet from real photos, plan trip outfits, and remember what actually worked.</p>
+            </div>
+            <div class="profile-row">
+              <span class="profile-chip"><span class="avatar-dot"></span>Aankur</span>
+              <span class="profile-chip"><span class="avatar-dot"></span>Wife</span>
+              <span class="profile-chip"><span class="avatar-dot"></span>Shared</span>
+            </div>
+            <div class="desktop-note">
+              First session should feel useful before setup becomes heavy. Demo mode can preload profiles and sample garments.
+            </div>
+            <div class="bottom-cta">
+              <button class="full-button">Create household</button>
+              <a class="ghost-link" href="#prettify">Try demo mode first</a>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar center">
+              <span class="circle-button">‹</span>
+              <h3 class="app-title">Create Avatar</h3>
+              <span class="circle-button">x</span>
+            </div>
+            <div class="render-panel" style="min-height: 365px;">
+              <div class="person">
+                <span class="head"></span>
+                <span class="neck-body"></span>
+                <span class="torso wine"></span>
+                <span class="arm left-arm" style="background:#7d2637;"></span>
+                <span class="arm right-arm" style="background:#7d2637;"></span>
+                <span class="pants"><span class="leg left-leg"></span><span class="leg right-leg"></span></span>
+                <span class="shoe left-shoe"></span>
+                <span class="shoe right-shoe"></span>
+              </div>
+            </div>
+            <p class="section-note" style="text-align:center;margin:0 auto;">
+              Upload a face photo and a full-body photo. Travogue uses them for fast mixer previews and optional final renders.
+            </p>
+            <div class="bottom-cta">
+              <button class="full-button">Begin</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar center">
+              <span class="circle-button">‹</span>
+              <h3 class="app-title">Review Images</h3>
+              <span class="circle-button">x</span>
+            </div>
+            <div class="split-row" style="grid-template-columns:1fr 1fr;">
+              <div>
+                <div class="rough-box" style="min-height:220px;background:linear-gradient(135deg,#b47a54,#ece4d9);">
+                  <span class="pill">Face clear</span>
+                </div>
+                <p class="subtle" style="text-align:center;">Face</p>
+              </div>
+              <div>
+                <div class="studio-box" style="min-height:220px;">
+                  <div class="person" style="transform:scale(.62);">
+                    <span class="head"></span><span class="neck-body"></span><span class="torso"></span>
+                    <span class="arm left-arm" style="background:#ffffff;border:1px solid #ddd;"></span>
+                    <span class="arm right-arm" style="background:#ffffff;border:1px solid #ddd;"></span>
+                    <span class="pants"><span class="leg left-leg" style="background:#2e2c2a;"></span><span class="leg right-leg" style="background:#2e2c2a;"></span></span>
+                    <span class="shoe left-shoe"></span><span class="shoe right-shoe"></span>
+                  </div>
+                </div>
+                <p class="subtle" style="text-align:center;">Body</p>
+              </div>
+            </div>
+            <div class="desktop-note">
+              Guidance is strict: one person, head to toe, plain-ish background, good lighting. Better setup photo means better mixer.
+            </div>
+            <div class="bottom-cta">
+              <button class="full-button">Finish avatar setup</button>
+              <a class="ghost-link" href="#prettify">Skip for now</a>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="prettify">
+      <div class="section-head">
+        <div class="section-title">
+          <p class="kicker">Flow 2</p>
+          <h2>Upload, Auto-Prettify, and detected item review.</h2>
+          <p class="section-note">
+            This is the core technical MVP. Raw photos become standardized assets before they enter the closet.
+          </p>
+        </div>
+      </div>
+
+      <div class="screens">
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="status"><span>9:41</span><span class="status-icons">|||</span></div>
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Add To Closet</h3>
+                <p class="subtle">Upload outfit photos, item photos, or a whole batch.</p>
+              </div>
+              <span class="circle-button">+</span>
+            </div>
+            <div class="upload-grid">
+              <div class="upload-tile">
+                <strong>Outfit photo</strong>
+                <span>Detect visible garments from a photo of you wearing them.</span>
+              </div>
+              <div class="upload-tile">
+                <strong>Item photo</strong>
+                <span>Best for clean extraction when the garment is on a hanger, bed, or wall.</span>
+              </div>
+              <div class="upload-tile">
+                <strong>Batch upload</strong>
+                <span>Add several photos and review detected items together.</span>
+              </div>
+            </div>
+            <div class="desktop-note">
+              Auto-Prettify is on by default, but every item still needs review before saving.
+            </div>
+            <div class="bottom-nav">
+              <span class="nav-item"><span class="nav-icon"></span>Home</span>
+              <span class="nav-item"><span class="nav-icon"></span>Closet</span>
+              <span class="nav-item"><span class="floating-plus">+</span></span>
+              <span class="nav-item"><span class="nav-icon"></span>Trips</span>
+              <span class="nav-item"><span class="nav-icon"></span>Me</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone dark">
+          <div class="phone-screen">
+            <div class="appbar center">
+              <span class="circle-button">‹</span>
+              <h3 class="app-title">Auto-Prettify</h3>
+              <span></span>
+            </div>
+            <div class="before-after">
+              <div class="rough-box">
+                <div class="garment striped">
+                  <span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span>
+                </div>
+              </div>
+              <div class="arrow-line"></div>
+              <div class="studio-box">
+                <div class="garment striped">
+                  <span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span>
+                </div>
+              </div>
+            </div>
+            <h3 style="text-align:center;margin:20px 0 8px;">Auto-Prettify is on</h3>
+            <p class="subtle" style="text-align:center;max-width:290px;margin:0 auto;">
+              Travogue cleans uploaded clothing into standardized closet assets for boards, mixer, and trip looks.
+            </p>
+            <div class="bottom-cta">
+              <button class="full-button light">Got it</button>
+              <button class="full-button" style="background:rgba(255,255,255,.14);">Turn off</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone dark">
+          <div class="phone-screen">
+            <div class="appbar">
+              <span class="circle-button">x</span>
+              <button class="button secondary" style="min-height:42px;">Add All</button>
+            </div>
+            <div class="review-list">
+              <div class="review-card">
+                <div class="review-img">
+                  <div class="garment jacket">
+                    <span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span>
+                  </div>
+                </div>
+                <div class="review-meta">
+                  <strong>Brown Hooded Zip Jacket</strong>
+                  <div class="field-line">Add brand</div>
+                  <span class="pill">Outerwear</span>
+                  <div class="mini-actions"><button class="mini-button">Retry</button><button class="mini-button light">Add</button></div>
+                </div>
+              </div>
+              <div class="review-card">
+                <div class="review-img">
+                  <div class="garment cream">
+                    <span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span>
+                  </div>
+                </div>
+                <div class="review-meta">
+                  <strong>Lightweight Knit Sweater</strong>
+                  <div class="field-line">Add brand</div>
+                  <span class="pill">Tops</span>
+                  <div class="mini-actions"><button class="mini-button">Retry</button><button class="mini-button light">Add</button></div>
+                </div>
+              </div>
+              <div class="review-card">
+                <div class="review-img">
+                  <div class="garment wine">
+                    <span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span>
+                  </div>
+                </div>
+                <div class="review-meta">
+                  <strong>Maroon Crew Neck</strong>
+                  <div class="field-line">Add brand</div>
+                  <span class="pill">Tops</span>
+                  <div class="mini-actions"><button class="mini-button">Retry</button><button class="mini-button light">Add</button></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="mixer">
+      <div class="section-head">
+        <div class="section-title">
+          <p class="kicker">Flow 3</p>
+          <h2>Closet and swipable Closet Mixer.</h2>
+          <p class="section-note">
+            Once items are standardized, the app becomes playful: swipe combinations, lock pieces, and save looks.
+          </p>
+        </div>
+      </div>
+
+      <div class="screens two">
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="status"><span>9:41</span><span class="status-icons">|||</span></div>
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Closet</h3>
+                <p class="subtle">74 mixer-ready items</p>
+              </div>
+              <span class="circle-button">+</span>
+            </div>
+            <div class="tabs">
+              <span class="tab active">All</span>
+              <span class="tab">Tops</span>
+              <span class="tab">Bottoms</span>
+              <span class="tab">Shoes</span>
+              <span class="tab">Layers</span>
+            </div>
+            <div class="closet-grid">
+              <div class="item-tile">
+                <div class="item-art"><div class="garment jacket"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+                <div><div class="item-name">Brown Hooded Jacket</div><div class="item-tags"><span class="tiny-tag">Outerwear</span><span class="tiny-tag">Travel</span></div></div>
+              </div>
+              <div class="item-tile">
+                <div class="item-art"><div class="garment striped"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+                <div><div class="item-name">Striped Shirt</div><div class="item-tags"><span class="tiny-tag">Top</span><span class="tiny-tag">Smart</span></div></div>
+              </div>
+              <div class="item-tile">
+                <div class="item-art"><div class="pants-art dark"></div></div>
+                <div><div class="item-name">Charcoal Trousers</div><div class="item-tags"><span class="tiny-tag">Bottom</span><span class="tiny-tag">Dinner</span></div></div>
+              </div>
+              <div class="item-tile">
+                <div class="item-art"><div class="shoe-art"></div></div>
+                <div><div class="item-name">Brown Loafers</div><div class="item-tags"><span class="tiny-tag">Shoes</span><span class="tiny-tag">Walkable</span></div></div>
+              </div>
+            </div>
+            <div class="bottom-nav">
+              <span class="nav-item"><span class="nav-icon"></span>Home</span>
+              <span class="nav-item active"><span class="nav-icon"></span>Closet</span>
+              <span class="nav-item"><span class="floating-plus">+</span></span>
+              <span class="nav-item"><span class="nav-icon"></span>Trips</span>
+              <span class="nav-item"><span class="nav-icon"></span>Me</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar">
+              <span class="circle-button">‹</span>
+              <div style="text-align:center;">
+                <h3 class="app-title">Closet Mixer</h3>
+                <p class="subtle">Lock pieces. Swipe options.</p>
+              </div>
+              <span class="circle-button">...</span>
+            </div>
+            <div class="body-stage">
+              <span class="pill" style="position:absolute;left:12px;top:12px;">Style First</span>
+              <span class="pill" style="position:absolute;right:12px;top:12px;">Save</span>
+              <div class="person">
+                <span class="head"></span>
+                <span class="neck-body"></span>
+                <span class="torso denim"></span>
+                <span class="arm left-arm"></span>
+                <span class="arm right-arm"></span>
+                <span class="pants"><span class="leg left-leg"></span><span class="leg right-leg"></span></span>
+                <span class="shoe left-shoe"></span>
+                <span class="shoe right-shoe"></span>
+              </div>
+            </div>
+            <div class="carousel-label"><span>Tops</span><span class="subtle">locked jacket</span></div>
+            <div class="rail">
+              <div class="rail-item active"><div class="garment" style="transform:scale(.36);"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+              <div class="rail-item"><div class="garment wine"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+              <div class="rail-item"><div class="garment striped"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+              <div class="rail-item"><div class="garment cream"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+            </div>
+            <div class="carousel-label"><span>Bottoms</span><span class="subtle">swipe</span></div>
+            <div class="rail">
+              <div class="rail-item active"><div class="pants-art"></div></div>
+              <div class="rail-item"><div class="pants-art dark"></div></div>
+              <div class="rail-item"><div class="pants-art green"></div></div>
+            </div>
+            <div class="row-actions" style="margin-top:8px;">
+              <span class="pill dark">Make rain-friendly</span>
+              <span class="pill line">Less formal</span>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="trip">
+      <div class="section-head">
+        <div class="section-title">
+          <p class="kicker">Flow 4</p>
+          <h2>Trip setup, day-by-day looks, and packing.</h2>
+          <p class="section-note">
+            The output is not a generic checklist. Travogue plans outfits first, then derives the packing list from approved looks.
+          </p>
+        </div>
+      </div>
+
+      <div class="screens">
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar">
+              <span class="circle-button">‹</span>
+              <h3 class="app-title">New Trip</h3>
+              <span></span>
+            </div>
+            <div class="form-stack">
+              <div class="input-row"><label>Destination</label><strong>Tokyo</strong></div>
+              <div class="split-row">
+                <div class="input-row"><label>From</label><strong>Jun 12</strong></div>
+                <div class="input-row"><label>To</label><strong>Jun 18</strong></div>
+              </div>
+              <div class="input-row"><label>Travelers</label><strong>Aankur, Wife</strong></div>
+              <div class="input-row"><label>Activities</label><strong>Walking, cafes, dinner, light rain</strong></div>
+              <div class="mode-grid">
+                <div class="mode"><strong>Minimal</strong><span>Carry-on, repeat-friendly</span></div>
+                <div class="mode active"><strong>Balanced</strong><span>Useful variety, no overpacking</span></div>
+                <div class="mode"><strong>Style First</strong><span>More looks and statement pieces</span></div>
+                <div class="mode"><strong>Wildcard</strong><span>Trend-aware, taste-filtered</span></div>
+              </div>
+              <div class="input-row" style="min-height:86px;"><label>Note</label><strong>One nice dinner, lots of walking, avoid loud colors.</strong></div>
+            </div>
+            <div class="bottom-cta">
+              <button class="full-button">Generate Trip Looks</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Tokyo Looks</h3>
+                <p class="subtle">18C to 24C, possible rain</p>
+              </div>
+              <span class="pill dark">Balanced</span>
+            </div>
+            <div class="date-strip">
+              <span class="day-pill active"><span>Fri</span><strong>12</strong></span>
+              <span class="day-pill"><span>Sat</span><strong>13</strong></span>
+              <span class="day-pill"><span>Sun</span><strong>14</strong></span>
+              <span class="day-pill"><span>Mon</span><strong>15</strong></span>
+              <span class="day-pill"><span>Tue</span><strong>16</strong></span>
+            </div>
+            <div class="look-card">
+              <div class="look-head"><strong>Arrival and dinner</strong><span>smart casual</span></div>
+              <div class="outfit-board">
+                <span class="board-cell"><span class="garment striped"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></span></span>
+                <span class="board-cell"><span class="pants-art dark"></span></span>
+                <span class="board-cell"><span class="shoe-art"></span></span>
+                <span class="board-cell"><span class="pill">belt</span></span>
+              </div>
+              <p class="reason">Breathable for transit, polished enough for dinner, and avoids your hard no on loud colors.</p>
+              <div class="row-actions"><span class="pill dark">Approve</span><span class="pill line">Swap shirt</span><span class="pill line">Less formal</span></div>
+            </div>
+            <div class="look-card">
+              <div class="look-head"><strong>Rainy walking day</strong><span>weather-safe</span></div>
+              <p class="reason">Uses the light jacket and walkable shoes. Repeats trousers once to keep packing sane.</p>
+              <div class="row-actions"><span class="pill line">View look</span><span class="pill line">Change shoes</span></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Packing List</h3>
+                <p class="subtle">Generated from 11 approved looks</p>
+              </div>
+              <span class="pill dark">Share</span>
+            </div>
+            <div class="tabs">
+              <span class="tab active">Clothes</span>
+              <span class="tab">Essentials</span>
+              <span class="tab">Missing</span>
+            </div>
+            <div class="check-list">
+              <div class="check-row"><span class="box"></span><strong>Striped shirt</strong><span>2 looks</span></div>
+              <div class="check-row"><span class="box"></span><strong>Maroon crew neck</strong><span>1 look</span></div>
+              <div class="check-row"><span class="box"></span><strong>Light rain jacket</strong><span>3 looks</span></div>
+              <div class="check-row"><span class="box"></span><strong>Charcoal trousers</strong><span>3 looks</span></div>
+              <div class="check-row"><span class="box"></span><strong>Cream chinos</strong><span>2 looks</span></div>
+              <div class="check-row"><span class="box"></span><strong>Brown loafers</strong><span>dinner</span></div>
+              <div class="check-row"><span class="box"></span><strong>White sneakers</strong><span>walking</span></div>
+            </div>
+            <div class="desktop-note">
+              Missing item suggestion: one compact umbrella or packable rain shell would reduce weather risk.
+            </div>
+            <div class="bottom-cta">
+              <button class="full-button">Mark trip packed</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="avatar">
+      <div class="section-head">
+        <div class="section-title">
+          <p class="kicker">Flow 5</p>
+          <h2>Avatar render, wear memory, and demo mode.</h2>
+          <p class="section-note">
+            Final renders are explicit and cached. Memory closes the loop so the app gets more personal over time.
+          </p>
+        </div>
+      </div>
+
+      <div class="screens">
+        <article class="phone dark">
+          <div class="phone-screen">
+            <div class="appbar">
+              <span class="circle-button">‹</span>
+              <button class="button secondary" style="min-height:42px;">Save</button>
+            </div>
+            <div class="render-panel">
+              <div class="person">
+                <span class="head"></span>
+                <span class="neck-body"></span>
+                <span class="torso denim"></span>
+                <span class="arm left-arm"></span>
+                <span class="arm right-arm"></span>
+                <span class="pants"><span class="leg left-leg"></span><span class="leg right-leg"></span></span>
+                <span class="shoe left-shoe"></span>
+                <span class="shoe right-shoe"></span>
+              </div>
+            </div>
+            <div class="row-actions" style="justify-content:space-between;">
+              <span class="pill">Show on trip</span>
+              <span class="pill">Regenerate</span>
+            </div>
+            <div class="carousel-label"><span>Tops</span><span class="subtle">hide</span></div>
+            <div class="rail">
+              <div class="rail-item active"><div class="garment jacket"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+              <div class="rail-item"><div class="garment"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+              <div class="rail-item"><div class="garment wine"><span class="sleeve left"></span><span class="body"></span><span class="sleeve right"></span><span class="neck"></span></div></div>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">After Trip</h3>
+                <p class="subtle">Tell Travogue what actually happened.</p>
+              </div>
+              <span class="pill dark">Tokyo</span>
+            </div>
+            <div class="memory-card">
+              <strong>Arrival and dinner</strong>
+              <p class="reason">Striped shirt, charcoal trousers, brown loafers.</p>
+              <div class="memory-actions">
+                <button>Worn</button>
+                <button>Skipped</button>
+                <button>Changed</button>
+              </div>
+            </div>
+            <div class="memory-card">
+              <strong>Rainy walking day</strong>
+              <p class="reason">You changed shoes. Travogue will remember sneakers worked better.</p>
+              <div class="memory-actions">
+                <button>Worn</button>
+                <button>Skipped</button>
+                <button>Changed</button>
+              </div>
+            </div>
+            <div class="upload-tile" style="margin-top:16px;">
+              <strong>Add outfit diary photo</strong>
+              <span>Optional: upload what you wore so future suggestions learn real behavior.</span>
+            </div>
+            <div class="bottom-nav">
+              <span class="nav-item"><span class="nav-icon"></span>Home</span>
+              <span class="nav-item"><span class="nav-icon"></span>Closet</span>
+              <span class="nav-item"><span class="floating-plus">+</span></span>
+              <span class="nav-item active"><span class="nav-icon"></span>Trips</span>
+              <span class="nav-item"><span class="nav-icon"></span>Me</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="phone">
+          <div class="phone-screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Demo Mode</h3>
+                <p class="subtle">Same product flow. No AI spend.</p>
+              </div>
+              <span class="pill dark">On</span>
+            </div>
+            <div class="hero-card">
+              <p class="big-word" style="font-size:34px;">Fixture closet loaded.</p>
+              <p class="subtle">Use sample uploads, detected garments, trip looks, and avatar renders to test the UX.</p>
+            </div>
+            <div class="flow-map">
+              <div class="flow-step"><span class="num">1</span><span><strong>Demo upload</strong>Returns sample detected garments.</span><span class="arrow">ok</span></div>
+              <div class="flow-step"><span class="num">2</span><span><strong>Demo closet</strong>Prettified assets already normalized.</span><span class="arrow">ok</span></div>
+              <div class="flow-step"><span class="num">3</span><span><strong>Demo trip</strong>Tokyo sample with weather and activities.</span><span class="arrow">ok</span></div>
+              <div class="flow-step"><span class="num">4</span><span><strong>Demo avatar</strong>Render sample shown without model calls.</span><span class="arrow">ok</span></div>
+            </div>
+            <div class="bottom-cta">
+              <button class="full-button">Start demo flow</button>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
