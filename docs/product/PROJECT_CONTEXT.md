@@ -1,0 +1,440 @@
+# Travogue Project Context
+
+Read this file first in any new chat or coding session. It compresses the product decisions, design direction, technical strategy, and implementation boundaries discussed so far.
+
+## Where The Important Files Are
+
+- Product PRD and technical spec: `docs/product/specs/2026-05-26-travogue-mvp-design.md`
+- Static product flow mockups: `docs/product/mockups/travogue-product-flows.html`
+- HTML mockup implementation plan: `docs/product/plans/2026-05-26-travogue-html-flow-mockups.md`
+
+Open the HTML file directly in a browser. No dev server is needed for the mockup.
+
+## Product One-Liner
+
+Travogue is a mobile-web-first personal wardrobe and travel packing app for a household. It turns real wardrobe photos into clean standardized closet assets, helps users mix outfits visually, plans day-by-day trip looks, derives packing lists, and remembers what people actually wore.
+
+## Core Product Bet
+
+The first technical and product bet is Auto-Prettify:
+
+> Can Travogue turn messy real-world clothing photos into clean, standardized, closet-ready assets that are good enough for browsing, outfit boards, swiping, mixing, and trip planning?
+
+If Auto-Prettify works, the rest of the product becomes much more achievable.
+
+## Inspiration And Differentiation
+
+The product is inspired by the category of apps like Alta Daily, especially:
+
+- Clean wardrobe item normalization after upload.
+- Daily/trip look suggestion feeds.
+- Avatar setup using face and full-body photos.
+- Final outfit rendering on an avatar.
+
+Travogue should not copy Alta exactly. The differentiation is:
+
+- Travel-first rather than daily-first in the MVP.
+- Household profiles for the user and wife.
+- Auto-Prettify as the core engine.
+- Closet Mixer as a playful central interaction.
+- Trip Looks as the primary output.
+- Packing list derived from approved looks.
+- Personal memory from worn/skipped/changed outfits.
+- Demo mode baked in for testing without AI spend.
+
+## MVP Spine
+
+The product spine is:
+
+1. Auto-Prettify
+2. Closet
+3. Closet Mixer
+4. Trip Looks
+5. Packing List
+6. Avatar Render
+7. Wear Memory
+
+## Target Users
+
+- A household with multiple wardrobe profiles, initially the user and his wife.
+- People who want help packing for short local trips and longer vacations.
+- People who care about style and trend relevance, but still need weather/activity correctness.
+- People who want a personal wardrobe assistant that remembers past outfits and preferences.
+
+## Important Product Decisions
+
+### First Version Focus
+
+The MVP focuses on:
+
+- Trip packing and day-by-day outfit planning.
+- Wardrobe digitization through photo upload.
+- Auto-Prettify and detected item review.
+- Closet Mixer.
+- Demo mode.
+
+Daily "what should I wear today?" is a later mode powered by the same engine.
+
+### Household Model
+
+Use one household account with multiple wardrobe profiles:
+
+- User
+- Wife
+- Shared
+
+This avoids overbuilding social/collaboration features while supporting the real use case.
+
+### Wardrobe Capture
+
+Support both:
+
+- Outfit photos of a person wearing clothing.
+- Standalone item photos.
+
+For MVP, detected items must go through user review before entering the closet.
+
+### Auto-Prettify
+
+Whenever a user uploads a clothing image, the app should offer or automatically run Auto-Prettify.
+
+Auto-Prettify should:
+
+- Detect garments.
+- Segment clothing from background.
+- Normalize crop, padding, centering, orientation, and lighting.
+- Produce consistent clean closet assets.
+- Preserve the real garment's color, pattern, silhouette, and important details.
+- Avoid inventing a fantasy version of the item.
+
+Guiding principle:
+
+> Studio-clean representation of my real garment, not a fantasy version of it.
+
+### Detected Items Review
+
+After upload, show a review screen similar in spirit to the attached Alta screenshots:
+
+- Clean/prettified item thumbnail.
+- Proposed name.
+- Editable brand.
+- Category.
+- Owner profile.
+- Retry.
+- Add.
+- Delete.
+- Add All.
+
+Improve on the reference by adding:
+
+- Source badge: outfit photo or item photo.
+- Confidence/needs-review state when useful.
+- Auto-Prettify status.
+- Duplicate detection later.
+- "Ready for mixer" status when asset quality is good enough.
+
+### Layered Outfits
+
+If the user uploads a layered outfit, use accuracy-first extraction:
+
+- Save separate items only when confidence is high.
+- Save a combined look/combo item when separation is uncertain.
+- Clearly label layered outputs.
+- Never pretend to extract a clean garment from a tiny visible portion.
+
+Example:
+
+- High confidence: save denim jacket and white T-shirt separately.
+- Low confidence: save "Blue Denim Jacket + White T-shirt" as a combo look.
+
+### Closet Mixer
+
+The Closet Mixer should be one of the signature product moments.
+
+Interaction:
+
+- User's real body photo or masked body base stays in the center.
+- Tops carousel swipes left/right.
+- Bottoms carousel swipes left/right.
+- Shoes and accessories appear as smaller rows/trays.
+- User can lock one item and keep changing others.
+- User can save a look.
+- User can assign a look to a trip day.
+- User can ask for natural-language changes like "more casual", "better for rain", "less formal", "keep these pants".
+
+This is intentionally not full photoreal try-on for every swipe. It should feel fast, playful, and useful.
+
+### Avatar Strategy
+
+Use a two-level avatar strategy:
+
+1. Instant Mixer Preview
+   - Fast and modular.
+   - Uses the user's real body photo or body mask.
+   - Uses prettified clothing assets.
+   - Does not generate a new image per swipe.
+
+2. High-Quality Avatar Render
+   - Optional and explicit.
+   - Generated only for selected/saved outfits.
+   - Cached.
+   - Later can support travel location backdrops.
+
+Avatar setup asks for:
+
+- Face photo.
+- Full-body photo.
+
+Validate:
+
+- Face clear.
+- Head-to-toe body visible.
+- One person in frame.
+- Good lighting.
+- Minimal occlusion.
+
+### Trip Planning
+
+Trip setup should combine structured fields with a conversational note.
+
+Structured fields:
+
+- Destination.
+- Dates.
+- Travelers/profiles.
+- Activities.
+- Baggage mode.
+- Style mode.
+- Laundry access.
+- Special events.
+
+Conversational note example:
+
+> Goa for 4 days, lots of beach time, one nice dinner, do not overpack.
+
+Primary output:
+
+- Day-by-day Trip Looks.
+
+Packing list is derived from approved looks.
+
+### Recommendation Modes
+
+Support all modes on demand:
+
+- Minimal: fewer items, more reuse, carry-on friendly.
+- Balanced: default, useful variety without overpacking.
+- Style First: stronger looks and more variety.
+- Wildcard: trend-aware but filtered through personal taste and hard guardrails.
+
+### Recommendation Priorities
+
+Ranking priority:
+
+1. Weather/activity correctness and style quality tied first.
+2. User control and personalization next.
+3. Wardrobe efficiency matters, especially in Minimal mode, but should not make outfits boring.
+
+### Personal Style
+
+Use all of:
+
+- Practical preferences: comfort, climate tolerance, laundry, repeat tolerance, formality.
+- Fashion/style preferences: minimal, streetwear, classic, resort, smart casual, etc.
+- Memory-based style: what the user wore, liked, rejected, skipped, repeated.
+- Trend-aware suggestions from curated packs and user-provided inspiration.
+- Hard guardrails such as "never suggest neon pants".
+
+### Trend Layer
+
+V1 should use:
+
+- Curated trend packs.
+- User-provided inspiration links/screenshots.
+
+V1 should not use live Instagram/Reddit/Pinterest scraping.
+
+### Wearing History
+
+Support:
+
+- Manual check-in.
+- Mark planned outfit as worn, skipped, or changed.
+- Optional outfit diary photo upload.
+
+Wear history should affect future recommendations.
+
+### Missing Items
+
+V1 supports missing item suggestions only, not shopping links.
+
+Example:
+
+- "You lack one light rain layer for this trip."
+- "One more neutral bottom would reduce repeats."
+
+## Technical Direction
+
+Recommended MVP stack:
+
+- React.
+- Next.js.
+- TypeScript.
+- Supabase Auth.
+- Supabase Postgres.
+- Supabase Storage.
+- Server routes or server actions for backend logic.
+- Provider interfaces for AI and demo mode.
+
+Alternative if more backend control is desired:
+
+- Vite React frontend.
+- FastAPI or NestJS backend.
+- Postgres.
+- S3-compatible storage.
+- Worker queue.
+
+The recommended path is still Next.js + Supabase because the goal is a real MVP with fast iteration.
+
+## Demo Mode
+
+Demo mode is first-class, not a throwaway prototype.
+
+Demo mode and real mode must share the same UI and data contracts. Only providers change.
+
+Provider pairs:
+
+- DemoWardrobeExtractionProvider / AIWardrobeExtractionProvider
+- DemoPrettifyProvider / AIPrettifyProvider
+- DemoRecommendationProvider / AIRecommendationProvider
+- DemoAvatarProvider / AIAvatarProvider
+
+Demo mode should include fixture data for:
+
+- Upload batches.
+- Raw photo references.
+- Detected garments.
+- Prettified assets.
+- Review cards.
+- Closet items.
+- Mixer combinations.
+- Trip looks.
+- Packing lists.
+- Avatar render sample assets.
+
+## AI Strategy
+
+Do not build Auto-Prettify as an autonomous AI agent in the MVP.
+
+Auto-Prettify should be a staged pipeline:
+
+1. Image intake quality check.
+2. Garment detection.
+3. Segmentation.
+4. Classification and metadata.
+5. Normalization.
+6. Generative repair only when needed.
+7. Validation.
+8. Human confirmation.
+
+Use cheaper/faster models for:
+
+- Photo quality checks.
+- Metadata extraction.
+- Trip note parsing.
+- Outfit explanations.
+- Packing list generation.
+- Recommendation drafts.
+
+Use stronger or specialized models for:
+
+- Garment detection.
+- Segmentation.
+- Prettify generation.
+- Output validation.
+- Difficult layered outfits.
+
+Use expensive image generation only when:
+
+- It materially improves the closet asset.
+- The user explicitly requests a high-quality avatar render.
+
+Do not rely on cheap models alone for precise visual extraction. They may be useful for text reasoning, metadata, and drafts, but wardrobe trust depends on accuracy.
+
+## Reliability Policy
+
+The app must be confidence-aware:
+
+- High confidence: ready to add.
+- Medium confidence: needs review.
+- Low confidence: ask for better photo or save as combo/look only.
+
+The app should say what it can reliably see. It should not hide uncertainty.
+
+## Evaluation Set
+
+Create an internal test set early:
+
+- 20 tops.
+- 10 bottoms.
+- 10 outerwear.
+- 10 shoes/accessories.
+- 10 layered outfits.
+- Mixed lighting/background examples.
+
+Every provider should be evaluated against this set before becoming the default.
+
+## MVP Phases
+
+The PRD includes a phased implementation plan so coding agents do not try to build everything at once.
+
+High-level phases:
+
+1. Project foundation.
+2. Demo upload and review flow.
+3. Closet and Closet Mixer demo.
+4. Trip planning demo.
+5. Real storage and auth.
+6. Real Auto-Prettify alpha.
+7. Auto-Prettify quality iteration.
+8. Real recommendation mode.
+9. Avatar setup and render.
+10. Wear memory.
+
+Important guardrails:
+
+- Do not build real AI providers before demo providers.
+- Do not build avatar rendering before Closet Mixer.
+- Do not build trip recommendations before wardrobe item contracts exist.
+- Keep demo and real providers behind the same interfaces.
+- Keep each phase shippable and testable.
+- Prefer typed domain objects over ad hoc JSON blobs.
+- Never let low-confidence AI output auto-save to the closet.
+
+## Visual Direction
+
+The desired aesthetic is clean, modern, quiet, and mobile-web-first.
+
+Design references from the discussion:
+
+- Alta-like clean item review and outfit feed.
+- Mostly black, white, grey, and soft neutrals.
+- Garment colors should provide most of the visual accent.
+- Avoid copying exact layouts, branding, or interaction details.
+- Product should feel polished and practical, not like a marketing landing page.
+
+The current static mockup file shows the first visual direction:
+
+- `docs/product/mockups/travogue-product-flows.html`
+
+## What To Build Next
+
+Recommended next step:
+
+1. Create a detailed implementation plan for Phase 0 and Phase 1 only.
+2. Scaffold the Next.js/React/TypeScript app.
+3. Implement domain types and provider interfaces.
+4. Build demo upload -> Auto-Prettify explanation -> Detected Items Review -> Closet flow with fixtures.
+
+Do not start real AI provider integration until the demo upload/review/closet flow feels right.
+

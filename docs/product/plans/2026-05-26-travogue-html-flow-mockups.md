@@ -1,6 +1,6 @@
 # Travogue HTML Flow Mockups Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
+> **For agentic workers:** Implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Keep each task small, verify after each task, and commit working checkpoints.
 
 **Goal:** Build a self-contained HTML mockup pack that shows Travogue's main user stories from onboarding through wardrobe upload, Auto-Prettify, Closet Mixer, trip planning, packing, avatar rendering, and wear memory.
 
@@ -12,7 +12,7 @@
 
 ## File Structure
 
-- Create: `docs/mockups/travogue-product-flows.html`
+- Create: `docs/product/mockups/travogue-product-flows.html`
   - Self-contained visual prototype with all screens, flows, and user stories.
   - Uses embedded CSS for a clean modern mobile-web aesthetic inspired by the category, without copying any brand-specific layout.
 - Modify: none.
@@ -22,7 +22,7 @@
 ### Task 1: Create Static Mockup Skeleton
 
 **Files:**
-- Create: `docs/mockups/travogue-product-flows.html`
+- Create: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Add document shell**
 
@@ -76,7 +76,7 @@ Include a top-level product summary and a flow index listing these stories:
 ### Task 2: Add Onboarding And Avatar Screens
 
 **Files:**
-- Modify: `docs/mockups/travogue-product-flows.html`
+- Modify: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Add onboarding screen**
 
@@ -101,7 +101,7 @@ Use neutral boxes and generated-looking placeholders created with CSS gradients 
 ### Task 3: Add Wardrobe Upload And Auto-Prettify Screens
 
 **Files:**
-- Modify: `docs/mockups/travogue-product-flows.html`
+- Modify: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Add upload batch screen**
 
@@ -130,7 +130,7 @@ Show review cards with:
 ### Task 4: Add Closet And Mixer Screens
 
 **Files:**
-- Modify: `docs/mockups/travogue-product-flows.html`
+- Modify: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Add closet grid**
 
@@ -150,7 +150,7 @@ Show:
 ### Task 5: Add Trip Planning Screens
 
 **Files:**
-- Modify: `docs/mockups/travogue-product-flows.html`
+- Modify: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Add trip setup screen**
 
@@ -167,7 +167,7 @@ Show clothing and essentials generated from approved looks.
 ### Task 6: Add Avatar Render, Wear Memory, And Demo Mode
 
 **Files:**
-- Modify: `docs/mockups/travogue-product-flows.html`
+- Modify: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Add avatar render screen**
 
@@ -184,17 +184,17 @@ Show the same flows running with fixture data and no AI spend.
 ### Task 7: Review And Commit
 
 **Files:**
-- Verify: `docs/mockups/travogue-product-flows.html`
+- Verify: `docs/product/mockups/travogue-product-flows.html`
 
 - [ ] **Step 1: Check file exists**
 
-Run: `test -f docs/mockups/travogue-product-flows.html`
+Run: `test -f docs/product/mockups/travogue-product-flows.html`
 
 Expected: command exits successfully.
 
 - [ ] **Step 2: Check key flows exist**
 
-Run: `rg -n "Auto-Prettify|Closet Mixer|Trip Looks|Packing List|Avatar Render|Demo Mode" docs/mockups/travogue-product-flows.html`
+Run: `rg -n "Auto-Prettify|Closet Mixer|Trip Looks|Packing List|Avatar Render|Demo Mode" docs/product/mockups/travogue-product-flows.html`
 
 Expected: each label appears at least once.
 
@@ -203,7 +203,6 @@ Expected: each label appears at least once.
 Run:
 
 ```bash
-git add docs/superpowers/plans/2026-05-26-travogue-html-flow-mockups.md docs/mockups/travogue-product-flows.html
+git add docs/product/plans/2026-05-26-travogue-html-flow-mockups.md docs/product/mockups/travogue-product-flows.html
 git commit -m "Add Travogue product flow mockups"
 ```
-
