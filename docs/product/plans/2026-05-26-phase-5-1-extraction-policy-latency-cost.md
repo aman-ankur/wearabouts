@@ -202,6 +202,7 @@ After Phase 5.1:
 After applying the Phase 5.1 schema migration and testing real upload:
 
 - Scan-only picker readiness was about 15-17 seconds with the original metadata image profile.
+- With the default fast metadata image profile, a live real outfit scan reached the picker in about 9 seconds end to end for one 4.33 MB uploaded photo. The OpenAI detection call took about 7.1 seconds, used about 1,612 total tokens, and produced zero image generations.
 - Selected image generations run with concurrency 2, so two generated pieces completed in about 54 seconds total rather than sequentially.
 - A forced high-confidence visible core item now skips the extra validation call even when it had a duplicate hint.
 
@@ -231,3 +232,4 @@ Recommendation:
 - First screen/default path: scan first, then let the user pick from detected pieces.
 - Keep duplicate skipping on by default but allow forced generation.
 - Keep accessories manual-only for now.
+- Keep shoes optional by default. Generate them only when the user explicitly selects them or a later product decision promotes a prominent-shoe path.

@@ -11,6 +11,7 @@ This folder holds manual testing artifacts for Wearabouts.
 - `testing/scripts/benchmark-detection.mjs` benchmarks outfit scan latency without Supabase uploads, image generation, validation, or closet writes. It compares the old `1600px PNG` detection image profile with the faster `1024px JPEG` profile by default: `npm run benchmark:detection -- "/path/to/image-or-folder" --limit 3`.
 - The Upload page includes an in-app **Dev** toggle for no-OpenAI UI testing. Dev mode reuses the latest cached real closet asset and routes directly to Review.
 - Phase 5.1 real outfit upload defaults to scanning first. Review can show detected candidate choices before image generation, and selected candidate generation uses `/api/wardrobe/jobs/[jobId]/candidates/generate`.
+- The Phase 5.1 picker now shows the uploaded photo above the checklist with soft numbered markers, candidate-focused crop thumbnails, neutral selected-row styling, and a compact `Closet matching` status control. Generated prettified artwork in Review is clickable for a large dark preview.
 - The Phase 5.1 smart extraction selection mockup is `docs/product/mockups/wearabouts-phase5-1-smart-extraction-selection.html`.
 - The Phase 5.1 detected-photo reference mockup is `docs/product/mockups/wearabouts-phase5-1-detected-photo-reference.html`.
 

@@ -79,10 +79,15 @@ Upload page:
 Review page:
 
 - If an outfit batch has candidates but no generated garments, show a candidate picker.
+- Put the uploaded photo first, then the checklist below it.
+- Show soft numbered markers on the uploaded photo, without full bounding rectangles. The numbered markers should help map candidates to the source photo without making the screen feel like a debug overlay.
+- Show row-level crop thumbnails focused around each candidate bounding box center.
 - Primary section: tops, outerwear, bottoms.
 - Optional section: shoes and accessories.
-- Show likely duplicates with "Already in Closet" and allow "Prepare anyway."
-- Generated review cards remain as-is after selected candidates finish.
+- Show likely duplicates with "Already saved" / optional language and allow the user to select them anyway.
+- Replace the raw checkbox treatment with a compact `Closet matching` status control. This stays user-facing and does not mention cost, tokens, or model work.
+- Selected candidate rows should follow the app's wardrobe/product design language: neutral black/white selection treatment, no category-colored selected borders. Category colors are reserved for source-photo markers where they improve mapping.
+- Generated review cards should allow the prettified artwork to be tapped/clicked and viewed large in a dark preview sheet.
 
 Processing page:
 

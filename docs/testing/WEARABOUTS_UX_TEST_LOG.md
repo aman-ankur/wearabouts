@@ -319,3 +319,33 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 
 - The overlay uses normalized candidate bounding boxes from the detection model and does not add OpenAI calls.
 - The row crop thumbnails use focal positioning around each bounding box center; a future pass can use exact CSS clipping if we want tighter crop previews.
+
+## 2026-05-27 - Phase 5.1 Extraction Review Visual Polish
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Local URL: `http://localhost:3000`
+- Scope: real outfit review picker and generated review card polish
+
+### Flow Covered
+
+1. Replaced source-photo rectangle overlays with soft numbered markers and short dotted leader lines.
+2. Kept candidate colors only on the uploaded-photo marker system, where they help map detection points to the legend.
+3. Changed candidate checklist rows to neutral Wearabouts styling: selected rows use a black border and `Selected` pill, optional rows stay visually quieter.
+4. Replaced the checkbox-like duplicate control with a compact `Closet matching` status control.
+5. Kept source crop thumbnails in candidate rows and zoomed them around the detected candidate center.
+6. Added a clickable generated-artwork preview on detected garment cards. The preview opens in a dark bottom sheet so the prettified item can be inspected at a larger size before adding it.
+
+### Verification
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- Confirmed the review page returns `200 OK` on `http://localhost:3000` after restarting the dev server.
+
+### Remaining Notes
+
+- The visual picker still uses normalized model bounding boxes from detection; no extra OpenAI calls were added for thumbnails or markers.
+- Running `npm run build` while `next dev` is active can leave stale `.next` chunks in the dev server. Restart the dev server on port 3000 after production builds before manual browser testing.
