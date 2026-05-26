@@ -53,3 +53,54 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 - Closet filters are simple category filters; no persisted filter state yet.
 - Saved looks are summary rows only; they do not render outfit thumbnails yet.
 - Real body/avatar try-on quality is not represented by this Phase 2 demo. It needs a separate avatar-render pipeline with body landmarks, garment segmentation, fit/occlusion handling, and quality checks.
+
+## 2026-05-26 - Phase 3 Trip Looks Demo UX Pass
+
+### Environment
+
+- Branch: `codex/phase-3-trip-looks-demo`
+- Local URL: `http://localhost:3000`
+- Surface: mobile viewport in temporary headless Chrome
+- Scope: demo-only Phase 3 trip outfit planning
+
+### Flow Tested
+
+1. Opened `/trips` with an empty in-memory closet.
+2. Confirmed Trips shows the closet-needed empty state and links to Add demo items.
+3. Opened `/upload`, selected Batch upload, and added all six demo garments.
+4. Opened Trips through the bottom nav so the client-side demo state stayed intact.
+5. Started the Goa demo trip.
+6. Confirmed three day-by-day suggested looks render from closet items.
+7. Swapped one look and confirmed the packing list changed to include the alternate top.
+8. Approved one look and confirmed the trip header moved to `1/3 approved`.
+9. Confirmed the derived packing list deduplicates items and shows wear counts.
+
+### Screenshots
+
+- [Trips empty state](../../testing/screenshots/wearabouts-ux-trips-empty.png)
+- [Trips start state](../../testing/screenshots/wearabouts-ux-trips-start.png)
+- [Generated trip looks](../../testing/screenshots/wearabouts-ux-trip-looks.png)
+- [Packing list after swap and approve](../../testing/screenshots/wearabouts-ux-packing-list.png)
+
+### Assets And Scripts
+
+- Screenshot capture helper: `testing/scripts/capture-trip-flow.mjs`
+- New screenshots:
+  - `testing/screenshots/wearabouts-ux-trips-empty.png`
+  - `testing/screenshots/wearabouts-ux-trips-start.png`
+  - `testing/screenshots/wearabouts-ux-trip-looks.png`
+  - `testing/screenshots/wearabouts-ux-packing-list.png`
+
+### Findings Fixed In This Pass
+
+- Added a Trips tab to bottom nav with five equal columns.
+- Added the `/trips` demo flow with a start screen, day look cards, approve/swap actions, and packing list.
+- Added a deterministic demo swap selector so Swap changes an unlocked outfit slot without calling any provider.
+- Tightened trip look miniature layout so closet item artwork no longer clips at the card edges.
+- Updated the screenshot script to follow in-app navigation after Add All because hard reloads reset the intentionally client-side demo state.
+
+### Remaining Notes
+
+- Phase 3 remains demo-mode and in-memory only; a hard browser reload resets closet, saved outfits, and trips.
+- Trip looks use deterministic fixture/selector logic, not AI recommendations.
+- There is still no Supabase, auth, real upload, weather, itinerary import, or avatar try-on pipeline.

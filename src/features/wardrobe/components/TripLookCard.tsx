@@ -31,10 +31,11 @@ export function TripLookCard({ day, look, closetItems, onApprove, onSwap }: Trip
       <div
         style={{
           minHeight: 112,
-          display: "flex",
+          display: "grid",
+          gridTemplateColumns: "repeat(4, minmax(0, 1fr))",
           alignItems: "center",
-          gap: 8,
-          overflowX: "auto",
+          gap: 6,
+          overflow: "hidden",
           borderRadius: 8,
           background: "#f7f4ef",
           padding: 10,
@@ -44,14 +45,13 @@ export function TripLookCard({ day, look, closetItems, onApprove, onSwap }: Trip
           <div
             key={`${look.id}-${item.id}`}
             style={{
-              flex: "0 0 72px",
               minHeight: 88,
               display: "grid",
               placeItems: "center",
               overflow: "hidden",
             }}
           >
-            <div style={{ transform: "scale(.62)" }}>
+            <div style={{ transform: "scale(.58)" }}>
               <GarmentArtwork token={item.asset.visualToken} />
             </div>
           </div>
