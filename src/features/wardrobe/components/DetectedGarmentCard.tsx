@@ -25,10 +25,8 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
         <GarmentArtwork token={garment.asset.visualToken} />
       </div>
       <div style={{ minWidth: 0 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-          <strong style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-            {garment.proposedName}
-          </strong>
+        <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>
+          <strong style={{ lineHeight: 1.25 }}>{garment.proposedName}</strong>
           <button
             type="button"
             onClick={() => onDelete(garment.id)}

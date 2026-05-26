@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { Save } from "lucide-react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
@@ -29,6 +29,7 @@ export default function MixerPage() {
     toggleMixerSlotLock,
     saveCurrentOutfit,
   } = useWardrobe();
+  const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const readyItems = useMemo(() => state.closetItems.filter((item) => item.readyForMixer), [state.closetItems]);
 
   useEffect(() => {
@@ -61,7 +62,7 @@ export default function MixerPage() {
         <section className="card" style={{ display: "grid", gap: 12 }}>
           <strong>No mixer-ready items yet</strong>
           <p className="subtle" style={{ margin: 0 }}>
-            Add the demo batch to your closet to start mixing outfits.
+            Add the demo batch to your closet to start mixing outfits. Demo state resets when the page is reloaded.
           </p>
           <Link className="button" href="/upload">
             Add demo items
@@ -82,7 +83,10 @@ export default function MixerPage() {
         <button
           type="button"
           className="button secondary"
-          onClick={() => saveCurrentOutfit("Demo travel look", "profile-aankur")}
+          onClick={() => {
+            saveCurrentOutfit("Demo travel look", "profile-aankur");
+            setSaveMessage("Saved Demo travel look");
+          }}
         >
           <Save size={17} aria-hidden="true" />
           Save
@@ -90,6 +94,11 @@ export default function MixerPage() {
       </div>
 
       <div className="stack">
+        {saveMessage ? (
+          <div className="pill dark" role="status" style={{ justifySelf: "start" }}>
+            {saveMessage}
+          </div>
+        ) : null}
         <MixerBodyStage selectedItems={selectedItems} />
         <MixerSlotControls selections={mixerState.selections} onToggleLock={toggleMixerSlotLock} />
         {mixerSlots.map((slot) => {

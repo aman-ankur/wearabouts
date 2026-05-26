@@ -11,12 +11,22 @@ const slotLabels: Record<OutfitSlot, string> = {
   bottom: "Bottom",
   shoes: "Shoes",
   layer: "Layer",
-  accessory: "Accessory",
+  accessory: "Acc.",
 };
 
 export function MixerSlotControls({ selections, onToggleLock }: MixerSlotControlsProps) {
   return (
-    <section aria-label="Mixer slot locks" style={{ display: "flex", gap: 8, overflowX: "auto", paddingBottom: 2 }}>
+    <section
+      aria-label="Mixer slot locks"
+      style={{
+        display: "flex",
+        gap: 8,
+        marginInline: -2,
+        overflowX: "auto",
+        padding: "0 2px 4px",
+        scrollbarWidth: "none",
+      }}
+    >
       {selections.map((selection) => {
         const Icon = selection.locked ? Lock : Unlock;
 

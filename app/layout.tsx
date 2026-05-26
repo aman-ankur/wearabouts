@@ -4,7 +4,7 @@ import { WardrobeProvider } from "@/src/features/wardrobe/state/WardrobeContext"
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Travogue",
+  title: "Wearabouts",
   description: "Travel-first wardrobe planner",
 };
 
