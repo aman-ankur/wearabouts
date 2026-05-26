@@ -33,7 +33,7 @@ export function PackingList({ items, closetItems }: PackingListProps) {
                 paddingTop: 9,
               }}
             >
-              <span style={{ fontSize: 13, fontWeight: 720 }}>{closetItem?.name ?? "Closet item"}</span>
+              <span style={{ fontSize: 13, fontWeight: 720 }}>{closetItem?.name ?? "Wardrobe item"}</span>
               <span className="pill">{item.wearCount}x</span>
             </div>
           );

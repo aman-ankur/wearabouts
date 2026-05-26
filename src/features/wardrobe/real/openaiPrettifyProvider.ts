@@ -68,7 +68,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
             {
               type: "input_text",
               text:
-                "Analyze this clothing photo for Wearabouts. It may show one standalone garment or a person wearing multiple garments. Detect each visible wardrobe garment separately and return only JSON with candidates. Bounding boxes must be normalized decimals from 0 to 1 relative to the full image. For a standalone item, return exactly one candidate when it is a clear clothing or footwear item. For an outfit/person photo, include outer layers, inner tops, bottoms, shoes, and visible accessories only when enough of the item is visible to create a closet asset. Set shouldPrettify=true for visible high-confidence or medium-confidence clothing, footwear, or accessory candidates. Do not invent hidden garments.",
+                "Analyze this clothing photo for Wearabouts. It may show one standalone garment or a person wearing multiple garments. Detect each visible wardrobe garment separately and return only JSON with candidates. Bounding boxes must be normalized decimals from 0 to 1 relative to the full image. For a standalone item, return exactly one candidate when it is a clear clothing or footwear item. For an outfit/person photo, include outer layers, inner tops, bottoms, shoes, and visible accessories only when enough of the item is visible to create a wardrobe item. Set shouldPrettify=true for visible high-confidence or medium-confidence clothing, footwear, or accessory candidates. Do not invent hidden garments.",
             },
             {
               type: "input_image",
@@ -264,7 +264,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
             {
               type: "input_text",
               text:
-                "Compare the original clothing photo and generated closet asset. Return JSON with accepted=true only if the generated asset preserves the same color family, pattern, silhouette, and key garment details.",
+                "Compare the original clothing photo and generated wardrobe item. Return JSON with accepted=true only if the generated asset preserves the same color family, pattern, silhouette, and key garment details.",
             },
             {
               type: "input_image",

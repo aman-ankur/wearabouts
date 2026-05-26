@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import type { GarmentCandidateChoice, UploadSourceImageReference } from "@/src/domain/wardrobe";
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
@@ -15,7 +15,6 @@ import { DetectedGarmentCard } from "@/src/features/wardrobe/components/Detected
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
 export default function ReviewPage() {
-  const router = useRouter();
   const params = useParams<{ batchId: string }>();
   const searchParams = useSearchParams();
   const jobId = searchParams.get("jobId");
@@ -25,7 +24,6 @@ export default function ReviewPage() {
     addGarment,
     deleteGarment,
     retryGarment,
-    addAllGarments,
     loadRealBatch,
     addRealGarment,
     retryRealGarment,
@@ -52,6 +50,12 @@ export default function ReviewPage() {
     () => new Map(candidateChoices.map((candidate, index) => [candidate.id, index])),
     [candidateChoices],
   );
+  const generateSelectedLabel =
+    selectedCandidateIds.length === 0
+      ? "Choose items to generate"
+      : selectedCandidateIds.length === 1
+        ? "Generate 1 wardrobe item"
+        : `Generate ${selectedCandidateIds.length} wardrobe items`;
 
   useEffect(() => {
     if (!isPersistentMode) {
@@ -81,27 +85,6 @@ export default function ReviewPage() {
         .map((candidate) => candidate.id),
     );
   }, [candidateChoices, hasCandidatePicker]);
-
-  async function handleAddAll() {
-    if (isPersistentMode) {
-      setIsUpdating(true);
-      setReviewError(null);
-      try {
-        for (const garment of garments) {
-          await addRealGarment(garment.id);
-        }
-        router.push("/closet");
-      } catch (error) {
-        setReviewError(error instanceof Error ? error.message : "Could not add all items.");
-      } finally {
-        setIsUpdating(false);
-      }
-      return;
-    }
-
-    addAllGarments();
-    router.push("/closet");
-  }
 
   async function handleAdd(garmentId: string) {
     if (isPersistentMode) {
@@ -140,11 +123,11 @@ export default function ReviewPage() {
 
   async function handlePrepareSelectedCandidates() {
     if (!jobId) {
-      setReviewError("Open this review from the processing screen to prepare selected pieces.");
+      setReviewError("Open this review from the processing screen to generate selected items.");
       return;
     }
     if (selectedCandidateIds.length === 0) {
-      setReviewError("Choose at least one piece to prepare.");
+      setReviewError("Choose at least one item to generate.");
       return;
     }
 
@@ -154,7 +137,7 @@ export default function ReviewPage() {
       await generateRealCandidates(jobId, selectedCandidateIds);
       await loadRealBatch(params.batchId);
     } catch (error) {
-      setReviewError(error instanceof Error ? error.message : "Could not prepare selected pieces.");
+      setReviewError(error instanceof Error ? error.message : "Could not generate selected items.");
     } finally {
       setIsUpdating(false);
     }
@@ -168,22 +151,6 @@ export default function ReviewPage() {
 
   return (
     <AppShell>
-      <div className="appbar">
-        <Link className="button secondary" href="/upload">
-          Close
-        </Link>
-        <button
-          type="button"
-          className="button secondary"
-          onClick={() => {
-            void handleAddAll();
-          }}
-          disabled={garments.length === 0 || isUpdating}
-        >
-          Add All
-        </button>
-      </div>
-
       <div className="stack">
         {reviewError ? (
           <p className="subtle" role="alert" style={{ color: "var(--wine)", marginTop: 0 }}>
@@ -191,7 +158,7 @@ export default function ReviewPage() {
           </p>
         ) : null}
 
-        {isOutfitBatch && !isLoadingBatch ? (
+        {isOutfitBatch && !isLoadingBatch && !hasCandidatePicker && garments.length > 0 ? (
           <section className="card" style={{ display: "grid", gap: 8 }}>
             <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
               <span className="pill dark">Outfit photo</span>
@@ -203,23 +170,32 @@ export default function ReviewPage() {
               ) : null}
             </div>
             <p className="subtle" style={{ margin: 0 }}>
-              Review each garment Wearabouts could confidently prepare from the source outfit.
+              Review each item Wearabouts generated from the source outfit.
             </p>
+            <Link className="button secondary" href="/closet" style={{ justifySelf: "start", marginTop: 4 }}>
+              Back to wardrobe
+            </Link>
           </section>
         ) : null}
 
         {isLoadingBatch ? (
           <section className="card">
             <h1 className="app-title">Loading review</h1>
-            <p className="subtle">Fetching the generated closet asset.</p>
+            <p className="subtle">Fetching the generated wardrobe item.</p>
           </section>
         ) : hasCandidatePicker ? (
           <section className="card" style={{ display: "grid", gap: 14 }}>
-            <div>
-              <h1 className="app-title" style={{ fontSize: 24 }}>Choose what to prepare</h1>
-              <p className="subtle" style={{ margin: "6px 0 0" }}>
-                Wearabouts found these pieces in the photo. New tops and bottoms are selected first.
-              </p>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", gap: 12 }}>
+              <div>
+                <h1 className="app-title" style={{ fontSize: 24 }}>Choose items for Wardrobe</h1>
+                <p className="subtle" style={{ margin: "6px 0 0" }}>
+                  Select the pieces Wearabouts should turn into clean wardrobe items. Topwear and bottomwear appear
+                  first so outfits are easier to build.
+                </p>
+              </div>
+              <Link className="button secondary" href="/upload" style={{ minHeight: 36, padding: "9px 13px" }}>
+                Back
+              </Link>
             </div>
 
             {state.activeBatch?.sourceImage ? (
@@ -245,14 +221,14 @@ export default function ReviewPage() {
             >
               <span style={{ display: "grid", gap: 3 }}>
                 <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>
-                  Closet matching
+                  Wardrobe matching
                 </strong>
                 <span className="subtle" style={{ fontSize: 13 }}>
                   Pieces that look saved stay optional.
                 </span>
               </span>
               <span
-                aria-label="Closet matching is on"
+                aria-label="Wardrobe matching is on"
                 style={{
                   borderRadius: 999,
                   background: "var(--ink)",
@@ -270,7 +246,7 @@ export default function ReviewPage() {
             </section>
 
             <CandidateChoiceList
-              title="New closet pieces"
+              title="Ready to generate"
               candidates={primaryCandidates}
               selectedCandidateIds={selectedCandidateIds}
               sourceImage={state.activeBatch?.sourceImage}
@@ -280,7 +256,7 @@ export default function ReviewPage() {
 
             {optionalCandidates.length > 0 ? (
               <CandidateChoiceList
-                title="Optional"
+                title="Looks already saved"
                 candidates={optionalCandidates}
                 selectedCandidateIds={selectedCandidateIds}
                 sourceImage={state.activeBatch?.sourceImage}
@@ -292,20 +268,20 @@ export default function ReviewPage() {
             <button
               type="button"
               className="full-button"
-              disabled={isUpdating}
+              disabled={isUpdating || selectedCandidateIds.length === 0}
               onClick={() => {
                 void handlePrepareSelectedCandidates();
               }}
             >
-              {isUpdating ? "Preparing..." : "Prepare selected pieces"}
+              {isUpdating ? "Generating wardrobe items..." : generateSelectedLabel}
             </button>
           </section>
         ) : garments.length === 0 ? (
           <section className="card">
             <h1 className="app-title">Nothing left to review</h1>
-            <p className="subtle">Approved items are now in your closet.</p>
+            <p className="subtle">Approved items are now in your wardrobe.</p>
             <Link className="full-button" href="/closet" style={{ display: "grid", placeItems: "center", marginTop: 16 }}>
-              Go to closet
+              Go to wardrobe
             </Link>
           </section>
         ) : (
@@ -395,7 +371,7 @@ function CandidateChoiceList({
               <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>{candidate.proposedName}</strong>
               <span className="subtle" style={{ fontSize: 13 }}>
                 {isDuplicate
-                  ? "Looks like something already in Closet. Select it if this is a different piece."
+                  ? "Looks like something already in Wardrobe. Select it if this is a different piece."
                   : candidate.selectionReason}
               </span>
               <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>

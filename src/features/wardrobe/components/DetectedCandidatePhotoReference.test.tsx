@@ -31,20 +31,26 @@ const candidate: GarmentCandidateChoice = {
 };
 
 describe("DetectedCandidatePhotoReference", () => {
-  it("renders the uploaded photo with numbered detection markers", () => {
+  it("renders a compact clean uploaded photo preview without overlay markers", () => {
     const html = renderToStaticMarkup(
       <DetectedCandidatePhotoReference sourceImage={sourceImage} candidates={[candidate]} />,
     );
 
     expect(html).toContain('src="https://signed.example/source.jpg"');
     expect(html).toContain('alt="Uploaded photo outfit.jpg"');
-    expect(html).toContain("Black crew-neck T-shirt detected area");
-    expect(html).toContain("left:50%");
-    expect(html).toContain("top:35%");
-    expect(html).toContain("border-top:1.5px dotted rgba(72,97,76,0.55)");
-    expect(html).toContain("background:rgba(72,97,76,0.78)");
+    expect(html).toContain("object-position:50% 37%");
+    expect(html).not.toContain("detected area");
     expect(html).not.toContain("width:50%");
     expect(html).not.toContain("height:30%");
+  });
+
+  it("summarizes detected pieces without repeating crop chips below the clean photo", () => {
+    const html = renderToStaticMarkup(
+      <DetectedCandidatePhotoReference sourceImage={sourceImage} candidates={[candidate]} />,
+    );
+
+    expect(html).toContain("1 piece found. Review selections below.");
+    expect(html).not.toContain("Detected pieces");
   });
 
   it("renders crop thumbnails zoomed around the candidate center", () => {

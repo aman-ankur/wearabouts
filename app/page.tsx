@@ -20,10 +20,10 @@ export default function HomePage() {
         className="card"
         style={{ minHeight: 240, display: "grid", alignContent: "center", gap: 12, background: "#f2ece2" }}
       >
-        <span className="pill">Travel closet</span>
+        <span className="pill">Travel wardrobe</span>
         <h2 style={{ fontSize: 42, lineHeight: 0.95, margin: 0 }}>Pack looks, not doubts.</h2>
         <p className="subtle" style={{ margin: 0 }}>
-          Upload real clothes, prettify them into closet assets, and build trip-ready outfits.
+          Upload real clothes, prettify them into wardrobe items, and build trip-ready outfits.
         </p>
       </section>
 
@@ -32,7 +32,7 @@ export default function HomePage() {
           Add clothes
         </Link>
         <Link className="button secondary" href="/closet" style={{ display: "grid", placeItems: "center" }}>
-          View closet
+          View wardrobe
         </Link>
       </div>
 

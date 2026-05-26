@@ -1,0 +1,832 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Processing Magic Options</title>
+    <style>
+      :root {
+        --bg: #f6f3ee;
+        --paper: #fffefa;
+        --ink: #111111;
+        --muted: #716b64;
+        --line: #e6ded4;
+        --soft: #efe9df;
+        --blue: #315a7d;
+        --clay: #a46946;
+        --wine: #7d2637;
+        --white: #ffffff;
+        --shadow: 0 18px 45px rgba(20, 20, 20, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 28px 18px 48px;
+      }
+
+      .header {
+        margin-bottom: 22px;
+      }
+
+      .eyebrow {
+        margin: 0 0 8px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 820;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin-top: 0;
+      }
+
+      h1 {
+        margin-bottom: 8px;
+        font-size: clamp(30px, 5vw, 56px);
+        line-height: 0.98;
+      }
+
+      .header p {
+        max-width: 720px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.45;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+
+      .option {
+        display: grid;
+        gap: 12px;
+      }
+
+      .option-note {
+        min-height: 122px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 254, 250, 0.76);
+        padding: 14px;
+      }
+
+      .option-note h2 {
+        margin-bottom: 7px;
+        font-size: 18px;
+      }
+
+      .option-note p {
+        margin-bottom: 0;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .phone {
+        width: min(100%, 360px);
+        min-height: 720px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .screen {
+        min-height: 720px;
+        padding: 18px 16px 20px;
+        display: grid;
+        grid-template-rows: auto auto auto 1fr auto;
+        gap: 14px;
+      }
+
+      .title {
+        margin-bottom: 6px;
+        font-size: 30px;
+        line-height: 1.02;
+        letter-spacing: 0;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.38;
+      }
+
+      .stage {
+        position: relative;
+        min-height: 326px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        overflow: hidden;
+        background:
+          radial-gradient(circle at 50% 48%, rgba(255, 254, 250, 0.98) 0 25%, rgba(239, 230, 211, 0.56) 26% 42%, transparent 43%),
+          linear-gradient(135deg, rgba(49, 90, 125, 0.14), rgba(164, 105, 70, 0.11) 52%, rgba(125, 38, 55, 0.08));
+      }
+
+      .stage::before,
+      .stage::after {
+        content: "";
+        position: absolute;
+        border: 1px solid rgba(17, 17, 17, 0.08);
+        border-radius: 999px;
+      }
+
+      .stage::before {
+        inset: 46px;
+      }
+
+      .stage::after {
+        inset: 92px;
+        border-color: rgba(49, 90, 125, 0.18);
+      }
+
+      .scan {
+        position: absolute;
+        left: 15%;
+        right: 15%;
+        top: 44%;
+        height: 3px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, transparent, rgba(49, 90, 125, 0.82), transparent);
+        box-shadow: 0 0 22px rgba(49, 90, 125, 0.36);
+        animation: scan-sweep 2.8s ease-in-out infinite;
+      }
+
+      .core {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        z-index: 4;
+        width: min(74%, 238px);
+        min-height: 118px;
+        transform: translate(-50%, -50%);
+        border: 1px solid rgba(230, 222, 212, 0.94);
+        border-radius: 999px;
+        background: rgba(255, 254, 250, 0.94);
+        box-shadow: 0 22px 54px rgba(20, 20, 20, 0.16);
+        display: grid;
+        place-items: center;
+        align-content: center;
+        gap: 5px;
+        padding: 20px;
+        text-align: center;
+      }
+
+      .core small {
+        color: var(--clay);
+        font-size: 11px;
+        font-weight: 840;
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .core strong {
+        font-size: 24px;
+        line-height: 1.05;
+      }
+
+      .core span {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .garment {
+        position: absolute;
+        z-index: 2;
+        display: block;
+        box-shadow: 0 12px 26px rgba(20, 20, 20, 0.12);
+        animation: garment-drift 5.5s ease-in-out infinite;
+      }
+
+      .shirt {
+        top: 52px;
+        left: calc(50% - 28px);
+        width: 56px;
+        height: 42px;
+        border: 1px solid rgba(17, 17, 17, 0.1);
+        border-radius: 17px 17px 10px 10px;
+        background: var(--white);
+      }
+
+      .pants {
+        right: 48px;
+        bottom: 86px;
+        width: 32px;
+        height: 58px;
+        border-radius: 12px 12px 16px 16px;
+        background: var(--blue);
+        transform: rotate(-10deg);
+        animation-delay: -1.7s;
+      }
+
+      .shoe {
+        left: 50px;
+        bottom: 76px;
+        width: 58px;
+        height: 20px;
+        border-radius: 999px 999px 999px 8px;
+        background: var(--clay);
+        transform: rotate(-12deg);
+        animation-delay: -3.2s;
+      }
+
+      .chip {
+        position: absolute;
+        z-index: 5;
+        max-width: 132px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: rgba(255, 254, 250, 0.96);
+        box-shadow: 0 10px 24px rgba(20, 20, 20, 0.1);
+        padding: 7px 10px;
+        font-size: 11px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .chip.left-top {
+        left: 18px;
+        top: 28px;
+      }
+
+      .chip.right-top {
+        right: 18px;
+        top: 88px;
+        animation-delay: -1.2s;
+      }
+
+      .chip.left-bottom {
+        left: 26px;
+        bottom: 28px;
+        animation-delay: -2.4s;
+      }
+
+      .chip.right-bottom {
+        right: 24px;
+        bottom: 30px;
+        animation-delay: -3.6s;
+      }
+
+      .side-panel {
+        position: absolute;
+        right: 12px;
+        top: 14px;
+        z-index: 6;
+        width: 128px;
+        display: grid;
+        gap: 7px;
+      }
+
+      .mini-log {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 254, 250, 0.92);
+        padding: 8px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 760;
+        line-height: 1.25;
+      }
+
+      .mini-log strong {
+        display: block;
+        color: var(--ink);
+        font-size: 11px;
+      }
+
+      .activity-rail {
+        display: flex;
+        gap: 7px;
+        overflow: hidden;
+        margin-top: -2px;
+      }
+
+      .rail-chip {
+        flex: 0 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--white);
+        padding: 7px 10px;
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 780;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .timeline-line {
+        position: relative;
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 4px;
+        padding-top: 18px;
+      }
+
+      .timeline-line::before {
+        content: "";
+        position: absolute;
+        left: 10%;
+        right: 10%;
+        top: 8px;
+        height: 2px;
+        background: var(--line);
+      }
+
+      .timeline-line::after {
+        content: "";
+        position: absolute;
+        left: 10%;
+        top: 8px;
+        width: 34%;
+        height: 2px;
+        background: var(--blue);
+      }
+
+      .step {
+        position: relative;
+        display: grid;
+        justify-items: center;
+        gap: 5px;
+        color: var(--muted);
+        font-size: 10px;
+        font-weight: 780;
+        text-align: center;
+        line-height: 1.15;
+      }
+
+      .dot {
+        position: absolute;
+        top: -15px;
+        width: 18px;
+        height: 18px;
+        border: 2px solid var(--paper);
+        border-radius: 999px;
+        background: var(--line);
+        box-shadow: 0 0 0 1px var(--line);
+      }
+
+      .done .dot {
+        background: var(--ink);
+        box-shadow: 0 0 0 1px var(--ink);
+      }
+
+      .active .dot {
+        background: var(--blue);
+        box-shadow: 0 0 0 4px rgba(49, 90, 125, 0.14);
+      }
+
+      .active {
+        color: var(--blue);
+      }
+
+      .progress-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: rgba(255, 255, 255, 0.66);
+        padding: 12px;
+      }
+
+      .progress-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .progress-head strong {
+        font-size: 13px;
+      }
+
+      .progress-head span {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .bar {
+        height: 8px;
+        border-radius: 999px;
+        background: var(--soft);
+        overflow: hidden;
+      }
+
+      .bar span {
+        display: block;
+        width: 42%;
+        height: 100%;
+        border-radius: inherit;
+        background: linear-gradient(90deg, var(--blue), var(--clay));
+        animation: progress-breathe 2.6s ease-in-out infinite;
+      }
+
+      .footer-status {
+        display: grid;
+        gap: 8px;
+      }
+
+      .status-pill {
+        min-height: 48px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--ink);
+        color: var(--white);
+        font-weight: 840;
+      }
+
+      .back {
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        color: var(--ink);
+        font-weight: 820;
+        background: var(--white);
+      }
+
+      .variant-a .stage {
+        min-height: 326px;
+        background:
+          radial-gradient(circle at 18% 24%, rgba(255, 255, 255, 0.62), transparent 22%),
+          radial-gradient(circle at 78% 72%, rgba(164, 105, 70, 0.16), transparent 24%),
+          linear-gradient(135deg, rgba(49, 90, 125, 0.1), rgba(246, 243, 238, 0.82) 46%, rgba(125, 38, 55, 0.08));
+      }
+
+      .variant-a .stage::before {
+        inset: 46px;
+        animation: ring-pulse 4.2s ease-in-out infinite;
+      }
+
+      .variant-a .stage::after {
+        inset: 90px;
+        animation: ring-pulse 4.2s ease-in-out infinite reverse;
+      }
+
+      .variant-a .core {
+        width: min(70%, 230px);
+        min-height: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        gap: 4px;
+        z-index: 4;
+      }
+
+      .variant-a .core strong {
+        font-size: 28px;
+        letter-spacing: 0;
+        text-shadow: 0 2px 18px rgba(255, 254, 250, 0.88);
+      }
+
+      .variant-a .core span {
+        text-shadow: 0 2px 14px rgba(255, 254, 250, 0.82);
+      }
+
+      .variant-a .shirt {
+        top: 54px;
+        left: 50%;
+        z-index: 3;
+        transform: translateX(-50%);
+      }
+
+      .variant-a .pants {
+        right: 54px;
+        bottom: 92px;
+        z-index: 3;
+      }
+
+      .variant-a .shoe {
+        left: 54px;
+        bottom: 78px;
+        z-index: 3;
+      }
+
+      .variant-a .chip {
+        max-width: none;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        padding: 0;
+        color: rgba(17, 17, 17, 0.78);
+        font-size: 12px;
+        font-weight: 840;
+        text-shadow: 0 2px 14px rgba(255, 254, 250, 0.96);
+        animation: word-float 4.8s ease-in-out infinite;
+      }
+
+      .variant-a .chip.left-top {
+        left: 22px;
+        top: 28px;
+      }
+
+      .variant-a .chip.right-top {
+        right: 18px;
+        top: 52px;
+      }
+
+      .variant-a .chip.left-bottom {
+        left: 26px;
+        bottom: 32px;
+      }
+
+      .variant-a .chip.right-bottom {
+        right: 24px;
+        bottom: 36px;
+      }
+
+      .variant-a .status-pill {
+        min-height: 22px;
+        background: transparent;
+        color: var(--muted);
+        font-size: 13px;
+        font-weight: 780;
+      }
+
+      .variant-b .stage {
+        min-height: 300px;
+      }
+
+      .variant-b .core {
+        left: 39%;
+        width: 190px;
+      }
+
+      .variant-b .chip {
+        display: none;
+      }
+
+      .variant-c .stage {
+        min-height: 260px;
+        background:
+          radial-gradient(circle at 50% 52%, rgba(255, 254, 250, 0.96) 0 27%, transparent 28%),
+          linear-gradient(135deg, rgba(49, 90, 125, 0.12), rgba(239, 230, 211, 0.66));
+      }
+
+      .variant-c .core {
+        width: 215px;
+      }
+
+      .variant-c .chip,
+      .variant-c .side-panel {
+        display: none;
+      }
+
+      @keyframes word-float {
+        0%,
+        100% {
+          transform: translate3d(0, 0, 0);
+          opacity: 0.58;
+        }
+        50% {
+          transform: translate3d(0, -8px, 0);
+          opacity: 1;
+        }
+      }
+
+      @keyframes garment-drift {
+        0%,
+        100% {
+          translate: 0 0;
+        }
+        50% {
+          translate: 0 -10px;
+        }
+      }
+
+      @keyframes scan-sweep {
+        0%,
+        100% {
+          transform: translateY(-56px);
+          opacity: 0;
+        }
+        20%,
+        82% {
+          opacity: 0.9;
+        }
+        50% {
+          transform: translateY(72px);
+        }
+      }
+
+      @keyframes ring-pulse {
+        0%,
+        100% {
+          transform: scale(0.96);
+          opacity: 0.35;
+        }
+        50% {
+          transform: scale(1.04);
+          opacity: 0.86;
+        }
+      }
+
+      @keyframes progress-breathe {
+        0%,
+        100% {
+          filter: saturate(0.85);
+        }
+        50% {
+          filter: saturate(1.25);
+        }
+      }
+
+      @media (max-width: 980px) {
+        .grid {
+          grid-template-columns: 1fr;
+        }
+
+        .option-note {
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main class="page">
+      <header class="header">
+        <p class="eyebrow">Wearabouts Processing Screen</p>
+        <h1>Cleaner magic options</h1>
+        <p>
+          These mockups fix the current overlap problem by separating the magic stage, activity language, and progress state.
+          The disabled bottom button becomes a simple status pill, and the boxed step cards become lighter progress treatments.
+        </p>
+      </header>
+
+      <section class="grid">
+        <article class="option variant-a">
+          <div class="option-note">
+            <h2>Option A: Spacious Magic Stage</h2>
+            <p>
+              Floating labels are just text now, with no pills or cards. The center state has no background, so the
+              clothes stay visible and the animation feels cleaner.
+            </p>
+          </div>
+          <div class="phone">
+            <div class="screen">
+              <div>
+                <h3 class="title">Making wardrobe magic</h3>
+                <p class="subtle">Finding visible pieces and preparing wardrobe-ready items.</p>
+              </div>
+              <div class="stage">
+                <span class="garment shirt"></span>
+                <span class="garment pants"></span>
+                <span class="garment shoe"></span>
+                <span class="scan"></span>
+                <span class="chip left-top">Checking edges</span>
+                <span class="chip right-top">Lifting background</span>
+                <span class="chip left-bottom">Color preserved</span>
+                <span class="chip right-bottom">Preparing review</span>
+                <div class="core">
+                  <small>Working</small>
+                  <strong>Finding visible pieces</strong>
+                  <span>Detect garments</span>
+                </div>
+              </div>
+              <div class="timeline">
+                <div class="timeline-line">
+                  <div class="step done"><span class="dot"></span>Upload</div>
+                  <div class="step active"><span class="dot"></span>Detect</div>
+                  <div class="step"><span class="dot"></span>Prettify</div>
+                  <div class="step"><span class="dot"></span>Validate</div>
+                  <div class="step"><span class="dot"></span>Review</div>
+                </div>
+              </div>
+              <div></div>
+              <div class="footer-status">
+                <div class="status-pill">Auto-opens review when ready</div>
+                <div class="back">Back to upload</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="option variant-b">
+          <div class="option-note">
+            <h2>Option B: Magic Plus Activity Rail</h2>
+            <p>
+              The stage stays cleaner because activity text moves into a small right-side rail and a single horizontal
+              ticker below the stage. This is closest to Claude-style work notes without visual collision.
+            </p>
+          </div>
+          <div class="phone">
+            <div class="screen">
+              <div>
+                <h3 class="title">Preparing outfit items</h3>
+                <p class="subtle">Scanning what is clear, then cleaning only useful wardrobe pieces.</p>
+              </div>
+              <div class="stage">
+                <span class="garment shirt"></span>
+                <span class="garment pants"></span>
+                <span class="garment shoe"></span>
+                <span class="scan"></span>
+                <div class="side-panel">
+                  <div class="mini-log"><strong>Found</strong>Topwear candidate</div>
+                  <div class="mini-log"><strong>Matched</strong>Likely saved pieces</div>
+                  <div class="mini-log"><strong>Next</strong>Background lift</div>
+                </div>
+                <div class="core">
+                  <small>Working</small>
+                  <strong>Cleaning assets</strong>
+                  <span>Prettify garments</span>
+                </div>
+              </div>
+              <div class="activity-rail" aria-hidden="true">
+                <span class="rail-chip">Hemming pixels</span>
+                <span class="rail-chip">Folding into wardrobe shape</span>
+                <span class="rail-chip">Preserving color</span>
+              </div>
+              <div class="progress-card">
+                <div class="progress-head">
+                  <strong>Detect garments</strong>
+                  <span>2 of 5</span>
+                </div>
+                <div class="bar"><span></span></div>
+              </div>
+              <div class="footer-status">
+                <div class="status-pill">Processing photo</div>
+                <div class="back">Back to upload</div>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="option variant-c">
+          <div class="option-note">
+            <h2>Option C: Minimal Chic</h2>
+            <p>
+              Lowest cognitive load. One central animation, one current action, and a clean progress bar. Best if we want
+              the screen to feel premium and calm instead of busy.
+            </p>
+          </div>
+          <div class="phone">
+            <div class="screen">
+              <div>
+                <h3 class="title">Scanning photo</h3>
+                <p class="subtle">Wearabouts is finding clear pieces for review.</p>
+              </div>
+              <div class="stage">
+                <span class="garment shirt"></span>
+                <span class="garment pants"></span>
+                <span class="scan"></span>
+                <div class="core">
+                  <small>Current step</small>
+                  <strong>Detect garments</strong>
+                  <span>Finding visible pieces</span>
+                </div>
+              </div>
+              <div class="progress-card">
+                <div class="progress-head">
+                  <strong>Upload complete</strong>
+                  <span>Detecting now</span>
+                </div>
+                <div class="bar"><span></span></div>
+              </div>
+              <div class="timeline">
+                <div class="timeline-line">
+                  <div class="step done"><span class="dot"></span>Upload</div>
+                  <div class="step active"><span class="dot"></span>Detect</div>
+                  <div class="step"><span class="dot"></span>Clean</div>
+                  <div class="step"><span class="dot"></span>Check</div>
+                  <div class="step"><span class="dot"></span>Review</div>
+                </div>
+              </div>
+              <div class="footer-status">
+                <div class="status-pill">Moving to review when ready</div>
+                <div class="back">Back to upload</div>
+              </div>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

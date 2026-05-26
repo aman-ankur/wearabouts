@@ -11,7 +11,7 @@ export async function GET() {
     return NextResponse.json({ closetItems });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not load closet." },
+      { error: error instanceof Error ? error.message : "Could not load wardrobe." },
       { status: 500 },
     );
   }

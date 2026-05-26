@@ -103,7 +103,7 @@ describe("createDevCachedUpload", () => {
         uploadedFilename: "test upload.jpg",
       }),
     ).rejects.toThrow(
-      "Dev mode needs at least one cached closet item.",
+      "Dev mode needs at least one cached wardrobe item.",
     );
   });
 });
