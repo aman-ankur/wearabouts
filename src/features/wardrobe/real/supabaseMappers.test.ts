@@ -14,9 +14,13 @@ describe("supabaseMappers", () => {
     expect(mapSupabaseUploadBatch(row, [])).toEqual({
       id: "batch-real-1",
       sourceType: "item_photo",
+      extractionMode: "single_item",
+      skipExistingItems: true,
       title: "Real item upload",
       createdAtIso: "2026-05-26T10:00:00.000Z",
       detectedGarments: [],
+      candidateSummary: undefined,
+      garmentCandidates: undefined,
     });
   });
 

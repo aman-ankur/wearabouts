@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import type { GarmentCandidateChoice } from "@/src/domain/wardrobe";
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { DetectedGarmentCard } from "@/src/features/wardrobe/components/DetectedGarmentCard";
@@ -11,6 +12,8 @@ import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 export default function ReviewPage() {
   const router = useRouter();
   const params = useParams<{ batchId: string }>();
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get("jobId");
   const runtimeMode = getRuntimeMode();
   const {
     state,
@@ -21,6 +24,7 @@ export default function ReviewPage() {
     loadRealBatch,
     addRealGarment,
     retryRealGarment,
+    generateRealCandidates,
   } = useWardrobe();
   const isPersistentMode = runtimeMode === "real" || runtimeMode === "dev";
   const [isLoadingBatch, setIsLoadingBatch] = useState(isPersistentMode);
@@ -29,6 +33,15 @@ export default function ReviewPage() {
   const garments = state.activeBatch?.detectedGarments ?? [];
   const isOutfitBatch = state.activeBatch?.sourceType === "outfit_photo";
   const candidateSummary = state.activeBatch?.candidateSummary;
+  const candidateChoices = useMemo(() => state.activeBatch?.garmentCandidates ?? [], [state.activeBatch]);
+  const hasCandidatePicker = isPersistentMode && isOutfitBatch && garments.length === 0 && candidateChoices.length > 0;
+  const primaryCandidates = candidateChoices.filter((candidate) =>
+    ["primary", "selected", "skipped_existing"].includes(candidate.selectionStatus),
+  );
+  const optionalCandidates = candidateChoices.filter((candidate) =>
+    ["optional", "not_recommended"].includes(candidate.selectionStatus),
+  );
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
 
   useEffect(() => {
     if (!isPersistentMode) {
@@ -46,6 +59,18 @@ export default function ReviewPage() {
         setIsLoadingBatch(false);
       });
   }, [isPersistentMode, loadRealBatch, params.batchId]);
+
+  useEffect(() => {
+    if (!hasCandidatePicker) {
+      return;
+    }
+
+    setSelectedCandidateIds(
+      candidateChoices
+        .filter((candidate) => candidate.selectionStatus === "primary" || candidate.selectionStatus === "selected")
+        .map((candidate) => candidate.id),
+    );
+  }, [candidateChoices, hasCandidatePicker]);
 
   async function handleAddAll() {
     if (isPersistentMode) {
@@ -103,6 +128,34 @@ export default function ReviewPage() {
     void retryGarment(garmentId);
   }
 
+  async function handlePrepareSelectedCandidates() {
+    if (!jobId) {
+      setReviewError("Open this review from the processing screen to prepare selected pieces.");
+      return;
+    }
+    if (selectedCandidateIds.length === 0) {
+      setReviewError("Choose at least one piece to prepare.");
+      return;
+    }
+
+    setIsUpdating(true);
+    setReviewError(null);
+    try {
+      await generateRealCandidates(jobId, selectedCandidateIds);
+      await loadRealBatch(params.batchId);
+    } catch (error) {
+      setReviewError(error instanceof Error ? error.message : "Could not prepare selected pieces.");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  function toggleCandidate(candidateId: string) {
+    setSelectedCandidateIds((current) =>
+      current.includes(candidateId) ? current.filter((id) => id !== candidateId) : [...current, candidateId],
+    );
+  }
+
   return (
     <AppShell>
       <div className="appbar">
@@ -150,6 +203,42 @@ export default function ReviewPage() {
             <h1 className="app-title">Loading review</h1>
             <p className="subtle">Fetching the generated closet asset.</p>
           </section>
+        ) : hasCandidatePicker ? (
+          <section className="card" style={{ display: "grid", gap: 14 }}>
+            <div>
+              <h1 className="app-title" style={{ fontSize: 24 }}>Choose what to prepare</h1>
+              <p className="subtle" style={{ margin: "6px 0 0" }}>
+                Wearabouts found these pieces in the photo. New tops and bottoms are selected first.
+              </p>
+            </div>
+
+            <CandidateChoiceList
+              title="New closet pieces"
+              candidates={primaryCandidates}
+              selectedCandidateIds={selectedCandidateIds}
+              onToggle={toggleCandidate}
+            />
+
+            {optionalCandidates.length > 0 ? (
+              <CandidateChoiceList
+                title="Optional"
+                candidates={optionalCandidates}
+                selectedCandidateIds={selectedCandidateIds}
+                onToggle={toggleCandidate}
+              />
+            ) : null}
+
+            <button
+              type="button"
+              className="full-button"
+              disabled={isUpdating}
+              onClick={() => {
+                void handlePrepareSelectedCandidates();
+              }}
+            >
+              {isUpdating ? "Preparing..." : "Prepare selected pieces"}
+            </button>
+          </section>
         ) : garments.length === 0 ? (
           <section className="card">
             <h1 className="app-title">Nothing left to review</h1>
@@ -175,5 +264,93 @@ export default function ReviewPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+function CandidateChoiceList({
+  title,
+  candidates,
+  selectedCandidateIds,
+  onToggle,
+}: {
+  title: string;
+  candidates: GarmentCandidateChoice[];
+  selectedCandidateIds: string[];
+  onToggle: (candidateId: string) => void;
+}) {
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      <span
+        style={{
+          color: "var(--muted)",
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+        }}
+      >
+        {title}
+      </span>
+      {candidates.map((candidate) => {
+        const isSelected = selectedCandidateIds.includes(candidate.id);
+        const isOptional = candidate.selectionStatus === "optional" || candidate.selectionStatus === "not_recommended";
+        const isDuplicate = candidate.selectionStatus === "skipped_existing";
+        return (
+          <button
+            key={candidate.id}
+            type="button"
+            onClick={() => onToggle(candidate.id)}
+            style={{
+              width: "100%",
+              border: `1px solid ${isSelected ? "var(--ink)" : "var(--line)"}`,
+              borderRadius: 8,
+              background: "var(--paper)",
+              padding: 12,
+              textAlign: "left",
+              display: "grid",
+              gridTemplateColumns: "24px minmax(0, 1fr)",
+              gap: 10,
+              alignItems: "start",
+            }}
+          >
+            <span
+              aria-hidden="true"
+              style={{
+                width: 22,
+                height: 22,
+                borderRadius: 999,
+                border: `2px solid ${isSelected ? "var(--ink)" : "var(--muted)"}`,
+                display: "grid",
+                placeItems: "center",
+                background: isSelected ? "var(--ink)" : "transparent",
+                color: "var(--white)",
+                fontSize: 11,
+                fontWeight: 900,
+              }}
+            >
+              {isSelected ? "ok" : ""}
+            </span>
+            <span style={{ display: "grid", gap: 5 }}>
+              <strong style={{ color: "var(--ink)", fontSize: 15 }}>{candidate.proposedName}</strong>
+              <span className="subtle" style={{ fontSize: 13 }}>
+                {isDuplicate
+                  ? "Looks like something already in Closet. Select it if this is a different piece."
+                  : candidate.selectionReason}
+              </span>
+              <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <span className={isDuplicate ? "pill" : isOptional ? "pill" : "pill dark"}>
+                  {isDuplicate ? "Already in Closet" : isOptional ? "Optional" : "Selected first"}
+                </span>
+                <span className="pill">{candidate.category}</span>
+              </span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }

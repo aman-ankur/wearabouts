@@ -1,0 +1,1022 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Phase 5.1 Smart Extraction Selection</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --ink: #161512;
+        --muted: #68625a;
+        --quiet: #938b81;
+        --paper: #fbfaf7;
+        --panel: #ffffff;
+        --line: #ddd4c8;
+        --wash: #f1ebe2;
+        --dark: #111111;
+        --green: #45614d;
+        --blue: #245b91;
+        --wine: #8d2436;
+        --amber: #8a6432;
+        --sage: #dce6d8;
+        --sky: #dce9f4;
+        --rose: #f0dce0;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #ebe6de;
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      main {
+        width: min(1240px, 100%);
+        margin: 0 auto;
+        padding: 32px 18px 54px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      .intro {
+        max-width: 900px;
+        display: grid;
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+
+      .intro h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        line-height: 1.04;
+      }
+
+      .intro p {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 22px;
+        align-items: start;
+      }
+
+      .concept {
+        display: grid;
+        gap: 12px;
+      }
+
+      .concept h2 {
+        font-size: 19px;
+        line-height: 1.18;
+      }
+
+      .concept > p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+        min-height: 40px;
+      }
+
+      .phone {
+        width: min(390px, 100%);
+        min-height: 780px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        overflow: hidden;
+        box-shadow: 0 20px 46px rgba(24, 19, 14, 0.12);
+      }
+
+      .screen {
+        min-height: 780px;
+        padding: 24px 18px 86px;
+        display: grid;
+        align-content: start;
+        gap: 16px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .title {
+        font-size: 26px;
+        line-height: 1.08;
+        font-weight: 850;
+      }
+
+      .subtitle {
+        margin-top: 7px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.42;
+      }
+
+      .mode {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        padding: 0 14px;
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 15px;
+        display: grid;
+        gap: 13px;
+      }
+
+      .eyebrow {
+        color: var(--quiet);
+        font-size: 12px;
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 850;
+      }
+
+      .upload {
+        min-height: 154px;
+        border: 1px dashed #d6c9bb;
+        border-radius: 8px;
+        background: #fffdf9;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 20px;
+        gap: 8px;
+      }
+
+      .photo-icon {
+        width: 38px;
+        height: 38px;
+        border: 2px solid var(--ink);
+        border-radius: 7px;
+        position: relative;
+      }
+
+      .photo-icon::before {
+        content: "";
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        right: 7px;
+        top: 7px;
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+      }
+
+      .photo-icon::after {
+        content: "";
+        position: absolute;
+        left: 7px;
+        right: 7px;
+        bottom: 7px;
+        height: 14px;
+        border-left: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        transform: skew(-23deg);
+      }
+
+      .upload strong {
+        font-size: 18px;
+      }
+
+      .upload span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .choice-list {
+        display: grid;
+        gap: 10px;
+      }
+
+      .choice {
+        min-height: 76px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf9;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .choice.selected {
+        border-color: var(--dark);
+        box-shadow: inset 0 0 0 1px var(--dark);
+      }
+
+      .radio {
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--quiet);
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+      }
+
+      .selected .radio {
+        border-color: var(--dark);
+      }
+
+      .selected .radio::before {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--dark);
+      }
+
+      .choice-copy {
+        display: grid;
+        gap: 2px;
+      }
+
+      .choice-copy strong {
+        font-size: 14px;
+      }
+
+      .choice-copy span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .hint {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .primary {
+        min-height: 50px;
+        width: 100%;
+        border: 0;
+        border-radius: 999px;
+        background: var(--dark);
+        color: #fff;
+        font-size: 15px;
+        font-weight: 850;
+      }
+
+      .secondary {
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      .scan-layout {
+        display: grid;
+        grid-template-columns: 134px minmax(0, 1fr);
+        gap: 12px;
+        align-items: start;
+      }
+
+      .source-photo {
+        height: 236px;
+        border-radius: 8px;
+        background:
+          linear-gradient(180deg, rgba(255, 255, 255, 0.2), transparent),
+          #e4dfd6;
+        border: 1px solid var(--line);
+        position: relative;
+        overflow: hidden;
+      }
+
+      .person {
+        position: absolute;
+        left: 36px;
+        top: 24px;
+        width: 62px;
+        height: 190px;
+      }
+
+      .head {
+        width: 30px;
+        height: 30px;
+        border-radius: 999px;
+        background: #b9896f;
+        margin: 0 auto;
+      }
+
+      .torso {
+        width: 58px;
+        height: 72px;
+        margin: 2px auto 0;
+        border-radius: 15px 15px 8px 8px;
+        background: #f4f1ec;
+        border: 2px solid #245b91;
+      }
+
+      .legs {
+        width: 54px;
+        height: 82px;
+        margin: 0 auto;
+        border-radius: 0 0 12px 12px;
+        background: #3b577d;
+      }
+
+      .feet {
+        width: 66px;
+        height: 14px;
+        margin: 1px auto 0;
+        border-radius: 999px;
+        background: #f7f7f4;
+      }
+
+      .box {
+        position: absolute;
+        border: 2px solid var(--blue);
+        border-radius: 7px;
+        background: rgba(36, 91, 145, 0.08);
+      }
+
+      .box.top {
+        left: 30px;
+        top: 52px;
+        width: 74px;
+        height: 78px;
+      }
+
+      .box.jeans {
+        left: 34px;
+        top: 126px;
+        width: 66px;
+        height: 84px;
+        border-color: var(--green);
+        background: rgba(69, 97, 77, 0.08);
+      }
+
+      .box.shoes {
+        left: 26px;
+        top: 206px;
+        width: 82px;
+        height: 20px;
+        border-color: var(--amber);
+        background: rgba(138, 100, 50, 0.08);
+      }
+
+      .detected-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .detected-item {
+        min-height: 58px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf9;
+        padding: 9px;
+        display: grid;
+        grid-template-columns: 34px minmax(0, 1fr);
+        gap: 9px;
+        align-items: center;
+      }
+
+      .detected-item.dim {
+        opacity: 0.72;
+      }
+
+      .swatch {
+        width: 34px;
+        height: 34px;
+        border-radius: 8px;
+        border: 1px solid rgba(0, 0, 0, 0.1);
+      }
+
+      .swatch.white {
+        background: #f6f1e9;
+      }
+
+      .swatch.denim {
+        background: #3b577d;
+      }
+
+      .swatch.shoe {
+        background: #f3f0ea;
+      }
+
+      .swatch.watch {
+        background: #1f2020;
+      }
+
+      .item-copy {
+        display: grid;
+        gap: 3px;
+      }
+
+      .item-copy strong {
+        font-size: 13px;
+      }
+
+      .item-copy span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.25;
+      }
+
+      .pill-row {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+      }
+
+      .pill {
+        min-height: 25px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 9px;
+        background: var(--wash);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .pill.dark {
+        background: var(--dark);
+        color: #fff;
+      }
+
+      .pill.green {
+        background: var(--sage);
+        color: #2d4f36;
+      }
+
+      .pill.blue {
+        background: var(--sky);
+        color: #224d77;
+      }
+
+      .pill.wine {
+        background: var(--rose);
+        color: var(--wine);
+      }
+
+      .row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+      }
+
+      .toggle {
+        width: 48px;
+        height: 28px;
+        border-radius: 999px;
+        background: var(--dark);
+        padding: 3px;
+        display: flex;
+        justify-content: flex-end;
+      }
+
+      .toggle::before {
+        content: "";
+        width: 22px;
+        height: 22px;
+        border-radius: 999px;
+        background: #fff;
+      }
+
+      .pick-card {
+        min-height: 82px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf9;
+        padding: 11px;
+        display: grid;
+        grid-template-columns: 40px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .pick-card.selected {
+        border-color: var(--dark);
+        box-shadow: inset 0 0 0 1px var(--dark);
+      }
+
+      .check {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        border: 2px solid var(--quiet);
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 900;
+        color: transparent;
+      }
+
+      .pick-card.selected .check {
+        background: var(--dark);
+        border-color: var(--dark);
+        color: #fff;
+      }
+
+      .estimate-bar {
+        border-radius: 8px;
+        background: #f7f2ea;
+        border: 1px solid var(--line);
+        padding: 12px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .bar {
+        height: 8px;
+        border-radius: 999px;
+        background: var(--wash);
+        overflow: hidden;
+      }
+
+      .bar span {
+        display: block;
+        height: 100%;
+        width: 36%;
+        background: var(--green);
+        border-radius: inherit;
+      }
+
+      .closet-strip {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 8px;
+      }
+
+      .closet-mini {
+        min-height: 96px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf9;
+        padding: 9px;
+        display: grid;
+        align-content: start;
+        gap: 7px;
+      }
+
+      .mini-art {
+        height: 45px;
+        border-radius: 8px;
+        background: var(--wash);
+      }
+
+      .mini-art.top {
+        background: linear-gradient(90deg, #ffffff 0 45%, #245b91 45% 55%, #ffffff 55%);
+      }
+
+      .mini-art.jeans {
+        background: #3b577d;
+      }
+
+      .mini-art.shoes {
+        background: #eee9df;
+      }
+
+      .closet-mini strong {
+        font-size: 11px;
+        line-height: 1.2;
+      }
+
+      .closet-mini span {
+        color: var(--muted);
+        font-size: 10px;
+        line-height: 1.2;
+      }
+
+      .timeline {
+        display: grid;
+        gap: 10px;
+      }
+
+      .time-row {
+        display: grid;
+        grid-template-columns: 28px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .dot {
+        width: 24px;
+        height: 24px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--wash);
+        color: var(--muted);
+        font-size: 11px;
+        font-weight: 900;
+      }
+
+      .dot.active {
+        background: var(--green);
+        color: #fff;
+      }
+
+      .time-row strong {
+        font-size: 13px;
+      }
+
+      .time-row span {
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .note {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.45;
+      }
+
+      .bottom-nav {
+        margin-top: 4px;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+        color: var(--quiet);
+        font-size: 11px;
+        text-align: center;
+      }
+
+      .bottom-nav span {
+        min-height: 34px;
+        display: grid;
+        place-items: center;
+        border-radius: 999px;
+        background: #f4efe7;
+      }
+
+      @media (max-width: 430px) {
+        main {
+          padding-inline: 12px;
+        }
+
+        .screen {
+          padding-inline: 16px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro">
+        <h1>Smart extraction should prepare only the garment the user actually wants.</h1>
+        <p>
+          The right default is not "generate the outfit." It is "scan the photo, identify what is new or requested,
+          and prepare only those pieces." This prevents the same jeans or shoes from being regenerated across ten
+          different T-shirt photos.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="concept">
+          <h2>1. Upload starts with intent, not source type</h2>
+          <p>The user chooses the job: pick after scan, new tops, new bottoms, or core outfit. Shoes are off by default.</p>
+          <div class="phone">
+            <div class="screen">
+              <div class="topbar">
+                <div>
+                  <h3 class="title">Add clothing</h3>
+                  <p class="subtitle">Wearabouts scans first, then lets you choose what becomes a closet item.</p>
+                </div>
+                <button class="mode" type="button">Real</button>
+              </div>
+
+              <section class="panel">
+                <span class="eyebrow">Photo</span>
+                <div class="upload">
+                  <div class="photo-icon" aria-hidden="true"></div>
+                  <strong>Choose outfit photo</strong>
+                  <span>One photo can contain repeated jeans, shoes, and one new piece.</span>
+                </div>
+              </section>
+
+              <section class="panel">
+                <span class="eyebrow">What should Wearabouts prepare?</span>
+                <div class="choice-list">
+                  <div class="choice selected">
+                    <div class="radio" aria-hidden="true"></div>
+                    <div class="choice-copy">
+                      <strong>Pick after scan</strong>
+                      <span>See detected pieces first, then choose exactly one or more.</span>
+                    </div>
+                    <span class="hint">Default</span>
+                  </div>
+                  <div class="choice">
+                    <div class="radio" aria-hidden="true"></div>
+                    <div class="choice-copy">
+                      <strong>New tops only</strong>
+                      <span>Best for 10 photos with the same jeans.</span>
+                    </div>
+                    <span class="hint">Focused</span>
+                  </div>
+                  <div class="choice">
+                    <div class="radio" aria-hidden="true"></div>
+                    <div class="choice-copy">
+                      <strong>New bottoms only</strong>
+                      <span>Use this when the top is already in Closet.</span>
+                    </div>
+                    <span class="hint">Focused</span>
+                  </div>
+                  <div class="choice">
+                    <div class="radio" aria-hidden="true"></div>
+                    <div class="choice-copy">
+                      <strong>Core outfit</strong>
+                      <span>Top and bottoms. Shoes only if selected later.</span>
+                    </div>
+                    <span class="hint">Core</span>
+                  </div>
+                </div>
+              </section>
+
+              <button class="primary" type="button">Scan photo</button>
+              <div class="bottom-nav">
+                <span>Home</span>
+                <span>Upload</span>
+                <span>Closet</span>
+                <span>Trips</span>
+              </div>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <h2>2. After scan, show concrete choices and likely duplicates</h2>
+          <p>The model detects broadly, but the user decides what gets generated. Existing jeans and shoes are easy to skip.</p>
+          <div class="phone">
+            <div class="screen">
+              <div class="topbar">
+                <div>
+                  <h3 class="title">Choose pieces</h3>
+                  <p class="subtitle">Wearabouts found four visible things. Preparing one item keeps this quick.</p>
+                </div>
+                <button class="mode" type="button">Scan</button>
+              </div>
+
+              <section class="panel">
+                <div class="scan-layout">
+                  <div class="source-photo">
+                    <div class="person" aria-hidden="true">
+                      <div class="head"></div>
+                      <div class="torso"></div>
+                      <div class="legs"></div>
+                      <div class="feet"></div>
+                    </div>
+                    <div class="box top" aria-hidden="true"></div>
+                    <div class="box jeans" aria-hidden="true"></div>
+                    <div class="box shoes" aria-hidden="true"></div>
+                  </div>
+                  <div class="detected-list">
+                    <div class="detected-item">
+                      <div class="swatch white"></div>
+                      <div class="item-copy">
+                        <strong>White graphic T-shirt</strong>
+                        <span>New candidate</span>
+                        <div class="pill-row"><span class="pill green">Recommended</span></div>
+                      </div>
+                    </div>
+                    <div class="detected-item dim">
+                      <div class="swatch denim"></div>
+                      <div class="item-copy">
+                        <strong>Straight blue jeans</strong>
+                        <span>Looks like an item in Closet</span>
+                        <div class="pill-row"><span class="pill blue">Skip duplicate</span></div>
+                      </div>
+                    </div>
+                    <div class="detected-item dim">
+                      <div class="swatch shoe"></div>
+                      <div class="item-copy">
+                        <strong>White sneakers</strong>
+                        <span>Shoes are not prepared by default</span>
+                      </div>
+                    </div>
+                    <div class="detected-item dim">
+                      <div class="swatch watch"></div>
+                      <div class="item-copy">
+                        <strong>Dark smartwatch</strong>
+                        <span>Accessory, saved for later</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="row">
+                  <div>
+                    <strong>Skip items already in Closet</strong>
+                    <p class="note">You can still tap a skipped piece to force generation.</p>
+                  </div>
+                  <div class="toggle" aria-hidden="true"></div>
+                </div>
+              </section>
+
+              <button class="primary" type="button">Prepare selected T-shirt</button>
+              <button class="secondary" type="button">Select more pieces</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <h2>3. Pants-only when the top already exists</h2>
+          <p>If the user wants jeans from an outfit photo, they can pick the pants after scan and ignore the known top.</p>
+          <div class="phone">
+            <div class="screen">
+              <div class="topbar">
+                <div>
+                  <h3 class="title">Pick one piece</h3>
+                  <p class="subtitle">Choose the garment to turn into a clean closet asset.</p>
+                </div>
+                <button class="mode" type="button">1 item</button>
+              </div>
+
+              <section class="panel">
+                <span class="eyebrow">Detected in this photo</span>
+                <div class="choice-list">
+                  <div class="pick-card">
+                    <div class="swatch white"></div>
+                    <div class="item-copy">
+                      <strong>White linen shirt</strong>
+                      <span>Already in Closet from May 22</span>
+                      <div class="pill-row"><span class="pill blue">Existing</span></div>
+                    </div>
+                    <div class="check" aria-hidden="true">ok</div>
+                  </div>
+                  <div class="pick-card selected">
+                    <div class="swatch denim"></div>
+                    <div class="item-copy">
+                      <strong>Indigo straight jeans</strong>
+                      <span>Clear, front visible, good crop</span>
+                      <div class="pill-row"><span class="pill dark">Prepare this</span></div>
+                    </div>
+                    <div class="check" aria-hidden="true">ok</div>
+                  </div>
+                  <div class="pick-card">
+                    <div class="swatch shoe"></div>
+                    <div class="item-copy">
+                      <strong>White sneakers</strong>
+                      <span>Small in frame</span>
+                      <div class="pill-row"><span class="pill">Optional</span></div>
+                    </div>
+                    <div class="check" aria-hidden="true">ok</div>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <span class="eyebrow">Closet matches</span>
+                <div class="closet-strip">
+                  <div class="closet-mini">
+                    <div class="mini-art top"></div>
+                    <strong>White linen shirt</strong>
+                    <span>Matched</span>
+                  </div>
+                  <div class="closet-mini">
+                    <div class="mini-art jeans"></div>
+                    <strong>No close jeans match</strong>
+                    <span>New</span>
+                  </div>
+                  <div class="closet-mini">
+                    <div class="mini-art shoes"></div>
+                    <strong>White sneakers</strong>
+                    <span>Matched</span>
+                  </div>
+                </div>
+              </section>
+
+              <div class="estimate-bar">
+                <div class="row">
+                  <strong>Ready to prepare</strong>
+                  <span class="pill green">Jeans selected</span>
+                </div>
+                <div class="bar"><span></span></div>
+                <p class="note">The shirt and shoes stay as context unless you select them too.</p>
+              </div>
+
+              <button class="primary" type="button">Prepare jeans</button>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <h2>4. Processing explains what is skipped</h2>
+          <p>The wait feels better when the app says exactly what is being prepared and what stays as context.</p>
+          <div class="phone">
+            <div class="screen">
+              <div class="topbar">
+                <div>
+                  <h3 class="title">Preparing jeans</h3>
+                  <p class="subtitle">Only the selected garment is being generated.</p>
+                </div>
+                <button class="mode" type="button">Real</button>
+              </div>
+
+              <section class="panel">
+                <div class="timeline">
+                  <div class="time-row">
+                    <div class="dot active">ok</div>
+                    <div>
+                      <strong>Photo scanned</strong>
+                      <p class="note">4 visible candidates found.</p>
+                    </div>
+                    <span>done</span>
+                  </div>
+                  <div class="time-row">
+                    <div class="dot active">ok</div>
+                    <div>
+                      <strong>Duplicates skipped</strong>
+                      <p class="note">Shirt and sneakers matched existing closet items.</p>
+                    </div>
+                    <span>saved</span>
+                  </div>
+                  <div class="time-row">
+                    <div class="dot active">.</div>
+                    <div>
+                      <strong>Generating jeans</strong>
+                      <p class="note">Creating one neutral closet asset.</p>
+                    </div>
+                    <span>35-70s</span>
+                  </div>
+                  <div class="time-row">
+                    <div class="dot">.</div>
+                    <div>
+                      <strong>Review</strong>
+                      <p class="note">Approve before it enters Closet.</p>
+                    </div>
+                    <span>next</span>
+                  </div>
+                </div>
+              </section>
+
+              <section class="panel">
+                <span class="eyebrow">Not generated</span>
+                <div class="detected-list">
+                  <div class="detected-item dim">
+                    <div class="swatch white"></div>
+                    <div class="item-copy">
+                      <strong>White linen shirt</strong>
+                      <span>Already in Closet</span>
+                    </div>
+                  </div>
+                  <div class="detected-item dim">
+                    <div class="swatch shoe"></div>
+                    <div class="item-copy">
+                      <strong>White sneakers</strong>
+                      <span>Skipped unless you choose shoes</span>
+                    </div>
+                  </div>
+                  <div class="detected-item dim">
+                    <div class="swatch watch"></div>
+                    <div class="item-copy">
+                      <strong>Smartwatch</strong>
+                      <span>Accessory saved for later</span>
+                    </div>
+                  </div>
+                </div>
+              </section>
+
+              <button class="secondary" type="button">Cancel generation</button>
+            </div>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

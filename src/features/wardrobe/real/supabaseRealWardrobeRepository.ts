@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ClosetAsset,
+  CandidateSelectionStatus,
   DetectedGarment,
   GarmentBoundingBox,
   GarmentVisibilityState,
+  OutfitExtractionMode,
   UploadBatch,
   UploadSourceType,
   WardrobeItem,
@@ -59,6 +61,9 @@ interface GarmentCandidateRow {
   bounding_box: GarmentBoundingBox;
   crop_prompt: string;
   should_prettify: boolean;
+  selection_status?: CandidateSelectionStatus | null;
+  selection_reason?: string | null;
+  duplicate_hint?: boolean | null;
   status: GarmentCandidateStatus;
   error_message: string | null;
   detected_garment_id: string | null;
@@ -70,11 +75,15 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   async createUploadBatch(input: {
     sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">;
     title: string;
+    extractionMode?: OutfitExtractionMode;
+    skipExistingItems?: boolean;
   }): Promise<UploadBatch> {
     const row = await this.insertSingle<SupabaseUploadBatchRow>("upload_batches", {
       household_id: REAL_HOUSEHOLD_ID,
       profile_id: REAL_PROFILE_ID,
       source_type: input.sourceType,
+      extraction_mode: input.extractionMode ?? (input.sourceType === "outfit_photo" ? "pick_after_scan" : "single_item"),
+      skip_existing_items: input.skipExistingItems ?? true,
       title: input.title,
     });
 
@@ -182,6 +191,19 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return this.mapJob(data as PrettifyJobRow);
   }
 
+  async getUploadBatch(batchId: string): Promise<UploadBatch | null> {
+    const { data, error } = await this.supabase
+      .from("upload_batches")
+      .select("*")
+      .eq("id", batchId)
+      .maybeSingle();
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? mapSupabaseUploadBatch(data as SupabaseUploadBatchRow, []) : null;
+  }
+
   async getSourceImage(sourceImageId: string): Promise<RealSourceImageRecord | null> {
     const { data, error } = await this.supabase.from("source_images").select("*").eq("id", sourceImageId).maybeSingle();
     if (error) {
@@ -218,6 +240,9 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       bounding_box: input.boundingBox,
       crop_prompt: input.cropPrompt,
       should_prettify: input.shouldPrettify,
+      selection_status: input.selectionStatus,
+      selection_reason: input.selectionReason,
+      duplicate_hint: input.duplicateHint,
       status: input.status,
       error_message: null,
       detected_garment_id: null,
@@ -239,6 +264,19 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return data ? this.mapCandidate(data as GarmentCandidateRow) : null;
   }
 
+  async listGarmentCandidatesForBatch(batchId: string): Promise<GarmentCandidateRecord[]> {
+    const { data, error } = await this.supabase
+      .from("garment_candidates")
+      .select("*")
+      .eq("upload_batch_id", batchId)
+      .order("created_at", { ascending: true });
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return ((data ?? []) as GarmentCandidateRow[]).map((row) => this.mapCandidate(row));
+  }
+
   async updateGarmentCandidate(
     candidateId: string,
     patch: Partial<GarmentCandidateRecord>,
@@ -252,6 +290,15 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
     if (patch.detectedGarmentId !== undefined) {
       rowPatch.detected_garment_id = patch.detectedGarmentId;
+    }
+    if (patch.selectionStatus !== undefined) {
+      rowPatch.selection_status = patch.selectionStatus;
+    }
+    if (patch.selectionReason !== undefined) {
+      rowPatch.selection_reason = patch.selectionReason;
+    }
+    if (patch.duplicateHint !== undefined) {
+      rowPatch.duplicate_hint = patch.duplicateHint;
     }
 
     const { data, error } = await this.supabase
@@ -415,16 +462,31 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
 
     const { data: candidateRows, error: candidateError } = await this.supabase
       .from("garment_candidates")
-      .select("status")
+      .select("*")
       .eq("upload_batch_id", batchId);
     if (candidateError) {
       return mapSupabaseUploadBatch(batch as SupabaseUploadBatchRow, garments);
     }
 
+    const candidates = ((candidateRows ?? []) as GarmentCandidateRow[]).map((row) => this.mapCandidate(row));
     return mapSupabaseUploadBatch(
       {
         ...(batch as SupabaseUploadBatchRow),
-        candidate_summary: summarizeOutfitCandidates((candidateRows ?? []) as Array<{ status: GarmentCandidateStatus }>),
+        candidate_summary: summarizeOutfitCandidates(candidates),
+        garment_candidates: candidates.map((candidate) => ({
+          id: candidate.id,
+          uploadBatchId: candidate.uploadBatchId,
+          proposedName: candidate.proposedName,
+          category: candidate.category,
+          confidence: candidate.confidence,
+          visibilityState: candidate.visibilityState,
+          boundingBox: candidate.boundingBox,
+          selectionStatus: candidate.selectionStatus,
+          selectionReason: candidate.selectionReason,
+          duplicateHint: candidate.duplicateHint,
+          status: candidate.status,
+          detectedGarmentId: candidate.detectedGarmentId,
+        })),
       },
       garments,
     );
@@ -492,6 +554,9 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       boundingBox: row.bounding_box,
       cropPrompt: row.crop_prompt,
       shouldPrettify: row.should_prettify,
+      selectionStatus: row.selection_status ?? "primary",
+      selectionReason: row.selection_reason ?? "",
+      duplicateHint: row.duplicate_hint ?? false,
       status: row.status,
       errorMessage: row.error_message,
       detectedGarmentId: row.detected_garment_id,

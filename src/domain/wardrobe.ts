@@ -12,6 +12,8 @@ export type GarmentCategory =
 
 export type UploadSourceType = "outfit_photo" | "item_photo" | "batch_upload";
 
+export type OutfitExtractionMode = "single_item" | "pick_after_scan" | "new_tops" | "new_bottoms" | "core_outfit";
+
 export type ConfidenceLevel = "high" | "medium" | "low";
 
 export type PrettifyStatus = "not_started" | "processing" | "ready" | "needs_review" | "failed";
@@ -19,6 +21,13 @@ export type PrettifyStatus = "not_started" | "processing" | "ready" | "needs_rev
 export type PrettifyJobStatus = "queued" | "analyzing" | "prettifying" | "validating" | "ready" | "failed";
 
 export type GarmentVisibilityState = "visible" | "occluded" | "needs_review";
+
+export type CandidateSelectionStatus =
+  | "primary"
+  | "optional"
+  | "skipped_existing"
+  | "not_recommended"
+  | "selected";
 
 export interface GarmentBoundingBox {
   x: number;
@@ -32,6 +41,21 @@ export interface UploadBatchCandidateSummary {
   generatedCount: number;
   skippedCount: number;
   failedCount: number;
+}
+
+export interface GarmentCandidateChoice {
+  id: string;
+  uploadBatchId: string;
+  proposedName: string;
+  category: GarmentCategory;
+  confidence: ConfidenceLevel;
+  visibilityState: GarmentVisibilityState;
+  boundingBox: GarmentBoundingBox;
+  selectionStatus: CandidateSelectionStatus;
+  selectionReason: string;
+  duplicateHint: boolean;
+  status: "detected" | "skipped" | "prettifying" | "ready" | "failed";
+  detectedGarmentId: string | null;
 }
 
 export interface WardrobeProfile {
@@ -160,8 +184,11 @@ export interface PackingListItem {
 export interface UploadBatch {
   id: string;
   sourceType: UploadSourceType;
+  extractionMode?: OutfitExtractionMode;
+  skipExistingItems?: boolean;
   title: string;
   createdAtIso: string;
   detectedGarments: DetectedGarment[];
   candidateSummary?: UploadBatchCandidateSummary;
+  garmentCandidates?: GarmentCandidateChoice[];
 }

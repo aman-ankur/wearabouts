@@ -3,7 +3,7 @@
 import { FileImage } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
-import type { UploadSourceType } from "@/src/domain/wardrobe";
+import type { OutfitExtractionMode, UploadSourceType } from "@/src/domain/wardrobe";
 import { getRuntimeMode, getRuntimeModeLabel, setRuntimeModeOverride } from "@/src/features/runtime/runtimeMode";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
@@ -16,6 +16,8 @@ export default function UploadPage() {
   const { createDemoBatch } = useWardrobe();
   const [runtimeMode, setRuntimeMode] = useState(() => getRuntimeMode());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [extractionMode, setExtractionMode] = useState<OutfitExtractionMode>("pick_after_scan");
+  const [skipExistingItems, setSkipExistingItems] = useState(true);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const isDevMode = runtimeMode === "dev";
@@ -44,6 +46,8 @@ export default function UploadPage() {
       const formData = new FormData();
       formData.append("item_photo", selectedFile);
       formData.append("source_type", "outfit_photo");
+      formData.append("extraction_mode", extractionMode);
+      formData.append("skip_existing_items", String(skipExistingItems));
 
       const response = await fetch(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
         method: "POST",
@@ -137,17 +141,96 @@ export default function UploadPage() {
               </p>
             ) : null}
 
+            <section style={{ display: "grid", gap: 10 }}>
+              <span
+                style={{
+                  color: "var(--muted)",
+                  fontSize: 12,
+                  fontWeight: 800,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                }}
+              >
+                What should Wearabouts prepare?
+              </span>
+              <div style={{ display: "grid", gap: 8 }}>
+                {[
+                  {
+                    id: "pick_after_scan" as const,
+                    title: "Pick after scan",
+                    description: "See what Wearabouts found, then choose the pieces to prepare.",
+                  },
+                  {
+                    id: "new_tops" as const,
+                    title: "New tops",
+                    description: "Good when pants and shoes are already in Closet.",
+                  },
+                  {
+                    id: "new_bottoms" as const,
+                    title: "New bottoms",
+                    description: "Good when the top is already in Closet.",
+                  },
+                  {
+                    id: "core_outfit" as const,
+                    title: "Core outfit",
+                    description: "Prepare a clear top and bottom from this photo.",
+                  },
+                ].map((option) => (
+                  <button
+                    key={option.id}
+                    type="button"
+                    onClick={() => setExtractionMode(option.id)}
+                    style={{
+                      border: `1px solid ${extractionMode === option.id ? "var(--ink)" : "var(--line)"}`,
+                      borderRadius: 8,
+                      background: "var(--paper)",
+                      padding: 12,
+                      textAlign: "left",
+                      display: "grid",
+                      gap: 3,
+                    }}
+                  >
+                    <strong style={{ color: "var(--ink)", fontSize: 14 }}>{option.title}</strong>
+                    <span className="subtle" style={{ fontSize: 13 }}>{option.description}</span>
+                  </button>
+                ))}
+              </div>
+              <label
+                style={{
+                  display: "grid",
+                  gridTemplateColumns: "20px minmax(0, 1fr)",
+                  gap: 10,
+                  alignItems: "start",
+                  color: "var(--ink)",
+                  fontSize: 14,
+                  fontWeight: 700,
+                }}
+              >
+                <input
+                  type="checkbox"
+                  checked={skipExistingItems}
+                  onChange={(event) => setSkipExistingItems(event.target.checked)}
+                  style={{ marginTop: 2 }}
+                />
+                <span>
+                  Skip items already in Closet
+                  <span className="subtle" style={{ display: "block", fontSize: 12, fontWeight: 500 }}>
+                    You can still select a matched piece after the scan.
+                  </span>
+                </span>
+              </label>
+            </section>
+
             <button type="submit" className="full-button" disabled={isUploading} style={{ minHeight: 50, fontSize: 15 }}>
-              {isUploading ? "Starting..." : isDevMode ? "Use cached result" : "Upload photo"}
+              {isUploading ? "Starting..." : isDevMode ? "Use cached result" : "Scan photo"}
             </button>
 
             <div style={{ display: "grid", gap: 8 }}>
               <p className="subtle" style={{ margin: 0, fontSize: 13 }}>
-                <strong style={{ color: "var(--ink)" }}>One garment:</strong> Wearabouts creates one review card.
+                <strong style={{ color: "var(--ink)" }}>Pick after scan:</strong> choose from what Wearabouts can clearly see.
               </p>
               <p className="subtle" style={{ margin: 0, fontSize: 13 }}>
-                <strong style={{ color: "var(--ink)" }}>Full outfit:</strong> visible pieces become separate cards when
-                confidence is high.
+                <strong style={{ color: "var(--ink)" }}>Optional pieces:</strong> shoes and accessories can be selected after scanning.
               </p>
             </div>
           </form>

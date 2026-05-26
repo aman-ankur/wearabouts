@@ -240,3 +240,29 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 
 - This pass did not spend OpenAI calls. The live decomposition pipeline still needs the Phase 5 Supabase migration applied before an end-to-end real outfit upload.
 - The Dev outfit path uses cached closet assets to exercise the multi-card review UI; it does not prove garment detection quality.
+
+## 2026-05-26 - Phase 5.1 Smart Extraction Selection Verification
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Scope: unit/build verification for smart extraction selection behavior
+
+### Flow Covered
+
+1. Real outfit upload now carries an extraction mode and a default "skip items already in Closet" preference.
+2. Default outfit processing scans and stores candidate choices without immediately generating every visible item.
+3. Review can render a candidate picker before generation.
+4. User-selected candidates are generated through a dedicated selected-candidate route.
+5. Core outfit mode generates only top/outerwear and bottoms by default; shoes and accessories remain optional.
+
+### Verification
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+
+### Remaining Notes
+
+- This pass did not run live Supabase/OpenAI upload. A live pass should apply `20260526002000_phase5_1_smart_extraction_selection.sql`, upload a repeated-jeans outfit photo, and confirm the picker keeps shoes/accessories optional and allows forced generation of likely duplicates.
