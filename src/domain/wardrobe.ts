@@ -86,6 +86,42 @@ export interface MixerBodyPreview {
   visualToken: "body-demo-aankur";
 }
 
+export type TripStyleMode = "minimal" | "balanced" | "style_first";
+
+export type TripLookStatus = "suggested" | "approved";
+
+export interface TripDay {
+  id: string;
+  label: string;
+  dateLabel: string;
+  activity: string;
+}
+
+export interface TripLook {
+  id: string;
+  tripDayId: string;
+  title: string;
+  note: string;
+  status: TripLookStatus;
+  selections: OutfitSlotSelection[];
+}
+
+export interface DemoTrip {
+  id: string;
+  destination: string;
+  dateRangeLabel: string;
+  profileId: WardrobeProfileId;
+  styleMode: TripStyleMode;
+  baggageMode: "carry_on";
+  days: TripDay[];
+  note: string;
+}
+
+export interface PackingListItem {
+  wardrobeItemId: string;
+  wearCount: number;
+}
+
 export interface UploadBatch {
   id: string;
   sourceType: UploadSourceType;
