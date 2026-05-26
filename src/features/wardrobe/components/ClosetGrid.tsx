@@ -16,8 +16,8 @@ export function ClosetGrid({ items }: { items: WardrobeItem[] }) {
   return (
     <section style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
       {items.map((item) => (
-        <article key={item.id} className="card" style={{ minHeight: 170, display: "grid", gap: 8 }}>
-          <div style={{ minHeight: 112, display: "grid", placeItems: "center", background: "#f7f4ef", borderRadius: 8 }}>
+        <article key={item.id} className="card" style={{ minHeight: 210, display: "grid", gap: 8 }}>
+          <div style={{ height: 152, display: "grid", placeItems: "center", background: "#f7f4ef", borderRadius: 8 }}>
             <ClosetAssetArtwork asset={item.asset} />
           </div>
           <strong style={{ fontSize: 13 }}>{item.name}</strong>

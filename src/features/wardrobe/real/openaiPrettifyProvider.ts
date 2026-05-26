@@ -7,6 +7,7 @@ import type {
   RealSourceImageRecord,
   ValidationResult,
 } from "./realWardrobePipeline";
+import { normalizeImageForOpenAI } from "./openaiImageNormalizer";
 
 const garmentCategories: GarmentCategory[] = ["tops", "bottoms", "outerwear", "footwear", "accessories", "combo"];
 const confidenceLevels: ConfidenceLevel[] = ["high", "medium", "low"];
@@ -34,6 +35,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
   }
 
   async analyzeGarment(input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }): Promise<GarmentAnalysisResult> {
+    const normalized = await normalizeImageForOpenAI(input.bytes);
     const response = (await this.client.responses.create({
       model: this.metadataModel,
       input: [
@@ -47,7 +49,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
             },
             {
               type: "input_image",
-              image_url: this.toDataUrl(input.bytes, input.sourceImage.contentType),
+              image_url: this.toDataUrl(normalized.bytes, normalized.contentType),
               detail: "auto",
             },
           ],
@@ -82,8 +84,9 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     bytes: Uint8Array;
     analysis: GarmentAnalysisResult;
   }): Promise<GeneratedImageResult> {
-    const image = await toFile(Buffer.from(input.bytes), input.sourceImage.originalFilename, {
-      type: input.sourceImage.contentType,
+    const normalized = await normalizeImageForOpenAI(input.bytes);
+    const image = await toFile(Buffer.from(normalized.bytes), normalized.filename, {
+      type: normalized.contentType,
     });
     const response = (await this.client.images.edit({
       model: this.imageModel,
@@ -106,6 +109,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     assetBytes: Uint8Array;
     analysis: GarmentAnalysisResult;
   }): Promise<ValidationResult> {
+    const normalizedSource = await normalizeImageForOpenAI(input.sourceBytes);
     const response = (await this.client.responses.create({
       model: this.metadataModel,
       input: [
@@ -119,7 +123,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
             },
             {
               type: "input_image",
-              image_url: this.toDataUrl(input.sourceBytes, input.sourceImage.contentType),
+              image_url: this.toDataUrl(normalizedSource.bytes, normalizedSource.contentType),
               detail: "auto",
             },
             { type: "input_image", image_url: this.toDataUrl(input.assetBytes, "image/png"), detail: "auto" },

@@ -22,13 +22,14 @@ export default function ReviewPage() {
     addRealGarment,
     retryRealGarment,
   } = useWardrobe();
-  const [isLoadingBatch, setIsLoadingBatch] = useState(runtimeMode === "real");
+  const isPersistentMode = runtimeMode === "real" || runtimeMode === "dev";
+  const [isLoadingBatch, setIsLoadingBatch] = useState(isPersistentMode);
   const [isUpdating, setIsUpdating] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const garments = state.activeBatch?.detectedGarments ?? [];
 
   useEffect(() => {
-    if (runtimeMode !== "real") {
+    if (!isPersistentMode) {
       return;
     }
 
@@ -42,10 +43,10 @@ export default function ReviewPage() {
       .finally(() => {
         setIsLoadingBatch(false);
       });
-  }, [loadRealBatch, params.batchId, runtimeMode]);
+  }, [isPersistentMode, loadRealBatch, params.batchId]);
 
   async function handleAddAll() {
-    if (runtimeMode === "real") {
+    if (isPersistentMode) {
       setIsUpdating(true);
       setReviewError(null);
       try {
@@ -66,7 +67,7 @@ export default function ReviewPage() {
   }
 
   async function handleAdd(garmentId: string) {
-    if (runtimeMode === "real") {
+    if (isPersistentMode) {
       setIsUpdating(true);
       setReviewError(null);
       try {
@@ -83,7 +84,7 @@ export default function ReviewPage() {
   }
 
   async function handleRetry(garmentId: string) {
-    if (runtimeMode === "real") {
+    if (isPersistentMode) {
       setIsUpdating(true);
       setReviewError(null);
       try {

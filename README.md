@@ -6,18 +6,25 @@ The core product bet is **Auto-Prettify**: messy wardrobe photos should become s
 
 ## Current Build
 
-Phase 0-1 is implemented:
+Phase 0-4 foundation is implemented:
 
 - Next.js, React, and TypeScript app scaffold
-- Demo runtime mode
+- Demo runtime mode for no-cost product flow testing
+- Real runtime mode for single-item upload through Supabase and OpenAI
+- In-app Dev mode toggle on Upload for cached no-OpenAI UI iteration
 - Wardrobe domain models
 - Demo wardrobe ingestion provider
 - Upload flow with Auto-Prettify explainer
 - Detected item review flow
 - Add, Retry, Delete, and Add All actions
-- Closet page showing approved demo items
+- Closet page showing approved demo and real items
+- Closet Mixer demo with saved looks
+- Trip looks demo with packing list
+- Supabase-backed Phase 4 proof for one standalone item photo
+- OpenAI metadata, neutral studio asset generation, and validation pipeline
+- Source image normalization before OpenAI calls for iPhone/Display P3 compatibility
 
-No real AI, Supabase, or network provider integration exists yet. The app currently uses demo fixtures so the product flow can be tested without AI spend.
+Phase 4 real mode is intentionally narrow: one standalone item photo only. Outfit-photo decomposition, multi-garment extraction, auth, avatar try-on, and production queues are still future phases.
 
 ## Product Direction
 
@@ -40,6 +47,10 @@ Start here for full context:
 - [Project Context](docs/product/PROJECT_CONTEXT.md)
 - [MVP Design Spec](docs/product/specs/2026-05-26-travogue-mvp-design.md)
 - [Phase 0-1 Implementation Plan](docs/product/plans/2026-05-26-phase-0-1-foundation-upload-review.md)
+- [Phase 2 Closet Mixer Demo Plan](docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md)
+- [Phase 3 Trip Looks Demo Plan](docs/product/plans/2026-05-26-phase-3-trip-looks-demo.md)
+- [Phase 4 Real Upload + Auto-Prettify Foundation Plan](docs/product/plans/2026-05-26-phase-4-real-upload-prettify-foundation.md)
+- [UX Test Log](docs/testing/WEARABOUTS_UX_TEST_LOG.md)
 - [Product Flow Mockups](docs/product/mockups/travogue-product-flows.html)
 
 ## Development
@@ -55,6 +66,25 @@ Run the app:
 ```bash
 npm run dev
 ```
+
+Real upload mode needs local secrets in `.env.local`:
+
+```bash
+NEXT_PUBLIC_TRAVOGUE_MODE=real
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+OPENAI_API_KEY=
+OPENAI_METADATA_MODEL=gpt-5.4
+OPENAI_IMAGE_MODEL=gpt-image-1.5
+```
+
+Apply the Supabase migration before testing real upload:
+
+```text
+supabase/migrations/20260526000000_phase4_real_upload.sql
+```
+
+To test UI changes without spending OpenAI tokens, use the **Dev** button on `/upload`. It reuses the latest cached real closet asset and goes straight to Review.
 
 Run checks:
 
@@ -75,4 +105,3 @@ git config user.email "amanankur1110@gmail.com"
 ```
 
 See [AGENTS.md](AGENTS.md) for coding-agent instructions.
-

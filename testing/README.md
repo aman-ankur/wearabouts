@@ -7,6 +7,7 @@ This folder holds manual testing artifacts for Wearabouts.
 - Name screenshots with the pattern `wearabouts-ux-<screen-or-flow>.png` so they stay easy to scan.
 - `testing/scripts/capture-trip-flow.mjs` captures the Phase 3 Trips flow against a temporary Chrome debugging session on port 9222.
 - `testing/scripts/capture-phase4-real-mode.mjs` captures Phase 4 real-mode upload and failed-processing screens. Run the app with `NEXT_PUBLIC_TRAVOGUE_MODE=real` first.
+- The Upload page includes an in-app **Dev** toggle for no-OpenAI UI testing. Dev mode reuses the latest cached real closet asset and routes directly to Review.
 
 Current screenshot set:
 
