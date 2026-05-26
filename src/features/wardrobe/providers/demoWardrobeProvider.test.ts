@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { demoDetectedGarments } from "@/src/features/wardrobe/fixtures/demoWardrobe";
 import { createDemoWardrobeProvider } from "./demoWardrobeProvider";
 
 describe("createDemoWardrobeProvider", () => {
@@ -8,7 +9,7 @@ describe("createDemoWardrobeProvider", () => {
     const batch = await provider.createUploadBatch({ sourceType: "batch_upload" });
 
     expect(batch.id).toBe("batch-demo-upload");
-    expect(batch.detectedGarments).toHaveLength(3);
+    expect(batch.detectedGarments).toHaveLength(demoDetectedGarments.length);
     expect(batch.detectedGarments[0]?.proposedName).toBe("Brown Hooded Zip Jacket");
   });
 

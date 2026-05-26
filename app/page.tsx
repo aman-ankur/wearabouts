@@ -10,7 +10,7 @@ export default function HomePage() {
     <AppShell>
       <div className="appbar">
         <div>
-          <h1 className="app-title">Travogue</h1>
+          <h1 className="app-title">Wearabouts</h1>
           <p className="subtle">{getRuntimeModeLabel(mode)}</p>
         </div>
         <span className="pill dark">MVP</span>

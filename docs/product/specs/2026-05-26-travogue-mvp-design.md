@@ -22,7 +22,7 @@ The product is inspired by the category of apps like Alta Daily, but it should d
 - Let users upload outfit photos and item photos.
 - Auto-detect, prettify, and review wardrobe items before saving.
 - Create a clean closet of standardized assets.
-- Let users mix tops, bottoms, shoes, layers, and accessories against their own body photo.
+- Let users mix tops, bottoms, shoes, layers, and accessories in a fast visual preview.
 - Create trip-specific, day-by-day outfit plans.
 - Derive packing lists from approved looks.
 - Capture wearing history after a trip or day.
@@ -63,7 +63,7 @@ Auto-Prettify turns messy real-world clothing photos into clean, standardized as
 
 ### Closet Mixer
 
-The Closet Mixer is the playful interaction: the user's real body photo stays in the middle, while tops, bottoms, shoes, layers, and accessories can be swiped left and right. Users can lock one item, explore matches, save outfits, and assign outfits to trip days.
+The Closet Mixer is the playful interaction: tops, bottoms, shoes, layers, and accessories can be swiped left and right in a fast visual preview. Users can lock one item, explore matches, save outfits, and assign outfits to trip days. The Phase 2 demo uses an honest outfit-board preview; real body/avatar try-on must wait until the app has a proper avatar-render pipeline.
 
 ### Personal Memory
 
@@ -272,11 +272,12 @@ Each wardrobe item should include:
 
 ### Purpose
 
-The Closet Mixer lets the user visually try combinations quickly without generating a new photoreal image for every swipe.
+The Closet Mixer lets the user visually try combinations quickly without generating a new photoreal image for every swipe. The product should avoid fake body try-on previews when garments cannot be aligned credibly.
 
 ### Interaction
 
-- User's actual body photo or masked body base stays centered.
+- Phase 2 demo: an outfit-board preview stays centered.
+- Later body mode: the user's actual body photo or masked body base may stay centered only after body landmarks, garment scaling, occlusion, and quality checks exist.
 - Tops swipe horizontally.
 - Bottoms swipe horizontally.
 - Shoes swipe horizontally.
@@ -300,9 +301,11 @@ Example prompts:
 1. Outfit Board
    - Clean flat-lay composition.
    - Best for trip planning and packing review.
+   - Required fallback whenever body/avatar fitting quality is not good enough.
 
 2. Closet Mixer
-   - Body in middle with swipable item layers.
+   - Fast mixer surface with swipable item rails.
+   - May use outfit board first; may use body in middle only when alignment is credible.
    - Best for exploration.
 
 3. Avatar Render
@@ -330,7 +333,8 @@ The app validates:
 
 1. Instant Mixer Preview
    - Fast, modular, swipable.
-   - Uses the user's actual body photo or body mask.
+   - Starts with outfit-board composition in demo mode.
+   - Later may use the user's actual body photo or body mask only with credible fit/alignment handling.
    - Uses prettified clothing assets.
    - Does not require image generation per swipe.
 
@@ -699,7 +703,7 @@ Build:
 - Closet screen
 - Wardrobe item detail
 - Mixer screen
-- Demo body photo asset and setup prompt
+- Demo outfit-board preview
 - Horizontal swipe rows for tops, bottoms, shoes, layers, accessories
 - Lock item interaction
 - Save outfit interaction

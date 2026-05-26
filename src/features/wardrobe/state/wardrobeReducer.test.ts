@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { demoUploadBatch } from "@/src/features/wardrobe/fixtures/demoWardrobe";
+import { demoDetectedGarments, demoUploadBatch } from "@/src/features/wardrobe/fixtures/demoWardrobe";
 import { initialWardrobeState, wardrobeReducer } from "./wardrobeReducer";
 
 describe("wardrobeReducer", () => {
@@ -10,7 +10,7 @@ describe("wardrobeReducer", () => {
     });
 
     expect(state.activeBatch?.id).toBe("batch-demo-upload");
-    expect(state.activeBatch?.detectedGarments).toHaveLength(3);
+    expect(state.activeBatch?.detectedGarments).toHaveLength(demoDetectedGarments.length);
   });
 
   it("adds one detected garment to the closet and removes it from review", () => {
@@ -42,7 +42,7 @@ describe("wardrobeReducer", () => {
     });
 
     expect(state.closetItems).toHaveLength(0);
-    expect(state.activeBatch?.detectedGarments).toHaveLength(2);
+    expect(state.activeBatch?.detectedGarments).toHaveLength(demoDetectedGarments.length - 1);
   });
 
   it("adds all remaining detected garments to the closet", () => {
@@ -56,7 +56,7 @@ describe("wardrobeReducer", () => {
       addedAtIso: "2026-05-26T01:00:00.000Z",
     });
 
-    expect(state.closetItems).toHaveLength(3);
+    expect(state.closetItems).toHaveLength(demoDetectedGarments.length);
     expect(state.activeBatch?.detectedGarments).toHaveLength(0);
   });
 });
