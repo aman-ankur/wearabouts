@@ -10,14 +10,12 @@ interface ClosetAssetArtworkProps {
 export function ClosetAssetArtwork({ asset }: ClosetAssetArtworkProps) {
   if ("imageUrl" in asset) {
     return (
-      <Image
-        src={asset.imageUrl}
-        alt={asset.label}
-        width={132}
-        height={132}
-        unoptimized
-        style={{ width: "100%", height: "100%", maxHeight: "100%", objectFit: "contain" }}
-      />
+      <span
+        data-closet-asset-frame="real"
+        style={{ position: "relative", display: "block", width: "100%", height: "100%", minHeight: 0 }}
+      >
+        <Image src={asset.imageUrl} alt={asset.label} fill sizes="360px" unoptimized style={{ objectFit: "contain" }} />
+      </span>
     );
   }
 
