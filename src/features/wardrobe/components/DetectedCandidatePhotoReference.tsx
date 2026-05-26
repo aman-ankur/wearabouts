@@ -98,7 +98,7 @@ export function DetectedCandidatePhotoReference({
           }}
         />
         {visibleCandidates.map((candidate, index) => (
-          <DetectionBox key={candidate.id} candidate={candidate} index={index} />
+          <DetectionMarker key={candidate.id} candidate={candidate} index={index} />
         ))}
       </div>
 
@@ -146,6 +146,7 @@ export function CandidateCropThumbnail({
 
   const centerX = candidate.boundingBox.x + candidate.boundingBox.width / 2;
   const centerY = candidate.boundingBox.y + candidate.boundingBox.height / 2;
+  const zoom = getThumbnailZoom(candidate);
 
   return (
     <span
@@ -170,7 +171,8 @@ export function CandidateCropThumbnail({
         style={{
           objectFit: "cover",
           objectPosition: `${asPercent(centerX)} ${asPercent(centerY)}`,
-          transform: "scale(1.45)",
+          transform: `scale(${zoom})`,
+          transformOrigin: `${asPercent(centerX)} ${asPercent(centerY)}`,
         }}
       />
     </span>
@@ -203,18 +205,19 @@ export function getCandidateColor(index: number) {
   return candidateColors[index % candidateColors.length];
 }
 
-function DetectionBox({ candidate, index }: { candidate: GarmentCandidateChoice; index: number }) {
+function DetectionMarker({ candidate, index }: { candidate: GarmentCandidateChoice; index: number }) {
   const color = getCandidateColor(index);
+  const centerX = candidate.boundingBox.x + candidate.boundingBox.width / 2;
+  const centerY = candidate.boundingBox.y + candidate.boundingBox.height / 2;
   const style: CSSProperties = {
     position: "absolute",
-    left: asPercent(candidate.boundingBox.x),
-    top: asPercent(candidate.boundingBox.y),
-    width: asPercent(candidate.boundingBox.width),
-    height: asPercent(candidate.boundingBox.height),
-    border: `2px solid ${color}`,
-    borderRadius: 8,
-    boxShadow: "0 0 0 999px rgba(17, 17, 17, 0.025)",
+    left: asPercent(centerX),
+    top: asPercent(centerY),
+    width: 26,
+    height: 26,
+    transform: "translate(-50%, -50%)",
     pointerEvents: "none",
+    zIndex: 2,
   };
 
   return (
@@ -222,8 +225,17 @@ function DetectionBox({ candidate, index }: { candidate: GarmentCandidateChoice;
       <span
         style={{
           position: "absolute",
-          top: -13,
-          left: -10,
+          left: "50%",
+          top: "50%",
+          width: 30,
+          borderTop: `2px dotted ${color}`,
+          transform: "translateY(-50%)",
+          opacity: 0.9,
+        }}
+      />
+      <span
+        style={{
+          position: "relative",
           width: 26,
           height: 26,
           borderRadius: 999,
@@ -233,6 +245,7 @@ function DetectionBox({ candidate, index }: { candidate: GarmentCandidateChoice;
           color: "var(--white)",
           fontSize: 12,
           fontWeight: 900,
+          boxShadow: "0 1px 4px rgba(17,17,17,0.2)",
         }}
       >
         {index + 1}
@@ -243,4 +256,10 @@ function DetectionBox({ candidate, index }: { candidate: GarmentCandidateChoice;
 
 function asPercent(value: number) {
   return `${Math.max(0, Math.min(1, value)) * 100}%`;
+}
+
+function getThumbnailZoom(candidate: GarmentCandidateChoice) {
+  const boxSize = Math.max(candidate.boundingBox.width, candidate.boundingBox.height);
+  const zoom = 1.25 / Math.max(0.24, boxSize);
+  return Number(Math.max(2.2, Math.min(4.5, zoom)).toFixed(2));
 }
