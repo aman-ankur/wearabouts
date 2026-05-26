@@ -4,10 +4,11 @@ import Link from "next/link";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { ClosetGrid } from "@/src/features/wardrobe/components/ClosetGrid";
+import { SavedOutfitList } from "@/src/features/wardrobe/components/SavedOutfitList";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
 export default function ClosetPage() {
-  const { state } = useWardrobe();
+  const { state, mixerState } = useWardrobe();
 
   return (
     <AppShell>
@@ -29,6 +30,9 @@ export default function ClosetPage() {
       </div>
 
       <ClosetGrid items={state.closetItems} />
+      <div style={{ marginTop: 16 }}>
+        <SavedOutfitList outfits={mixerState.savedOutfits} />
+      </div>
       <BottomNav />
     </AppShell>
   );
