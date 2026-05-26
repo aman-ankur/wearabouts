@@ -63,6 +63,29 @@ export interface WardrobeItem {
   readyForMixer: boolean;
 }
 
+export type OutfitSlot = "top" | "bottom" | "shoes" | "layer" | "accessory";
+
+export interface OutfitSlotSelection {
+  slot: OutfitSlot;
+  wardrobeItemId: string | null;
+  locked: boolean;
+}
+
+export interface SavedOutfit {
+  id: string;
+  name: string;
+  profileId: WardrobeProfileId;
+  selections: OutfitSlotSelection[];
+  createdAtIso: string;
+}
+
+export interface MixerBodyPreview {
+  id: string;
+  profileId: WardrobeProfileId;
+  label: string;
+  visualToken: "body-demo-aankur";
+}
+
 export interface UploadBatch {
   id: string;
   sourceType: UploadSourceType;
