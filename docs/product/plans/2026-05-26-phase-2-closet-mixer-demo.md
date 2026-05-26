@@ -2,9 +2,11 @@
 
 > **For agentic coding workers:** Implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking. Keep each task small, run the listed verification command before moving on, and commit working checkpoints.
 
-**Goal:** Build the demo Closet Mixer: a mobile-first screen where a body preview stays centered while tops, bottoms, shoes, layers, and accessories can be swapped, locked, and saved as outfits.
+**Goal:** Build the demo Closet Mixer: a mobile-first screen where an outfit-board preview stays centered while tops, bottoms, shoes, layers, and accessories can be swapped, locked, and saved as outfits.
 
-**Architecture:** Extend the existing client-side demo state from Phase 0-1. Add outfit domain types, demo outfit fixtures, a reducer slice for mixer state, pure selector helpers for compatible rail items, and mobile UI components for the body stage and horizontal item rails. Keep this phase demo-only; do not add real AI, Supabase, image upload, or avatar generation.
+**Architecture:** Extend the existing client-side demo state from Phase 0-1. Add outfit domain types, demo outfit fixtures, a reducer slice for mixer state, pure selector helpers for compatible rail items, and mobile UI components for the outfit-board stage and horizontal item rails. Keep this phase demo-only; do not add real AI, Supabase, image upload, or avatar generation.
+
+**Important UX constraint:** Phase 2 must not pretend to be real body try-on. If body/avatar fitting is not credible, use a polished outfit-board composition. Real avatar rendering belongs to a later provider-backed phase with body landmarks, garment segmentation, scale fitting, occlusion handling, and quality checks.
 
 **Tech Stack:** Next.js App Router, React, TypeScript, existing CSS globals, Vitest for pure domain/reducer tests, lucide-react for icons.
 
@@ -56,10 +58,10 @@ Expected:
 Build:
 
 - Outfit domain types.
-- Demo outfit and body preview fixtures.
+- Demo outfit and outfit-board preview fixtures.
 - Mixer reducer actions for selecting, locking, and saving outfits.
 - Closet Mixer route at `/mixer`.
-- Body preview stage using CSS/React primitives, not AI image generation.
+- Outfit-board preview stage using CSS/React primitives, not AI image generation.
 - Horizontal rails for tops, bottoms, shoes, layers, and accessories.
 - Lock/unlock controls for item slots.
 - Save outfit action.
@@ -250,7 +252,7 @@ import type { MixerBodyPreview } from "@/src/domain/wardrobe";
 export const demoBodyPreview: MixerBodyPreview = {
   id: "body-demo-aankur",
   profileId: "profile-aankur",
-  label: "Aankur demo body preview",
+  label: "Aankur demo outfit board preview",
   visualToken: "body-demo-aankur",
 };
 ```
@@ -644,7 +646,7 @@ git commit -m "Wire mixer state into wardrobe context"
 
 - [ ] **Step 1: Create `MixerBodyStage.tsx`**
 
-Use CSS primitives to create a centered body preview. Render selected top/layer/bottom/shoes by reusing `GarmentArtwork` tokens in approximate positions. Keep it deliberately stylized, not photoreal.
+Use CSS primitives to create a centered outfit-board preview. Render selected top/layer/bottom/shoes by reusing `GarmentArtwork` tokens in a polished flat-lay composition. Do not render a fake human body or imply real try-on.
 
 Component API:
 
@@ -880,7 +882,7 @@ Expected:
 - `/mixer` route exists.
 - Existing Phase 0-1 upload/review/closet flow still works.
 - User can add demo items to closet.
-- User can open Mixer and see a body preview.
+- User can open Mixer and see an outfit-board preview.
 - User can select items in horizontal rails.
 - User can lock/unlock slots.
 - Locked slots do not change when selecting another item.
@@ -896,4 +898,3 @@ Start a new chat with:
 ```text
 Please read AGENTS.md, docs/product/PROJECT_CONTEXT.md, and docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md, then implement Phase 2 on a new codex/phase-2-closet-mixer branch.
 ```
-

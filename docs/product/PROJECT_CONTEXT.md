@@ -157,7 +157,7 @@ The Closet Mixer should be one of the signature product moments.
 
 Interaction:
 
-- User's real body photo or masked body base stays in the center.
+- In the current Phase 2 demo, the center preview is an outfit board, not a body try-on.
 - Tops carousel swipes left/right.
 - Bottoms carousel swipes left/right.
 - Shoes and accessories appear as smaller rows/trays.
@@ -166,7 +166,7 @@ Interaction:
 - User can assign a look to a trip day.
 - User can ask for natural-language changes like "more casual", "better for rain", "less formal", "keep these pants".
 
-This is intentionally not full photoreal try-on for every swipe. It should feel fast, playful, and useful.
+This is intentionally not full photoreal try-on for every swipe. It should feel fast, playful, and useful. Do not fake body try-on with poorly aligned overlays; if body/avatar preview quality is not available, use an honest outfit-board composition.
 
 ### Avatar Strategy
 
@@ -174,7 +174,8 @@ Use a two-level avatar strategy:
 
 1. Instant Mixer Preview
    - Fast and modular.
-   - Uses the user's real body photo or body mask.
+   - Starts as an outfit-board composition in demo mode.
+   - Later may use the user's real body photo or body mask, but only with body landmarks, scale fitting, occlusion handling, and quality checks.
    - Uses prettified clothing assets.
    - Does not generate a new image per swipe.
 
@@ -450,4 +451,4 @@ Recommended next chat prompt:
 Please read AGENTS.md, docs/product/PROJECT_CONTEXT.md, and docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md, then implement Phase 2 on a new codex/phase-2-closet-mixer branch.
 ```
 
-Phase 2 should build the demo Closet Mixer only. Keep it demo-mode and client-side: body preview, swipable item rails, lock/unlock slots, save outfit, and saved looks in closet. Do not start Supabase, real AI, or avatar generation in Phase 2.
+Phase 2 should build the demo Closet Mixer only. Keep it demo-mode and client-side: outfit-board preview, swipable item rails, lock/unlock slots, save outfit, and saved looks in closet. Do not start Supabase, real AI, real body upload, or avatar generation in Phase 2.

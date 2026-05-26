@@ -20,7 +20,7 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 5. Add All saves all six garments to Closet.
 6. Closet shows approved items.
 7. Mixer opens from bottom nav.
-8. Mixer renders body preview, rails, and lock controls.
+8. Mixer renders outfit-board preview, rails, and lock controls.
 9. Selecting a different top updates the stage and rail selection.
 10. Locking the top disables top rail selection.
 11. Saving creates a saved look.
