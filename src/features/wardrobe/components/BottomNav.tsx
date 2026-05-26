@@ -31,7 +31,7 @@ export function BottomNav() {
       </Link>
       <Link href="/closet" style={navLinkStyle}>
         <Shirt size={18} />
-        Closet
+        Wardrobe
       </Link>
       <Link href="/upload" style={navLinkStyle}>
         <Plus size={18} />

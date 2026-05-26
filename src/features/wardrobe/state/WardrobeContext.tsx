@@ -48,7 +48,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     }
 
     void fetch("/api/wardrobe/closet")
-      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load closet."))))
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load wardrobe."))))
       .then((payload: { closetItems: WardrobeItem[] }) => {
         dispatch({ type: "realClosetLoaded", closetItems: payload.closetItems });
       })
@@ -71,7 +71,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const addRealGarment = useCallback(async (garmentId: string) => {
     const response = await fetch(`/api/wardrobe/garments/${garmentId}/add`, { method: "POST" });
     if (!response.ok) {
-      throw new Error("Could not add garment to closet.");
+      throw new Error("Could not add garment to wardrobe.");
     }
 
     const payload = (await response.json()) as { wardrobeItem: WardrobeItem };

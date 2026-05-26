@@ -5,9 +5,9 @@ export function ClosetGrid({ items }: { items: WardrobeItem[] }) {
   if (items.length === 0) {
     return (
       <section className="card">
-        <strong>No closet items yet</strong>
+        <strong>No wardrobe items yet</strong>
         <p className="subtle" style={{ marginBottom: 0 }}>
-          Add detected garments from the review flow to start your closet.
+          Add detected garments from the review flow to start your wardrobe.
         </p>
       </section>
     );

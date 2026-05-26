@@ -22,7 +22,7 @@ export async function createDevCachedUpload(
   const cachedItems = await repository.listWardrobeItems();
   const cachedSelection = input.sourceType === "outfit_photo" ? cachedItems.slice(-4) : cachedItems.slice(-1);
   if (cachedSelection.length === 0) {
-    throw new Error("Dev mode needs at least one cached closet item.");
+    throw new Error("Dev mode needs at least one cached wardrobe item.");
   }
 
   const batch = await repository.createUploadBatch({

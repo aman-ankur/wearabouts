@@ -55,6 +55,50 @@ export function getPrettifyJobSteps(status: PrettifyJobStatus, jobKind?: Prettif
   });
 }
 
+export function getPrettifyStepCaption(
+  stepId: Exclude<PrettifyJobStatus, "failed">,
+  state: PrettifyStepState,
+  jobKind?: PrettifyJobKind,
+): string {
+  if (state === "complete") {
+    const completeCaptions: Record<Exclude<PrettifyJobStatus, "failed">, string> = {
+      queued: "Uploaded",
+      analyzing: jobKind === "outfit_parent" ? "Pieces found" : "Analyzed",
+      prettifying: jobKind === "outfit_parent" ? "Garments cleaned" : "Asset cleaned",
+      validating: "Validated",
+      ready: "Ready for review",
+    };
+
+    return completeCaptions[stepId];
+  }
+
+  if (state === "active") {
+    const activeCaptions: Record<Exclude<PrettifyJobStatus, "failed">, string> = {
+      queued: "Receiving upload",
+      analyzing: jobKind === "outfit_parent" ? "Finding visible pieces" : "Reading garment details",
+      prettifying: jobKind === "outfit_parent" ? "Cleaning wardrobe items" : "Cleaning wardrobe item",
+      validating: "Checking the result",
+      ready: "Ready for review",
+    };
+
+    return activeCaptions[stepId];
+  }
+
+  if (state === "failed") {
+    return "Needs another try";
+  }
+
+  const pendingCaptions: Record<Exclude<PrettifyJobStatus, "failed">, string> = {
+    queued: "Upload waiting",
+    analyzing: jobKind === "outfit_parent" ? "Detection waiting" : "Analysis waiting",
+    prettifying: jobKind === "outfit_parent" ? "Prettify waiting" : "Cleanup waiting",
+    validating: "Validation waiting",
+    ready: "Review waiting",
+  };
+
+  return pendingCaptions[stepId];
+}
+
 export function getTerminalPrettifyStatus(status: PrettifyJobStatus, accepted = true): PrettifyStatus {
   if (status === "failed") {
     return "failed";

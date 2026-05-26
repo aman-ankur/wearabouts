@@ -1,7 +1,6 @@
 import React from "react";
-import type { CSSProperties } from "react";
 import Image from "next/image";
-import type { GarmentCandidateChoice, GarmentCategory, UploadSourceImageReference } from "@/src/domain/wardrobe";
+import type { GarmentCandidateChoice, UploadSourceImageReference } from "@/src/domain/wardrobe";
 
 interface DetectedCandidatePhotoReferenceProps {
   sourceImage: UploadSourceImageReference;
@@ -9,15 +8,6 @@ interface DetectedCandidatePhotoReferenceProps {
   expanded?: boolean;
   onToggleExpanded?: () => void;
 }
-
-const categoryLabels: Record<GarmentCategory, string> = {
-  tops: "Top",
-  bottoms: "Pants",
-  outerwear: "Layer",
-  footwear: "Shoes",
-  accessories: "Accessory",
-  combo: "Outfit",
-};
 
 const candidateColors = ["#48614c", "#245c91", "#9a7236", "#9d3146", "#5f5597", "#62605b"];
 
@@ -28,6 +18,7 @@ export function DetectedCandidatePhotoReference({
   onToggleExpanded,
 }: DetectedCandidatePhotoReferenceProps) {
   const visibleCandidates = candidates.filter((candidate) => candidate.boundingBox);
+  const photoFocus = getPhotoPreviewFocus(visibleCandidates);
 
   if (visibleCandidates.length === 0) {
     return null;
@@ -37,11 +28,11 @@ export function DetectedCandidatePhotoReference({
     <section
       style={{
         display: "grid",
-        gap: 12,
-        padding: 14,
+        gap: 10,
+        padding: 12,
         border: "1px solid var(--line)",
         borderRadius: 8,
-        background: "var(--panel)",
+        background: "var(--white)",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
@@ -61,17 +52,17 @@ export function DetectedCandidatePhotoReference({
             type="button"
             onClick={onToggleExpanded}
             style={{
-              border: 0,
-              background: "transparent",
-              padding: 0,
+              border: "1px solid var(--line)",
+              borderRadius: 999,
+              background: "var(--white)",
+              padding: "7px 11px",
               color: "var(--ink)",
-              fontWeight: 850,
-              textDecoration: "underline",
-              textUnderlineOffset: 3,
+              fontSize: 13,
+              fontWeight: 820,
               whiteSpace: "nowrap",
             }}
           >
-            {expanded ? "Photo shown" : "View larger"}
+            {expanded ? "Shown large" : "View large"}
           </button>
         ) : null}
       </div>
@@ -83,52 +74,28 @@ export function DetectedCandidatePhotoReference({
           borderRadius: 8,
           border: "1px solid var(--line)",
           background: "var(--wash)",
+          height: expanded ? 520 : 270,
         }}
       >
         <Image
           src={sourceImage.imageUrl}
           alt={`Uploaded photo ${sourceImage.originalFilename}`}
-          width={720}
-          height={960}
+          fill
+          sizes="(max-width: 430px) 100vw, 390px"
           unoptimized
           style={{
             display: "block",
             width: "100%",
-            height: "auto",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: expanded ? "50% 50%" : `${asPercent(photoFocus.x)} ${asPercent(photoFocus.y)}`,
           }}
         />
-        {visibleCandidates.map((candidate, index) => (
-          <DetectionMarker key={candidate.id} candidate={candidate} index={index} />
-        ))}
       </div>
 
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-          gap: 8,
-        }}
-      >
-        {visibleCandidates.slice(0, 6).map((candidate, index) => (
-          <span
-            key={candidate.id}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: 7,
-              color: "var(--muted)",
-              fontSize: 12,
-              lineHeight: 1.2,
-              minWidth: 0,
-            }}
-          >
-            <CandidateNumber index={index} />
-            <span style={{ minWidth: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-              {categoryLabels[candidate.category]}
-            </span>
-          </span>
-        ))}
-      </div>
+      <p className="subtle" style={{ margin: 0, fontSize: 12 }}>
+        {visibleCandidates.length} {visibleCandidates.length === 1 ? "piece" : "pieces"} found. Review selections below.
+      </p>
     </section>
   );
 }
@@ -136,9 +103,11 @@ export function DetectedCandidatePhotoReference({
 export function CandidateCropThumbnail({
   sourceImage,
   candidate,
+  size = 52,
 }: {
   sourceImage?: UploadSourceImageReference;
   candidate: GarmentCandidateChoice;
+  size?: number;
 }) {
   if (!sourceImage) {
     return null;
@@ -152,8 +121,8 @@ export function CandidateCropThumbnail({
     <span
       aria-hidden="true"
       style={{
-        width: 52,
-        height: 52,
+        width: size,
+        height: size,
         borderRadius: 8,
         border: "1px solid var(--line)",
         background: "var(--wash)",
@@ -166,7 +135,7 @@ export function CandidateCropThumbnail({
         src={sourceImage.imageUrl}
         alt=""
         fill
-        sizes="52px"
+        sizes={`${size}px`}
         unoptimized
         style={{
           objectFit: "cover",
@@ -194,19 +163,19 @@ export function CandidateNumber({
     <span
       aria-hidden="true"
       style={{
-        width: 21,
-        height: 21,
+        width: 19,
+        height: 19,
         borderRadius: 999,
         display: "grid",
         placeItems: "center",
-        background: isNeutral ? "var(--wash)" : isSolid ? color : hexToRgba(color, 0.14),
+        background: isNeutral ? "var(--wash)" : isSolid ? color : hexToRgba(color, 0.12),
         color: isNeutral ? "var(--ink)" : isSolid ? "var(--white)" : color,
         border: isNeutral
           ? "1px solid rgba(17,17,17,0.12)"
           : isSolid
             ? "1px solid transparent"
-            : `1px solid ${hexToRgba(color, 0.22)}`,
-        fontSize: 11,
+            : `1px solid ${hexToRgba(color, 0.2)}`,
+        fontSize: 10,
         fontWeight: 900,
         flex: "0 0 auto",
       }}
@@ -220,55 +189,26 @@ export function getCandidateColor(index: number) {
   return candidateColors[index % candidateColors.length];
 }
 
-function DetectionMarker({ candidate, index }: { candidate: GarmentCandidateChoice; index: number }) {
-  const color = getCandidateColor(index);
-  const centerX = candidate.boundingBox.x + candidate.boundingBox.width / 2;
-  const centerY = candidate.boundingBox.y + candidate.boundingBox.height / 2;
-  const style: CSSProperties = {
-    position: "absolute",
-    left: asPercent(centerX),
-    top: asPercent(centerY),
-    width: 26,
-    height: 26,
-    transform: "translate(-50%, -50%)",
-    pointerEvents: "none",
-    zIndex: 2,
-  };
+export function getPhotoPreviewFocus(candidates: GarmentCandidateChoice[]) {
+  if (candidates.length === 0) {
+    return { x: 0.5, y: 0.46 };
+  }
 
-  return (
-    <span aria-label={`${candidate.proposedName} detected area`} style={style}>
-      <span
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: "50%",
-          width: 22,
-          borderTop: `1.5px dotted ${hexToRgba(color, 0.55)}`,
-          transform: "translateY(-50%)",
-          opacity: 0.72,
-        }}
-      />
-      <span
-        style={{
-          position: "relative",
-          width: 25,
-          height: 25,
-          borderRadius: 999,
-          display: "grid",
-          placeItems: "center",
-          background: hexToRgba(color, 0.78),
-          color: "var(--white)",
-          fontSize: 12,
-          fontWeight: 900,
-          border: "1px solid rgba(255,255,255,0.68)",
-          boxShadow: "0 4px 14px rgba(17,17,17,0.18)",
-          backdropFilter: "blur(3px)",
-        }}
-      >
-        {index + 1}
-      </span>
-    </span>
+  const upperBodyCandidates = candidates.filter(
+    (candidate) => candidate.category === "tops" || candidate.category === "outerwear" || candidate.category === "accessories",
   );
+  const focusCandidates = upperBodyCandidates.length > 0 ? upperBodyCandidates : candidates;
+  const averageX =
+    focusCandidates.reduce((total, candidate) => total + candidate.boundingBox.x + candidate.boundingBox.width / 2, 0) /
+    focusCandidates.length;
+  const averageY =
+    focusCandidates.reduce((total, candidate) => total + candidate.boundingBox.y + candidate.boundingBox.height / 2, 0) /
+    focusCandidates.length;
+
+  return {
+    x: Math.max(0.32, Math.min(0.68, averageX)),
+    y: Math.max(0.32, Math.min(0.56, averageY + 0.02)),
+  };
 }
 
 function asPercent(value: number) {

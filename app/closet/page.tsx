@@ -31,7 +31,7 @@ export default function ClosetPage() {
     <AppShell>
       <div className="appbar">
         <div>
-          <h1 className="app-title">Closet</h1>
+          <h1 className="app-title">Wardrobe</h1>
           <p className="subtle">{state.closetItems.length} approved items</p>
         </div>
         <Link className="button secondary" href="/upload">

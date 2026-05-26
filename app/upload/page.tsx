@@ -9,6 +9,7 @@ import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { PrettifyExplainer } from "@/src/features/wardrobe/components/PrettifyExplainer";
 import { UploadChoiceCard } from "@/src/features/wardrobe/components/UploadChoiceCard";
+import { getOutfitExtractionOption, outfitExtractionOptions } from "@/src/features/wardrobe/real/outfitExtractionOptions";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
 export default function UploadPage() {
@@ -21,6 +22,7 @@ export default function UploadPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const isDevMode = runtimeMode === "dev";
+  const selectedExtractionOption = getOutfitExtractionOption(extractionMode);
 
   async function handleChoose(sourceType: UploadSourceType) {
     const batchId = await createDemoBatch(sourceType);
@@ -81,8 +83,8 @@ export default function UploadPage() {
             <h1 className="app-title" style={{ fontSize: 26 }}>Add clothing</h1>
             <p className="subtle" style={{ fontSize: 14 }}>
               {isDevMode
-                ? "Try the review flow with cached closet assets."
-                : "Upload one clear item or a full outfit. Review each garment before it enters Closet."}
+                ? "Try the review flow with cached wardrobe items."
+                : "Upload one clear item or a full outfit. Review each garment before it enters Wardrobe."}
             </p>
           </div>
           <button type="button" className="button secondary" onClick={handleToggleDevMode} style={{ minHeight: 38 }}>
@@ -112,16 +114,16 @@ export default function UploadPage() {
               style={{
                 display: "grid",
                 placeItems: "center",
-                minHeight: 178,
+                minHeight: 136,
                 border: "1px dashed var(--line)",
                 borderRadius: 8,
                 background: "var(--paper)",
                 textAlign: "center",
-                padding: 22,
+                padding: 18,
               }}
             >
-              <FileImage size={34} />
-              <strong style={{ marginTop: 10, fontSize: 18 }}>Choose photo</strong>
+              <FileImage size={30} />
+              <strong style={{ marginTop: 8, fontSize: 17 }}>Choose photo</strong>
               <span className="subtle" style={{ fontSize: 14 }}>
                 {selectedFile ? selectedFile.name : "JPG, PNG, or WebP under 10MB"}
               </span>
@@ -141,7 +143,7 @@ export default function UploadPage() {
               </p>
             ) : null}
 
-            <section style={{ display: "grid", gap: 10 }}>
+            <section style={{ display: "grid", gap: 9 }}>
               <span
                 style={{
                   color: "var(--muted)",
@@ -151,88 +153,41 @@ export default function UploadPage() {
                   textTransform: "uppercase",
                 }}
               >
-                What should Wearabouts prepare?
+                Prepare mode
               </span>
-              <div style={{ display: "grid", gap: 8 }}>
-                {[
-                  {
-                    id: "pick_after_scan" as const,
-                    title: "Pick after scan",
-                    description: "See what Wearabouts found, then choose the pieces to prepare.",
-                  },
-                  {
-                    id: "new_tops" as const,
-                    title: "New tops",
-                    description: "Good when pants and shoes are already in Closet.",
-                  },
-                  {
-                    id: "new_bottoms" as const,
-                    title: "New bottoms",
-                    description: "Good when the top is already in Closet.",
-                  },
-                  {
-                    id: "core_outfit" as const,
-                    title: "Core outfit",
-                    description: "Prepare a clear top and bottom from this photo.",
-                  },
-                ].map((option) => (
+              <div className="upload-mode-grid" role="group" aria-label="Choose what Wearabouts should prepare">
+                {outfitExtractionOptions.map((option) => (
                   <button
                     key={option.id}
                     type="button"
                     onClick={() => setExtractionMode(option.id)}
-                    style={{
-                      border: `1px solid ${extractionMode === option.id ? "var(--ink)" : "var(--line)"}`,
-                      borderRadius: 8,
-                      background: "var(--paper)",
-                      padding: 12,
-                      textAlign: "left",
-                      display: "grid",
-                      gap: 3,
-                    }}
+                    className={`upload-mode-button${extractionMode === option.id ? " upload-mode-button-active" : ""}`}
+                    aria-pressed={extractionMode === option.id}
                   >
-                    <strong style={{ color: "var(--ink)", fontSize: 14 }}>{option.title}</strong>
-                    <span className="subtle" style={{ fontSize: 13 }}>{option.description}</span>
+                    {option.shortLabel}
                   </button>
                 ))}
               </div>
-              <label
-                style={{
-                  display: "grid",
-                  gridTemplateColumns: "20px minmax(0, 1fr)",
-                  gap: 10,
-                  alignItems: "start",
-                  color: "var(--ink)",
-                  fontSize: 14,
-                  fontWeight: 700,
-                }}
+              <p className="upload-mode-summary">
+                <strong>{selectedExtractionOption.title}:</strong> {selectedExtractionOption.description}
+              </p>
+              <button
+                type="button"
+                className={`upload-skip-toggle${skipExistingItems ? " upload-skip-toggle-active" : ""}`}
+                aria-pressed={skipExistingItems}
+                onClick={() => setSkipExistingItems((current) => !current)}
               >
-                <input
-                  type="checkbox"
-                  checked={skipExistingItems}
-                  onChange={(event) => setSkipExistingItems(event.target.checked)}
-                  style={{ marginTop: 2 }}
-                />
                 <span>
-                  Skip items already in Closet
-                  <span className="subtle" style={{ display: "block", fontSize: 12, fontWeight: 500 }}>
-                    You can still select a matched piece after the scan.
-                  </span>
+                  <strong>Wardrobe matching</strong>
+                  <small>{skipExistingItems ? "Skip likely saved items" : "Include likely saved items"}</small>
                 </span>
-              </label>
+                <span className="upload-skip-switch" aria-hidden="true" />
+              </button>
             </section>
 
             <button type="submit" className="full-button" disabled={isUploading} style={{ minHeight: 50, fontSize: 15 }}>
               {isUploading ? "Starting..." : isDevMode ? "Use cached result" : "Scan photo"}
             </button>
-
-            <div style={{ display: "grid", gap: 8 }}>
-              <p className="subtle" style={{ margin: 0, fontSize: 13 }}>
-                <strong style={{ color: "var(--ink)" }}>Pick after scan:</strong> choose from what Wearabouts can clearly see.
-              </p>
-              <p className="subtle" style={{ margin: 0, fontSize: 13 }}>
-                <strong style={{ color: "var(--ink)" }}>Optional pieces:</strong> shoes and accessories can be selected after scanning.
-              </p>
-            </div>
           </form>
 
         </div>
@@ -246,7 +201,7 @@ export default function UploadPage() {
     <AppShell>
       <div className="appbar">
         <div>
-          <h1 className="app-title">Add To Closet</h1>
+          <h1 className="app-title">Add To Wardrobe</h1>
           <p className="subtle">Choose a demo upload type. Auto-Prettify runs before review.</p>
         </div>
       </div>

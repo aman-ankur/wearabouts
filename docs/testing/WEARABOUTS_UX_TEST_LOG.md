@@ -2,6 +2,41 @@
 
 This is the living test log for hands-on Wearabouts UX/UI checks. Add a new dated entry whenever the app is manually tested, and store supporting screenshots under `testing/screenshots/`.
 
+## 2026-05-27 - Processing Magic And Review Context Polish
+
+### Environment
+
+- Branch: `codex/processing-magic`
+- Local URL: `http://localhost:3000`
+- Surface: desktop Chrome viewing the mobile web app frame
+- Scope: real-mode outfit upload, processing, and candidate review UI polish
+
+### Flow Tested
+
+1. Opened `/upload` in real mode.
+2. Uploaded `IMG_5125.jpg` as an outfit photo.
+3. Confirmed processing screen starts and shows animated closet-magic progress.
+4. Confirmed the job auto-navigates to Review when ready.
+5. Confirmed Review loads candidate choices for the uploaded outfit.
+6. Confirmed the source photo preview no longer uses numbered overlays and detected pieces appear as crop-thumbnail chips.
+
+### Findings Fixed In This Pass
+
+- Replaced the static processing checklist with a cleaner animated stage, orbiting clothing shapes, text-only activity labels, and a modern horizontal progress timeline.
+- Removed the disabled processing button treatment and replaced it with quiet status text unless Retry is actionable.
+- Auto-advanced from processing to Review after the job reaches `ready`.
+- Compressed the real upload prepare-mode choices into a segmented control and renamed `New tops` to `Topwear`.
+- Replaced the duplicate-skip checkbox with a modern `Closet matching` toggle.
+- Removed intrusive numbered markers from the uploaded photo on Review.
+- Converted the source photo into a shorter context preview with detected-piece crop chips below it.
+
+### Verification
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+
 ## 2026-05-26 - Phase 2 Demo UX Pass
 
 ### Environment
@@ -290,7 +325,7 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 ### Decision
 
 - Use the `1024px JPEG` profile for metadata detection by default.
-- Keep generated closet assets on the existing selected-crop image generation path.
+- Keep generated wardrobe items on the existing selected-crop image generation path.
 - Keep faster metadata models as an experiment, not default; `gpt-4.1-mini` was slightly faster in the same sample but missed one smartwatch candidate.
 
 ## 2026-05-26 - Phase 5.1 Detected Photo Reference Picker
@@ -333,7 +368,7 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 1. Replaced source-photo rectangle overlays with soft numbered markers and short dotted leader lines.
 2. Kept candidate colors only on the uploaded-photo marker system, where they help map detection points to the legend.
 3. Changed candidate checklist rows to neutral Wearabouts styling: selected rows use a black border and `Selected` pill, optional rows stay visually quieter.
-4. Replaced the checkbox-like duplicate control with a compact `Closet matching` status control.
+4. Replaced the checkbox-like duplicate control with a compact `Wardrobe matching` status control.
 5. Kept source crop thumbnails in candidate rows and zoomed them around the detected candidate center.
 6. Added a clickable generated-artwork preview on detected garment cards. The preview opens in a dark bottom sheet so the prettified item can be inspected at a larger size before adding it.
 
@@ -349,3 +384,25 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 
 - The visual picker still uses normalized model bounding boxes from detection; no extra OpenAI calls were added for thumbnails or markers.
 - Running `npm run build` while `next dev` is active can leave stale `.next` chunks in the dev server. Restart the dev server on port 3000 after production builds before manual browser testing.
+
+## 2026-05-27 - Processing Magic And Review Context Polish
+
+### Environment
+
+- Branch: `codex/processing-magic`
+- Scope: upload prepare controls, processing animation, and outfit review picker copy/layout
+
+### Flow Covered
+
+1. Replaced the processing checklist card with a cleaner animated wardrobe-magic stage and timeline.
+2. Changed upload prepare options into a compact segmented control and renamed visible Closet copy to Wardrobe.
+3. Removed intrusive uploaded-photo markers and the repeated detected-piece carousel from the review picker.
+4. Removed the top review `Close` and `Add All` action bar; review now uses quieter in-context back actions.
+5. Changed the review picker CTA to a count-aware generation action such as `Generate 3 wardrobe items`.
+
+### Verification
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`

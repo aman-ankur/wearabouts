@@ -162,7 +162,7 @@ function getSelectionReason(
   duplicateHint: boolean,
 ): string {
   if (duplicateHint) {
-    return "Looks like an item already in Closet";
+    return "Looks like an item already in Wardrobe";
   }
   if (status === "not_recommended") {
     return candidate.visibilityState === "occluded" ? "Not enough of this item is visible" : "Needs a clearer photo";

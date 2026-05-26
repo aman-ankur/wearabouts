@@ -54,7 +54,7 @@ export default function MixerPage() {
       <AppShell>
         <div className="appbar">
           <div>
-            <h1 className="app-title">Closet Mixer</h1>
+            <h1 className="app-title">Wardrobe Mixer</h1>
             <p className="subtle">Demo preview</p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export default function MixerPage() {
         <section className="card" style={{ display: "grid", gap: 12 }}>
           <strong>No mixer-ready items yet</strong>
           <p className="subtle" style={{ margin: 0 }}>
-            Add the demo batch to your closet to start mixing outfits. Demo state resets when the page is reloaded.
+            Add the demo batch to your wardrobe to start mixing outfits. Demo state resets when the page is reloaded.
           </p>
           <Link className="button" href="/upload">
             Add demo items
@@ -77,7 +77,7 @@ export default function MixerPage() {
     <AppShell>
       <div className="appbar">
         <div>
-          <h1 className="app-title">Closet Mixer</h1>
+          <h1 className="app-title">Wardrobe Mixer</h1>
           <p className="subtle">{mixerState.savedOutfits.length} saved looks</p>
         </div>
         <button

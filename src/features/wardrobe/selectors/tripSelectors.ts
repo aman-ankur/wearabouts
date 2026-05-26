@@ -14,7 +14,7 @@ export function createTripLooks(trip: DemoTrip, closetItems: WardrobeItem[], sav
       id: `${trip.id}-${day.id}-look`,
       tripDayId: day.id,
       title: savedOutfit?.name ?? demoLookTitles[index % demoLookTitles.length],
-      note: savedOutfit ? "Saved from Closet Mixer." : demoLookNotes[index % demoLookNotes.length],
+      note: savedOutfit ? "Saved from Wardrobe Mixer." : demoLookNotes[index % demoLookNotes.length],
       status: "suggested",
       selections: savedOutfit?.selections ?? fallbackSelections,
     };

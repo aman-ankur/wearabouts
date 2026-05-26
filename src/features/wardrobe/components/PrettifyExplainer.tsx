@@ -18,7 +18,7 @@ export function PrettifyExplainer() {
         Auto-Prettify is on
       </h2>
       <p style={{ margin: 0, color: "#c7c7c7", fontSize: 13, lineHeight: 1.45 }}>
-        Wearabouts turns messy clothing photos into clean, standardized closet assets for review, mixing, and trip
+        Wearabouts turns messy clothing photos into clean, standardized wardrobe items for review, mixing, and trip
         planning.
       </p>
     </section>

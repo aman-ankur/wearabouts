@@ -27,9 +27,9 @@ export default function TripsPage() {
         </div>
 
         <section className="card" style={{ display: "grid", gap: 12 }}>
-          <strong>Closet items needed</strong>
+          <strong>Wardrobe items needed</strong>
           <p className="subtle" style={{ margin: 0 }}>
-            Add the demo wardrobe first, then build trip looks from those closet items.
+            Add the demo wardrobe first, then build trip looks from those wardrobe items.
           </p>
           <Link className="button" href="/upload">
             Add demo items
@@ -63,9 +63,9 @@ export default function TripsPage() {
             <CalendarDays size={14} aria-hidden="true" />
             Goa · Fri-Sun
           </div>
-          <h2 style={{ fontSize: 28, lineHeight: 1.04, margin: 0 }}>Plan three looks from your closet.</h2>
+          <h2 style={{ fontSize: 28, lineHeight: 1.04, margin: 0 }}>Plan three looks from your wardrobe.</h2>
           <p className="subtle" style={{ margin: 0, maxWidth: 320 }}>
-            Demo mode creates a small carry-on plan using saved Closet Mixer looks first, then closet items.
+            Demo mode creates a small carry-on plan using saved Wardrobe Mixer looks first, then wardrobe items.
           </p>
           <button type="button" className="button" onClick={startDemoTrip}>
             <Sparkles size={17} aria-hidden="true" />

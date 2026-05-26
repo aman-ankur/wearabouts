@@ -12,7 +12,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ ga
     return NextResponse.json({ wardrobeItem });
   } catch (error) {
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not add garment to closet." },
+      { error: error instanceof Error ? error.message : "Could not add garment to wardrobe." },
       { status: 500 },
     );
   }
