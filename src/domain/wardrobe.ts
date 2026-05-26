@@ -43,6 +43,13 @@ export interface UploadBatchCandidateSummary {
   failedCount: number;
 }
 
+export interface UploadSourceImageReference {
+  id: string;
+  imageUrl: string;
+  contentType: string;
+  originalFilename: string;
+}
+
 export interface GarmentCandidateChoice {
   id: string;
   uploadBatchId: string;
@@ -191,4 +198,5 @@ export interface UploadBatch {
   detectedGarments: DetectedGarment[];
   candidateSummary?: UploadBatchCandidateSummary;
   garmentCandidates?: GarmentCandidateChoice[];
+  sourceImage?: UploadSourceImageReference;
 }

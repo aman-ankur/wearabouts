@@ -3,9 +3,14 @@
 import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import type { GarmentCandidateChoice } from "@/src/domain/wardrobe";
+import type { GarmentCandidateChoice, UploadSourceImageReference } from "@/src/domain/wardrobe";
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
+import {
+  CandidateCropThumbnail,
+  CandidateNumber,
+  DetectedCandidatePhotoReference,
+} from "@/src/features/wardrobe/components/DetectedCandidatePhotoReference";
 import { DetectedGarmentCard } from "@/src/features/wardrobe/components/DetectedGarmentCard";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
@@ -42,6 +47,11 @@ export default function ReviewPage() {
     ["optional", "not_recommended"].includes(candidate.selectionStatus),
   );
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
+  const [isSourcePhotoExpanded, setIsSourcePhotoExpanded] = useState(false);
+  const candidateIndexById = useMemo(
+    () => new Map(candidateChoices.map((candidate, index) => [candidate.id, index])),
+    [candidateChoices],
+  );
 
   useEffect(() => {
     if (!isPersistentMode) {
@@ -212,10 +222,59 @@ export default function ReviewPage() {
               </p>
             </div>
 
+            {state.activeBatch?.sourceImage ? (
+              <DetectedCandidatePhotoReference
+                sourceImage={state.activeBatch.sourceImage}
+                candidates={candidateChoices}
+                expanded={isSourcePhotoExpanded}
+                onToggleExpanded={() => setIsSourcePhotoExpanded((current) => !current)}
+              />
+            ) : null}
+
+            <section
+              style={{
+                border: "1px solid var(--line)",
+                borderRadius: 8,
+                background: "var(--paper)",
+                padding: 12,
+                display: "grid",
+                gridTemplateColumns: "22px minmax(0, 1fr)",
+                gap: 10,
+                alignItems: "start",
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  width: 20,
+                  height: 20,
+                  borderRadius: 5,
+                  background: "var(--ink)",
+                  color: "var(--white)",
+                  display: "grid",
+                  placeItems: "center",
+                  fontSize: 13,
+                  fontWeight: 900,
+                }}
+              >
+                ✓
+              </span>
+              <span style={{ display: "grid", gap: 3 }}>
+                <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>
+                  Skip items already in Closet
+                </strong>
+                <span className="subtle" style={{ fontSize: 13 }}>
+                  Likely matches are unchecked, but you can still choose them.
+                </span>
+              </span>
+            </section>
+
             <CandidateChoiceList
               title="New closet pieces"
               candidates={primaryCandidates}
               selectedCandidateIds={selectedCandidateIds}
+              sourceImage={state.activeBatch?.sourceImage}
+              candidateIndexById={candidateIndexById}
               onToggle={toggleCandidate}
             />
 
@@ -224,6 +283,8 @@ export default function ReviewPage() {
                 title="Optional"
                 candidates={optionalCandidates}
                 selectedCandidateIds={selectedCandidateIds}
+                sourceImage={state.activeBatch?.sourceImage}
+                candidateIndexById={candidateIndexById}
                 onToggle={toggleCandidate}
               />
             ) : null}
@@ -271,11 +332,15 @@ function CandidateChoiceList({
   title,
   candidates,
   selectedCandidateIds,
+  sourceImage,
+  candidateIndexById,
   onToggle,
 }: {
   title: string;
   candidates: GarmentCandidateChoice[];
   selectedCandidateIds: string[];
+  sourceImage?: UploadSourceImageReference;
+  candidateIndexById: Map<string, number>;
   onToggle: (candidateId: string) => void;
 }) {
   if (candidates.length === 0) {
@@ -299,6 +364,7 @@ function CandidateChoiceList({
         const isSelected = selectedCandidateIds.includes(candidate.id);
         const isOptional = candidate.selectionStatus === "optional" || candidate.selectionStatus === "not_recommended";
         const isDuplicate = candidate.selectionStatus === "skipped_existing";
+        const candidateIndex = candidateIndexById.get(candidate.id) ?? 0;
         return (
           <button
             key={candidate.id}
@@ -312,30 +378,15 @@ function CandidateChoiceList({
               padding: 12,
               textAlign: "left",
               display: "grid",
-              gridTemplateColumns: "24px minmax(0, 1fr)",
+              gridTemplateColumns: sourceImage ? "24px 52px minmax(0, 1fr)" : "24px minmax(0, 1fr)",
               gap: 10,
-              alignItems: "start",
+              alignItems: "center",
             }}
           >
-            <span
-              aria-hidden="true"
-              style={{
-                width: 22,
-                height: 22,
-                borderRadius: 999,
-                border: `2px solid ${isSelected ? "var(--ink)" : "var(--muted)"}`,
-                display: "grid",
-                placeItems: "center",
-                background: isSelected ? "var(--ink)" : "transparent",
-                color: "var(--white)",
-                fontSize: 11,
-                fontWeight: 900,
-              }}
-            >
-              {isSelected ? "ok" : ""}
-            </span>
-            <span style={{ display: "grid", gap: 5 }}>
-              <strong style={{ color: "var(--ink)", fontSize: 15 }}>{candidate.proposedName}</strong>
+            <CandidateNumber index={candidateIndex} />
+            <CandidateCropThumbnail sourceImage={sourceImage} candidate={candidate} />
+            <span style={{ display: "grid", gap: 5, minWidth: 0 }}>
+              <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>{candidate.proposedName}</strong>
               <span className="subtle" style={{ fontSize: 13 }}>
                 {isDuplicate
                   ? "Looks like something already in Closet. Select it if this is a different piece."

@@ -292,3 +292,30 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 - Use the `1024px JPEG` profile for metadata detection by default.
 - Keep generated closet assets on the existing selected-crop image generation path.
 - Keep faster metadata models as an experiment, not default; `gpt-4.1-mini` was slightly faster in the same sample but missed one smartwatch candidate.
+
+## 2026-05-26 - Phase 5.1 Detected Photo Reference Picker
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Local URL: `http://localhost:3000`
+- Scope: real outfit review picker after scan
+
+### Flow Covered
+
+1. Loaded an existing real scan-only outfit batch.
+2. Confirmed the batch API now includes a signed uploaded source image reference.
+3. Added the uploaded-photo reference above the candidate checklist.
+4. Rendered numbered bounding boxes over the uploaded photo using existing candidate bounding boxes.
+5. Added row-level crop thumbnails so each checklist item has a visible local reference.
+
+### Verification
+
+- `npm run test -- src/features/wardrobe/components/DetectedCandidatePhotoReference.test.tsx src/features/wardrobe/real/supabaseMappers.test.ts`
+- `npm run typecheck`
+- `npm run lint`
+
+### Remaining Notes
+
+- The overlay uses normalized candidate bounding boxes from the detection model and does not add OpenAI calls.
+- The row crop thumbnails use focal positioning around each bounding box center; a future pass can use exact CSS clipping if we want tighter crop previews.

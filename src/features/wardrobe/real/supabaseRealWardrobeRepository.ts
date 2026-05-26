@@ -491,6 +491,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     const candidates = ((candidateRows ?? []) as GarmentCandidateRow[]).map((row) => this.mapCandidate(row));
+    const sourceImage = await this.getBatchSourceImageReference(batchId);
     return mapSupabaseUploadBatch(
       {
         ...(batch as SupabaseUploadBatchRow),
@@ -509,6 +510,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
           status: candidate.status,
           detectedGarmentId: candidate.detectedGarmentId,
         })),
+        source_image: sourceImage ?? undefined,
       },
       garments,
     );
@@ -563,6 +565,27 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     return data.signedUrl;
+  }
+
+  private async getBatchSourceImageReference(batchId: string) {
+    const { data, error } = await this.supabase
+      .from("source_images")
+      .select("*")
+      .eq("upload_batch_id", batchId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) {
+      return null;
+    }
+
+    const row = data as SourceImageRow;
+    return {
+      id: row.id,
+      imageUrl: await this.createSignedUrl(row.bucket, row.storage_path),
+      contentType: row.content_type,
+      originalFilename: row.original_filename,
+    };
   }
 
   private mapJob(row: PrettifyJobRow): PrettifyJobRecord {

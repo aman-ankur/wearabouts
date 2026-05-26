@@ -56,6 +56,7 @@ The implemented MVP direction is scan-first:
 - Upload asks what Wearabouts should prepare, with smart extraction behavior.
 - The default real outfit flow runs metadata detection only.
 - Review shows detected candidates so the user can choose the pieces they actually want.
+- Review shows the uploaded source photo above the candidate checklist, with numbered bounding boxes and matching crop thumbnails in each row.
 - `Skip items already in Closet` is on by default.
 - Likely existing pieces are still selectable so the user can force generation when the duplicate hint is wrong.
 - Shoes and accessories are optional by default and do not get generated unless selected.

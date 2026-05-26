@@ -10,6 +10,7 @@ import type {
   PrettifyStatus,
   UploadBatch,
   UploadBatchCandidateSummary,
+  UploadSourceImageReference,
   UploadSourceType,
   WardrobeItem,
   WardrobeProfileId,
@@ -24,6 +25,7 @@ export interface SupabaseUploadBatchRow {
   created_at: string;
   candidate_summary?: UploadBatchCandidateSummary;
   garment_candidates?: GarmentCandidateChoice[];
+  source_image?: UploadSourceImageReference;
 }
 
 export interface SupabaseDetectedGarmentRow {
@@ -77,6 +79,7 @@ export function mapSupabaseUploadBatch(
     detectedGarments,
     candidateSummary: row.candidate_summary,
     garmentCandidates: row.garment_candidates,
+    sourceImage: row.source_image,
   };
 }
 
