@@ -1,10 +1,11 @@
-import type { ClosetAsset } from "@/src/domain/wardrobe";
+import React from "react";
+import type { DemoClosetAsset } from "@/src/domain/wardrobe";
 
 interface GarmentArtworkProps {
-  token: ClosetAsset["visualToken"];
+  token: DemoClosetAsset["visualToken"];
 }
 
-const colorByToken: Record<ClosetAsset["visualToken"], string> = {
+const colorByToken: Record<DemoClosetAsset["visualToken"], string> = {
   "jacket-brown": "var(--clay)",
   "sweater-cream": "var(--cream)",
   "crew-wine": "var(--wine)",

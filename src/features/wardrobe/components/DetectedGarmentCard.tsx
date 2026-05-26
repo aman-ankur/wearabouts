@@ -1,6 +1,6 @@
 import { Check, RotateCcw, Trash2 } from "lucide-react";
 import type { DetectedGarment } from "@/src/domain/wardrobe";
-import { GarmentArtwork } from "./GarmentArtwork";
+import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
 
 interface DetectedGarmentCardProps {
   garment: DetectedGarment;
@@ -22,7 +22,7 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
       }}
     >
       <div style={{ minHeight: 112, borderRadius: 8, background: "#626262", display: "grid", placeItems: "center" }}>
-        <GarmentArtwork token={garment.asset.visualToken} />
+        <ClosetAssetArtwork asset={garment.asset} />
       </div>
       <div style={{ minWidth: 0 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 8, alignItems: "flex-start" }}>

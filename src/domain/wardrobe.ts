@@ -16,13 +16,17 @@ export type ConfidenceLevel = "high" | "medium" | "low";
 
 export type PrettifyStatus = "not_started" | "processing" | "ready" | "needs_review" | "failed";
 
+export type PrettifyJobStatus = "queued" | "analyzing" | "prettifying" | "validating" | "ready" | "failed";
+
 export interface WardrobeProfile {
   id: WardrobeProfileId;
   displayName: string;
   shortLabel: string;
 }
 
-export interface ClosetAsset {
+export type ClosetAssetBucket = "source-images" | "closet-assets";
+
+export interface DemoClosetAsset {
   id: string;
   kind: "original" | "detected_crop" | "prettified" | "thumbnail";
   label: string;
@@ -34,6 +38,17 @@ export interface ClosetAsset {
     | "trouser-charcoal"
     | "shoe-brown";
 }
+
+export interface RealClosetAsset {
+  id: string;
+  kind: "original" | "detected_crop" | "prettified" | "thumbnail";
+  label: string;
+  bucket: ClosetAssetBucket;
+  storagePath: string;
+  imageUrl: string;
+}
+
+export type ClosetAsset = DemoClosetAsset | RealClosetAsset;
 
 export interface DetectedGarment {
   id: string;

@@ -1,5 +1,5 @@
 import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
-import { GarmentArtwork } from "./GarmentArtwork";
+import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
 
 interface MixerRailProps {
   slot: OutfitSlot;
@@ -63,7 +63,7 @@ export function MixerRail({ slot, label, items, selectedItemId, locked, onSelect
                     borderRadius: 8,
                   }}
                 >
-                  <GarmentArtwork token={item.asset.visualToken} />
+                  <ClosetAssetArtwork asset={item.asset} />
                 </span>
                 <span style={{ width: "100%", fontSize: 12, fontWeight: 720, color: "var(--ink)" }}>{item.name}</span>
               </button>
