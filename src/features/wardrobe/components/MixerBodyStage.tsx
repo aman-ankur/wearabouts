@@ -6,14 +6,28 @@ interface MixerBodyStageProps {
   selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>;
 }
 
-const bodySlotStyle = {
-  position: "absolute",
-  left: "50%",
+const boardCellStyle = {
+  minHeight: 120,
+  border: "1px solid rgba(230,222,212,.9)",
+  borderRadius: 8,
+  background: "rgba(255,255,255,.72)",
   display: "grid",
   placeItems: "center",
-  transform: "translateX(-50%)",
-  pointerEvents: "none",
+  position: "relative",
+  overflow: "hidden",
 } satisfies React.CSSProperties;
+
+function BoardItem({ item, scale = 1 }: { item?: WardrobeItem; scale?: number }) {
+  if (!item) {
+    return <span style={{ width: 54, height: 2, borderRadius: 999, background: "var(--line)" }} />;
+  }
+
+  return (
+    <div style={{ transform: `scale(${scale})`, display: "grid", placeItems: "center" }}>
+      <GarmentArtwork token={item.asset.visualToken} />
+    </div>
+  );
+}
 
 export function MixerBodyStage({ selectedItems }: MixerBodyStageProps) {
   return (
@@ -23,9 +37,12 @@ export function MixerBodyStage({ selectedItems }: MixerBodyStageProps) {
         minHeight: 360,
         border: "1px solid var(--line)",
         borderRadius: 8,
-        background: "linear-gradient(180deg, #fbfaf7 0%, #ece5db 100%)",
-        display: "grid",
-        placeItems: "center",
+        background:
+          "radial-gradient(circle at 50% 18%, rgba(49,90,125,.08), transparent 32%), linear-gradient(180deg, #fbfaf7 0%, #eee8de 100%)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: 18,
         position: "relative",
         overflow: "hidden",
       }}
@@ -34,121 +51,55 @@ export function MixerBodyStage({ selectedItems }: MixerBodyStageProps) {
         aria-hidden="true"
         style={{
           position: "absolute",
-          inset: "auto 42px 22px",
+          left: 36,
+          right: 36,
+          top: 48,
+          height: 1,
+          background: "rgba(17,17,17,.12)",
+        }}
+      />
+      <div
+        aria-hidden="true"
+        style={{
+          position: "absolute",
+          left: "50%",
+          top: 49,
+          width: 32,
           height: 18,
-          borderRadius: "50%",
-          background: "rgba(17,17,17,.10)",
-          filter: "blur(2px)",
+          borderLeft: "1px solid rgba(17,17,17,.16)",
+          borderRight: "1px solid rgba(17,17,17,.16)",
+          borderBottom: "1px solid rgba(17,17,17,.16)",
+          borderRadius: "0 0 18px 18px",
+          transform: "translateX(-50%)",
         }}
       />
       <div
         style={{
-          width: 190,
-          height: 332,
-          position: "relative",
+          width: "min(100%, 300px)",
           display: "grid",
-          justifyItems: "center",
+          gridTemplateColumns: "1.1fr .9fr",
+          gap: 10,
+          position: "relative",
+          zIndex: 1,
         }}
       >
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 10,
-            width: 50,
-            height: 50,
-            borderRadius: "50%",
-            background: "#d6ad8f",
-            border: "2px solid rgba(17,17,17,.08)",
-          }}
-        />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 62,
-            width: 92,
-            height: 136,
-            borderRadius: "38px 38px 26px 26px",
-            background: "#d2a483",
-          }}
-        />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: 42,
-            top: 86,
-            width: 25,
-            height: 118,
-            borderRadius: 18,
-            background: "#d2a483",
-            transform: "rotate(7deg)",
-          }}
-        />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            right: 42,
-            top: 86,
-            width: 25,
-            height: 118,
-            borderRadius: 18,
-            background: "#d2a483",
-            transform: "rotate(-7deg)",
-          }}
-        />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            left: 68,
-            top: 180,
-            width: 26,
-            height: 120,
-            borderRadius: "0 0 18px 18px",
-            background: "#d2a483",
-          }}
-        />
-        <span
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            right: 68,
-            top: 180,
-            width: 26,
-            height: 120,
-            borderRadius: "0 0 18px 18px",
-            background: "#d2a483",
-          }}
-        />
-
-        {selectedItems.bottom ? (
-          <div style={{ ...bodySlotStyle, top: 165, transform: "translateX(-50%) scale(.9)" }}>
-            <GarmentArtwork token={selectedItems.bottom.asset.visualToken} />
-          </div>
-        ) : null}
-        {selectedItems.top ? (
-          <div style={{ ...bodySlotStyle, top: 68, transform: "translateX(-50%) scale(.82)" }}>
-            <GarmentArtwork token={selectedItems.top.asset.visualToken} />
-          </div>
-        ) : null}
-        {selectedItems.layer ? (
-          <div style={{ ...bodySlotStyle, top: 58, transform: "translateX(-50%) scale(.96)", opacity: 0.92 }}>
-            <GarmentArtwork token={selectedItems.layer.asset.visualToken} />
-          </div>
-        ) : null}
-        {selectedItems.shoes ? (
-          <div style={{ ...bodySlotStyle, bottom: 9, transform: "translateX(-50%) scale(1.05)" }}>
-            <GarmentArtwork token={selectedItems.shoes.asset.visualToken} />
-          </div>
-        ) : null}
-        {selectedItems.accessory ? (
-          <div style={{ ...bodySlotStyle, top: 12, left: "64%", transform: "translateX(-50%) scale(.38)" }}>
-            <GarmentArtwork token={selectedItems.accessory.asset.visualToken} />
-          </div>
-        ) : null}
+        <div style={{ ...boardCellStyle, minHeight: 178, gridRow: "span 2" }}>
+          {selectedItems.layer ? (
+            <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", opacity: 0.32 }}>
+              <BoardItem item={selectedItems.layer} scale={1.05} />
+            </div>
+          ) : null}
+          <BoardItem item={selectedItems.top} scale={0.95} />
+        </div>
+        <div style={{ ...boardCellStyle, minHeight: 178 }}>
+          <BoardItem item={selectedItems.bottom} scale={0.92} />
+        </div>
+        <div style={{ ...boardCellStyle, minHeight: 82 }}>
+          <BoardItem item={selectedItems.shoes} scale={1.05} />
+        </div>
+        <div style={{ ...boardCellStyle, minHeight: 72, gridColumn: "1 / -1" }}>
+          <BoardItem item={selectedItems.accessory} scale={0.52} />
+        </div>
       </div>
     </section>
   );

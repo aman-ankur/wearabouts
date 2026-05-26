@@ -45,9 +45,11 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 - Added mixer save confirmation text after saving a look.
 - Shortened the accessory lock label to avoid clipping in the compact mixer lock row.
 - Added a direct-load note to the Mixer empty state because demo state is client-side and resets on reload.
+- Replaced the fake human try-on preview with an outfit-board preview so the demo does not imply real avatar fitting.
 
 ### Remaining Notes
 
 - Demo state is still in-memory only by design for Phase 2.
 - Closet filters are simple category filters; no persisted filter state yet.
 - Saved looks are summary rows only; they do not render outfit thumbnails yet.
+- Real body/avatar try-on quality is not represented by this Phase 2 demo. It needs a separate avatar-render pipeline with body landmarks, garment segmentation, fit/occlusion handling, and quality checks.
