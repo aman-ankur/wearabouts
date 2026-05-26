@@ -233,39 +233,39 @@ export default function ReviewPage() {
 
             <section
               style={{
-                border: "1px solid var(--line)",
+                border: "1px solid rgba(17,17,17,0.12)",
                 borderRadius: 8,
-                background: "var(--paper)",
-                padding: 12,
-                display: "grid",
-                gridTemplateColumns: "22px minmax(0, 1fr)",
-                gap: 10,
-                alignItems: "start",
+                background: "linear-gradient(135deg, rgba(17,17,17,0.03), rgba(255,255,255,0.92))",
+                padding: "12px 13px",
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "center",
               }}
             >
-              <span
-                aria-hidden="true"
-                style={{
-                  width: 20,
-                  height: 20,
-                  borderRadius: 5,
-                  background: "var(--ink)",
-                  color: "var(--white)",
-                  display: "grid",
-                  placeItems: "center",
-                  fontSize: 13,
-                  fontWeight: 900,
-                }}
-              >
-                ✓
-              </span>
               <span style={{ display: "grid", gap: 3 }}>
                 <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>
-                  Skip items already in Closet
+                  Closet matching
                 </strong>
                 <span className="subtle" style={{ fontSize: 13 }}>
-                  Likely matches are unchecked, but you can still choose them.
+                  Pieces that look saved stay optional.
                 </span>
+              </span>
+              <span
+                aria-label="Closet matching is on"
+                style={{
+                  borderRadius: 999,
+                  background: "var(--ink)",
+                  color: "var(--white)",
+                  padding: "7px 12px",
+                  fontSize: 12,
+                  fontWeight: 850,
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 6px 16px rgba(17,17,17,0.14)",
+                }}
+              >
+                On
               </span>
             </section>
 
@@ -365,25 +365,31 @@ function CandidateChoiceList({
         const isOptional = candidate.selectionStatus === "optional" || candidate.selectionStatus === "not_recommended";
         const isDuplicate = candidate.selectionStatus === "skipped_existing";
         const candidateIndex = candidateIndexById.get(candidate.id) ?? 0;
+        const rowBackground =
+          isSelected || (!isOptional && !isDuplicate) ? "var(--paper)" : "rgba(255,255,255,0.72)";
+        const statusLabel = isDuplicate ? "Already saved" : isSelected ? "Selected" : "Optional";
         return (
           <button
             key={candidate.id}
             type="button"
             onClick={() => onToggle(candidate.id)}
+            aria-pressed={isSelected}
             style={{
               width: "100%",
               border: `1px solid ${isSelected ? "var(--ink)" : "var(--line)"}`,
               borderRadius: 8,
-              background: "var(--paper)",
+              background: rowBackground,
               padding: 12,
               textAlign: "left",
               display: "grid",
               gridTemplateColumns: sourceImage ? "24px 52px minmax(0, 1fr)" : "24px minmax(0, 1fr)",
               gap: 10,
               alignItems: "center",
+              boxShadow: isSelected ? "0 8px 22px rgba(17,17,17,0.05)" : "none",
+              opacity: isSelected || !isOptional ? 1 : 0.86,
             }}
           >
-            <CandidateNumber index={candidateIndex} />
+            <CandidateNumber index={candidateIndex} variant="neutral" />
             <CandidateCropThumbnail sourceImage={sourceImage} candidate={candidate} />
             <span style={{ display: "grid", gap: 5, minWidth: 0 }}>
               <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>{candidate.proposedName}</strong>
@@ -393,8 +399,15 @@ function CandidateChoiceList({
                   : candidate.selectionReason}
               </span>
               <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
-                <span className={isDuplicate ? "pill" : isOptional ? "pill" : "pill dark"}>
-                  {isDuplicate ? "Already in Closet" : isOptional ? "Optional" : "Selected first"}
+                <span
+                  className="pill"
+                  style={{
+                    background: isSelected ? "var(--ink)" : "var(--wash)",
+                    color: isSelected ? "var(--white)" : "var(--muted)",
+                    border: `1px solid ${isSelected ? "var(--ink)" : "transparent"}`,
+                  }}
+                >
+                  {statusLabel}
                 </span>
                 <span className="pill">{candidate.category}</span>
               </span>

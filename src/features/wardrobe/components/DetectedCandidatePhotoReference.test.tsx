@@ -41,7 +41,8 @@ describe("DetectedCandidatePhotoReference", () => {
     expect(html).toContain("Black crew-neck T-shirt detected area");
     expect(html).toContain("left:50%");
     expect(html).toContain("top:35%");
-    expect(html).toContain("border-top:2px dotted");
+    expect(html).toContain("border-top:1.5px dotted rgba(72,97,76,0.55)");
+    expect(html).toContain("background:rgba(72,97,76,0.78)");
     expect(html).not.toContain("width:50%");
     expect(html).not.toContain("height:30%");
   });

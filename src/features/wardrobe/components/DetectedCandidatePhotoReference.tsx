@@ -179,18 +179,33 @@ export function CandidateCropThumbnail({
   );
 }
 
-export function CandidateNumber({ index }: { index: number }) {
+export function CandidateNumber({
+  index,
+  variant = "soft",
+}: {
+  index: number;
+  variant?: "soft" | "solid" | "neutral";
+}) {
+  const color = getCandidateColor(index);
+  const isSolid = variant === "solid";
+  const isNeutral = variant === "neutral";
+
   return (
     <span
       aria-hidden="true"
       style={{
-        width: 22,
-        height: 22,
+        width: 21,
+        height: 21,
         borderRadius: 999,
         display: "grid",
         placeItems: "center",
-        background: getCandidateColor(index),
-        color: "var(--white)",
+        background: isNeutral ? "var(--wash)" : isSolid ? color : hexToRgba(color, 0.14),
+        color: isNeutral ? "var(--ink)" : isSolid ? "var(--white)" : color,
+        border: isNeutral
+          ? "1px solid rgba(17,17,17,0.12)"
+          : isSolid
+            ? "1px solid transparent"
+            : `1px solid ${hexToRgba(color, 0.22)}`,
         fontSize: 11,
         fontWeight: 900,
         flex: "0 0 auto",
@@ -227,25 +242,27 @@ function DetectionMarker({ candidate, index }: { candidate: GarmentCandidateChoi
           position: "absolute",
           left: "50%",
           top: "50%",
-          width: 30,
-          borderTop: `2px dotted ${color}`,
+          width: 22,
+          borderTop: `1.5px dotted ${hexToRgba(color, 0.55)}`,
           transform: "translateY(-50%)",
-          opacity: 0.9,
+          opacity: 0.72,
         }}
       />
       <span
         style={{
           position: "relative",
-          width: 26,
-          height: 26,
+          width: 25,
+          height: 25,
           borderRadius: 999,
           display: "grid",
           placeItems: "center",
-          background: color,
+          background: hexToRgba(color, 0.78),
           color: "var(--white)",
           fontSize: 12,
           fontWeight: 900,
-          boxShadow: "0 1px 4px rgba(17,17,17,0.2)",
+          border: "1px solid rgba(255,255,255,0.68)",
+          boxShadow: "0 4px 14px rgba(17,17,17,0.18)",
+          backdropFilter: "blur(3px)",
         }}
       >
         {index + 1}
@@ -256,6 +273,15 @@ function DetectionMarker({ candidate, index }: { candidate: GarmentCandidateChoi
 
 function asPercent(value: number) {
   return `${Math.max(0, Math.min(1, value)) * 100}%`;
+}
+
+function hexToRgba(hex: string, alpha: number) {
+  const normalized = hex.replace("#", "");
+  const red = Number.parseInt(normalized.slice(0, 2), 16);
+  const green = Number.parseInt(normalized.slice(2, 4), 16);
+  const blue = Number.parseInt(normalized.slice(4, 6), 16);
+
+  return `rgba(${red},${green},${blue},${alpha})`;
 }
 
 function getThumbnailZoom(candidate: GarmentCandidateChoice) {
