@@ -4,7 +4,7 @@ import { FileImage, Lock, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import type { UploadSourceType } from "@/src/domain/wardrobe";
-import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
+import { getRuntimeMode, getRuntimeModeLabel, setRuntimeModeOverride } from "@/src/features/runtime/runtimeMode";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { PrettifyExplainer } from "@/src/features/wardrobe/components/PrettifyExplainer";
@@ -14,10 +14,11 @@ import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 export default function UploadPage() {
   const router = useRouter();
   const { createDemoBatch } = useWardrobe();
-  const runtimeMode = getRuntimeMode();
+  const [runtimeMode, setRuntimeMode] = useState(() => getRuntimeMode());
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const isDevMode = runtimeMode === "dev";
 
   async function handleChoose(sourceType: UploadSourceType) {
     const batchId = await createDemoBatch(sourceType);
@@ -43,17 +44,17 @@ export default function UploadPage() {
       const formData = new FormData();
       formData.append("item_photo", selectedFile);
 
-      const response = await fetch("/api/wardrobe/uploads", {
+      const response = await fetch(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
         method: "POST",
         body: formData,
       });
       const payload = (await response.json()) as { batchId?: string; jobId?: string; error?: string };
 
-      if (!response.ok || !payload.batchId || !payload.jobId) {
+      if (!response.ok || !payload.batchId || (!isDevMode && !payload.jobId)) {
         throw new Error(payload.error ?? "Upload failed.");
       }
 
-      router.push(`/processing/${payload.jobId}?batchId=${payload.batchId}`);
+      router.push(isDevMode ? `/review/${payload.batchId}` : `/processing/${payload.jobId}?batchId=${payload.batchId}`);
     } catch (error) {
       setUploadError(error instanceof Error ? error.message : "Upload failed.");
     } finally {
@@ -61,21 +62,37 @@ export default function UploadPage() {
     }
   }
 
-  if (runtimeMode === "real") {
+  function handleToggleDevMode() {
+    setSelectedFile(null);
+    setUploadError(null);
+    setRuntimeMode(setRuntimeModeOverride(isDevMode ? null : "dev"));
+  }
+
+  if (runtimeMode === "real" || runtimeMode === "dev") {
     return (
       <AppShell>
         <div className="appbar">
           <div>
             <h1 className="app-title">Add To Closet</h1>
-            <p className="subtle">Upload one standalone clothing photo. Wearabouts will prep it for review.</p>
+            <p className="subtle">
+              {isDevMode
+                ? "Upload anything to reuse the latest cached closet asset without calling OpenAI."
+                : "Upload one standalone clothing photo. Wearabouts will prep it for review."}
+            </p>
           </div>
+          <button type="button" className="button secondary" onClick={handleToggleDevMode}>
+            {isDevMode ? "Real" : "Dev"}
+          </button>
         </div>
 
         <div className="stack">
           <form className="card" onSubmit={handleRealUpload} style={{ display: "grid", gap: 14 }}>
             <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span className="pill dark">
-                <Sparkles size={14} /> Real Auto-Prettify
+                <Sparkles size={14} /> {isDevMode ? "Dev Cache Mode" : "Real Auto-Prettify"}
+              </span>
+              <span className="pill">
+                {getRuntimeModeLabel(runtimeMode)}
               </span>
             </div>
 
@@ -95,7 +112,11 @@ export default function UploadPage() {
               <FileImage size={34} />
               <strong style={{ marginTop: 10 }}>Item photo</strong>
               <span className="subtle">
-                {selectedFile ? selectedFile.name : "Choose a JPG, PNG, or WebP under 10MB."}
+                {selectedFile
+                  ? selectedFile.name
+                  : isDevMode
+                    ? "Choose a file to exercise upload UI; cached output is reused."
+                    : "Choose a JPG, PNG, or WebP under 10MB."}
               </span>
               <input
                 id="item_photo"
@@ -114,7 +135,7 @@ export default function UploadPage() {
             ) : null}
 
             <button type="submit" className="full-button" disabled={isUploading}>
-              {isUploading ? "Starting..." : "Upload and Prettify"}
+              {isUploading ? "Starting..." : isDevMode ? "Upload and Use Cache" : "Upload and Prettify"}
             </button>
           </form>
 

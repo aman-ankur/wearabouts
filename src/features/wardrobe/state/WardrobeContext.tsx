@@ -42,7 +42,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const runtimeMode = useMemo(() => getRuntimeMode(), []);
 
   useEffect(() => {
-    if (runtimeMode !== "real") {
+    if (runtimeMode !== "real" && runtimeMode !== "dev") {
       return;
     }
 

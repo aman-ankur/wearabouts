@@ -1,4 +1,4 @@
-export type RuntimeMode = "demo" | "real";
+export type RuntimeMode = "demo" | "real" | "dev";
 
 export type WardrobeProfileId = "profile-aankur" | "profile-wife" | "profile-shared";
 
