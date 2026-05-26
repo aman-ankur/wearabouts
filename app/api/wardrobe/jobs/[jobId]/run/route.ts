@@ -1,16 +1,29 @@
 import { NextResponse } from "next/server";
 import { createRealWardrobeServices } from "@/src/features/wardrobe/real/createRealWardrobeServices";
+import { createTimer, logWearaboutsTelemetry } from "@/src/features/wardrobe/real/prettifyTelemetry";
 
 export const runtime = "nodejs";
 
 export async function POST(_request: Request, { params }: { params: Promise<{ jobId: string }> }) {
+  const timer = createTimer();
   try {
     const { jobId } = await params;
     const { pipeline } = createRealWardrobeServices();
+    logWearaboutsTelemetry("api.job_run.started", { jobId });
     const result = await pipeline.runPrettifyJob(jobId);
 
+    logWearaboutsTelemetry("api.job_run.completed", {
+      jobId,
+      status: result.job.status,
+      generatedGarmentCount: result.garments.length,
+      durationMs: timer.elapsedMs(),
+    });
     return NextResponse.json(result);
   } catch (error) {
+    logWearaboutsTelemetry("api.job_run.failed", {
+      durationMs: timer.elapsedMs(),
+      error: error instanceof Error ? error.message : "Could not run prettify job.",
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Could not run prettify job." },
       { status: 500 },

@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import type { OutfitExtractionMode } from "@/src/domain/wardrobe";
 import { createRealWardrobeServices } from "@/src/features/wardrobe/real/createRealWardrobeServices";
+import { createTimer, logWearaboutsTelemetry } from "@/src/features/wardrobe/real/prettifyTelemetry";
 
 export const runtime = "nodejs";
 
 export async function POST(request: Request) {
+  const timer = createTimer();
   try {
     const formData = await request.formData();
     const file = formData.get("item_photo") ?? formData.get("file");
@@ -18,17 +20,37 @@ export async function POST(request: Request) {
     }
 
     const { pipeline } = createRealWardrobeServices();
+    logWearaboutsTelemetry("api.upload.started", {
+      filename: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      sourceType,
+      extractionMode,
+      skipExistingItems,
+    });
     const result =
       sourceType === "outfit_photo"
         ? await pipeline.createOutfitUpload(file, { extractionMode, skipExistingItems })
         : await pipeline.createSingleItemUpload(file);
 
+    logWearaboutsTelemetry("api.upload.completed", {
+      batchId: result.batch.id,
+      jobId: result.job.id,
+      sourceImageId: result.sourceImage.id,
+      sourceType,
+      extractionMode,
+      durationMs: timer.elapsedMs(),
+    });
     return NextResponse.json({
       batchId: result.batch.id,
       jobId: result.job.id,
       sourceImageId: result.sourceImage.id,
     });
   } catch (error) {
+    logWearaboutsTelemetry("api.upload.failed", {
+      durationMs: timer.elapsedMs(),
+      error: error instanceof Error ? error.message : "Upload failed.",
+    });
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Upload failed." },
       { status: 500 },

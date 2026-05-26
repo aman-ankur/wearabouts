@@ -10,6 +10,11 @@ import type {
 } from "./realWardrobePipeline";
 import { normalizeImageForOpenAI } from "./openaiImageNormalizer";
 import type { GarmentVisibilityState } from "@/src/domain/wardrobe";
+import {
+  createTimer,
+  estimateImageOutputCostUsd,
+  logWearaboutsTelemetry,
+} from "./prettifyTelemetry";
 
 const garmentCategories: GarmentCategory[] = ["tops", "bottoms", "outerwear", "footwear", "accessories", "combo"];
 const confidenceLevels: ConfidenceLevel[] = ["high", "medium", "low"];
@@ -17,6 +22,7 @@ const visibilityStates: GarmentVisibilityState[] = ["visible", "occluded", "need
 
 interface OpenAIResponseWithText {
   output_text?: string;
+  usage?: unknown;
   output?: Array<{
     content?: Array<{ type?: string; text?: string }>;
   }>;
@@ -24,6 +30,7 @@ interface OpenAIResponseWithText {
 
 interface OpenAIImageResponse {
   data?: Array<{ b64_json?: string }>;
+  usage?: unknown;
 }
 
 export class OpenAIPrettifyProvider implements PrettifyAIProvider {
@@ -41,6 +48,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     sourceImage: RealSourceImageRecord;
     bytes: Uint8Array;
   }): Promise<OutfitDetectionResult> {
+    const timer = createTimer();
     const normalized = await normalizeImageForOpenAI(input.bytes);
     const response = (await this.client.responses.create({
       model: this.metadataModel,
@@ -115,10 +123,19 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       },
     })) as OpenAIResponseWithText;
 
-    return this.parseOutfitDetection(this.extractText(response));
+    const detection = this.parseOutfitDetection(this.extractText(response));
+    logWearaboutsTelemetry("openai.detect_outfit.completed", {
+      sourceImageId: input.sourceImage.id,
+      model: this.metadataModel,
+      durationMs: timer.elapsedMs(),
+      candidateCount: detection.candidates.length,
+      usage: response.usage ?? null,
+    });
+    return detection;
   }
 
   async analyzeGarment(input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }): Promise<GarmentAnalysisResult> {
+    const timer = createTimer();
     const normalized = await normalizeImageForOpenAI(input.bytes);
     const response = (await this.client.responses.create({
       model: this.metadataModel,
@@ -160,7 +177,16 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       },
     })) as OpenAIResponseWithText;
 
-    return this.parseAnalysis(this.extractText(response));
+    const analysis = this.parseAnalysis(this.extractText(response));
+    logWearaboutsTelemetry("openai.analyze_garment.completed", {
+      sourceImageId: input.sourceImage.id,
+      model: this.metadataModel,
+      durationMs: timer.elapsedMs(),
+      category: analysis.category,
+      confidence: analysis.confidence,
+      usage: response.usage ?? null,
+    });
+    return analysis;
   }
 
   async prettifyGarment(input: {
@@ -168,6 +194,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     bytes: Uint8Array;
     analysis: GarmentAnalysisResult;
   }): Promise<GeneratedImageResult> {
+    const timer = createTimer();
     const normalized = await normalizeImageForOpenAI(input.bytes);
     const image = await toFile(Buffer.from(normalized.bytes), normalized.filename, {
       type: normalized.contentType,
@@ -184,6 +211,21 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       throw new Error("OpenAI image edit did not return an image.");
     }
 
+    logWearaboutsTelemetry("openai.image_edit.completed", {
+      sourceImageId: input.sourceImage.id,
+      model: this.imageModel,
+      durationMs: timer.elapsedMs(),
+      proposedName: input.analysis.proposedName,
+      category: input.analysis.category,
+      quality: "high",
+      size: "1024x1024",
+      estimatedOutputCostUsd: estimateImageOutputCostUsd({
+        model: this.imageModel,
+        quality: "high",
+        size: "1024x1024",
+      }),
+      usage: response.usage ?? null,
+    });
     return { bytes: new Uint8Array(Buffer.from(base64, "base64")), contentType: "image/png" };
   }
 
@@ -193,6 +235,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     assetBytes: Uint8Array;
     analysis: GarmentAnalysisResult;
   }): Promise<ValidationResult> {
+    const timer = createTimer();
     const normalizedSource = await normalizeImageForOpenAI(input.sourceBytes);
     const response = (await this.client.responses.create({
       model: this.metadataModel,
@@ -230,6 +273,14 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     })) as OpenAIResponseWithText;
 
     const parsed = JSON.parse(this.extractText(response)) as ValidationResult;
+    logWearaboutsTelemetry("openai.validate_asset.completed", {
+      sourceImageId: input.sourceImage.id,
+      model: this.metadataModel,
+      durationMs: timer.elapsedMs(),
+      proposedName: input.analysis.proposedName,
+      accepted: Boolean(parsed.accepted),
+      usage: response.usage ?? null,
+    });
     return { accepted: Boolean(parsed.accepted) };
   }
 
