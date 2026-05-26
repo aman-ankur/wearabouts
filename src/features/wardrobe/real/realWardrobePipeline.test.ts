@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
+import sharp from "sharp";
 import type {
+  GarmentCandidateRecord,
   PrettifyAIProvider,
   PrettifyJobRecord,
   RealAssetStorage,
@@ -10,8 +12,27 @@ import type {
 import { RealWardrobePipeline } from "./realWardrobePipeline";
 import type { DetectedGarment, WardrobeItem } from "@/src/domain/wardrobe";
 
+const testPngBytes = new Uint8Array(
+  Buffer.from(
+    "iVBORw0KGgoAAAANSUhEUgAAAAoAAAAKCAIAAAACUFjqAAAAFElEQVR4nGP8z8Dwn4EIwESJ5jADAKWcAhF4p7iBAAAAAElFTkSuQmCC",
+    "base64",
+  ),
+);
+
+async function createValidPngBytes(): Promise<Uint8Array> {
+  const bytes = await sharp({
+    create: {
+      width: 100,
+      height: 100,
+      channels: 3,
+      background: { r: 120, g: 130, b: 140 },
+    },
+  }).png().toBuffer();
+  return new Uint8Array(bytes);
+}
+
 function createUploadFile(overrides: Partial<RealUploadFile> = {}): RealUploadFile {
-  const bytes = new Uint8Array([1, 2, 3]);
+  const bytes = testPngBytes;
 
   return {
     name: "shirt.png",
@@ -27,14 +48,17 @@ function createUploadFile(overrides: Partial<RealUploadFile> = {}): RealUploadFi
 function createHarness() {
   const sourceImages = new Map<string, RealSourceImageRecord>();
   const jobs = new Map<string, PrettifyJobRecord>();
+  const candidates = new Map<string, GarmentCandidateRecord>();
   const detectedGarments = new Map<string, DetectedGarment>();
   const wardrobeItems: WardrobeItem[] = [];
   let createDetectedGarmentCount = 0;
+  let candidateSequence = 0;
+  let jobSequence = 0;
 
   const repository: RealWardrobeRepository = {
     async createUploadBatch(input) {
       return {
-        id: "batch-real-1",
+        id: input.sourceType === "outfit_photo" ? "batch-outfit-1" : "batch-real-1",
         sourceType: input.sourceType,
         title: input.title,
         createdAtIso: "2026-05-26T10:00:00.000Z",
@@ -55,10 +79,14 @@ function createHarness() {
       return sourceImage;
     },
     async createPrettifyJob(input) {
+      jobSequence += 1;
       const job: PrettifyJobRecord = {
-        id: "job-real-1",
+        id: input.jobKind === "outfit_candidate" ? `job-candidate-${jobSequence}` : input.jobKind === "outfit_parent" ? "job-outfit-1" : "job-real-1",
         uploadBatchId: input.uploadBatchId,
         sourceImageId: input.sourceImageId,
+        jobKind: input.jobKind ?? "single_item",
+        parentJobId: input.parentJobId ?? null,
+        garmentCandidateId: input.garmentCandidateId ?? null,
         status: "queued",
         errorMessage: null,
         detectedGarmentId: null,
@@ -85,21 +113,60 @@ function createHarness() {
     async createDetectedGarment(input) {
       createDetectedGarmentCount += 1;
       const garment: DetectedGarment = {
-        id: "garment-real-1",
+        id: `garment-real-${createDetectedGarmentCount}`,
         uploadBatchId: input.uploadBatchId,
         proposedName: input.proposedName,
         brand: "",
         category: input.category,
         ownerProfileId: "profile-aankur",
-        sourceType: "item_photo",
+        sourceType: input.sourceType ?? "item_photo",
         confidence: input.confidence,
         prettifyStatus: input.prettifyStatus,
         isLayered: false,
         readyForMixer: input.readyForMixer,
         asset: input.asset,
+        garmentCandidateId: input.garmentCandidateId,
+        visibilityState: input.visibilityState,
       };
       detectedGarments.set(garment.id, garment);
       return garment;
+    },
+    async listDetectedGarmentsForBatch(batchId) {
+      return Array.from(detectedGarments.values()).filter((garment) => garment.uploadBatchId === batchId);
+    },
+    async createGarmentCandidate(input) {
+      candidateSequence += 1;
+      const candidate: GarmentCandidateRecord = {
+        id: `candidate-${candidateSequence}`,
+        uploadBatchId: input.uploadBatchId,
+        sourceImageId: input.sourceImageId,
+        parentJobId: input.parentJobId,
+        proposedName: input.proposedName,
+        category: input.category,
+        confidence: input.confidence,
+        visibilityState: input.visibilityState,
+        boundingBox: input.boundingBox,
+        cropPrompt: input.cropPrompt,
+        shouldPrettify: input.shouldPrettify,
+        status: input.status,
+        errorMessage: null,
+        detectedGarmentId: null,
+      };
+      candidates.set(candidate.id, candidate);
+      return candidate;
+    },
+    async getGarmentCandidate(candidateId) {
+      return candidates.get(candidateId) ?? null;
+    },
+    async updateGarmentCandidate(candidateId, patch) {
+      const existing = candidates.get(candidateId);
+      if (!existing) {
+        throw new Error("Missing candidate");
+      }
+
+      const updated = { ...existing, ...patch };
+      candidates.set(candidateId, updated);
+      return updated;
     },
     async getDetectedGarment(garmentId) {
       return detectedGarments.get(garmentId) ?? null;
@@ -133,7 +200,7 @@ function createHarness() {
       };
     },
     async downloadSourceImage() {
-      return { bytes: new Uint8Array([1, 2, 3]), contentType: "image/png" };
+      return { bytes: await createValidPngBytes(), contentType: "image/png" };
     },
     async uploadClosetAsset(input) {
       return {
@@ -163,6 +230,39 @@ function createHarness() {
     async validatePrettifiedAsset() {
       return { accepted: true };
     },
+    async detectOutfitGarments() {
+      return {
+        candidates: [
+          {
+            proposedName: "Blue Denim Overshirt",
+            category: "outerwear",
+            confidence: "high",
+            visibilityState: "visible",
+            boundingBox: { x: 0.12, y: 0.08, width: 0.72, height: 0.45 },
+            cropPrompt: "outer blue shirt layer",
+            shouldPrettify: true,
+          },
+          {
+            proposedName: "Black Travel Pants",
+            category: "bottoms",
+            confidence: "medium",
+            visibilityState: "visible",
+            boundingBox: { x: 0.22, y: 0.48, width: 0.42, height: 0.42 },
+            cropPrompt: "black pants",
+            shouldPrettify: true,
+          },
+          {
+            proposedName: "Partially Hidden Watch",
+            category: "accessories",
+            confidence: "low",
+            visibilityState: "occluded",
+            boundingBox: { x: 0.58, y: 0.32, width: 0.08, height: 0.08 },
+            cropPrompt: "watch",
+            shouldPrettify: false,
+          },
+        ],
+      };
+    },
   };
 
   return {
@@ -171,6 +271,7 @@ function createHarness() {
     jobs,
     detectedGarments,
     wardrobeItems,
+    candidates,
     getCreateDetectedGarmentCount: () => createDetectedGarmentCount,
   };
 }
@@ -186,6 +287,16 @@ describe("RealWardrobePipeline", () => {
     expect(result.sourceImage.signedUrl).toBe("https://signed.example/source.png");
   });
 
+  it("creates an outfit upload with a parent outfit job", async () => {
+    const { pipeline } = createHarness();
+
+    const result = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+
+    expect(result.batch.sourceType).toBe("outfit_photo");
+    expect(result.job.jobKind).toBe("outfit_parent");
+    expect(result.sourceImage.signedUrl).toBe("https://signed.example/source.png");
+  });
+
   it("runs a job and creates one ready detected garment", async () => {
     const { pipeline } = createHarness();
     const { job } = await pipeline.createSingleItemUpload(createUploadFile());
@@ -196,6 +307,25 @@ describe("RealWardrobePipeline", () => {
     expect(result.garment?.proposedName).toBe("Blue Oxford Shirt");
     expect(result.garment?.prettifyStatus).toBe("ready");
     expect(result.garment?.asset).toMatchObject({ imageUrl: "https://signed.example/asset.png" });
+  });
+
+  it("runs an outfit parent job and creates garments for eligible candidates only", async () => {
+    const { pipeline, candidates } = createHarness();
+    const { job } = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+
+    const result = await pipeline.runPrettifyJob(job.id);
+
+    expect(result.job.status).toBe("ready");
+    expect(result.garments.map((garment) => garment.proposedName)).toEqual([
+      "Blue Denim Overshirt",
+      "Black Travel Pants",
+    ]);
+    expect(result.garments.every((garment) => garment.sourceType === "outfit_photo")).toBe(true);
+    expect(Array.from(candidates.values()).map((candidate) => candidate.status)).toEqual([
+      "ready",
+      "ready",
+      "skipped",
+    ]);
   });
 
   it("marks a job failed when the AI provider throws", async () => {

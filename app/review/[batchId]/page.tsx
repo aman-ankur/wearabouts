@@ -27,6 +27,8 @@ export default function ReviewPage() {
   const [isUpdating, setIsUpdating] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const garments = state.activeBatch?.detectedGarments ?? [];
+  const isOutfitBatch = state.activeBatch?.sourceType === "outfit_photo";
+  const candidateSummary = state.activeBatch?.candidateSummary;
 
   useEffect(() => {
     if (!isPersistentMode) {
@@ -124,6 +126,23 @@ export default function ReviewPage() {
           <p className="subtle" role="alert" style={{ color: "var(--wine)", marginTop: 0 }}>
             {reviewError}
           </p>
+        ) : null}
+
+        {isOutfitBatch && !isLoadingBatch ? (
+          <section className="card" style={{ display: "grid", gap: 8 }}>
+            <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+              <span className="pill dark">Outfit photo</span>
+              <span className="pill">{garments.length} generated</span>
+              {candidateSummary && candidateSummary.skippedCount + candidateSummary.failedCount > 0 ? (
+                <span className="pill">
+                  {candidateSummary.skippedCount + candidateSummary.failedCount} need another try
+                </span>
+              ) : null}
+            </div>
+            <p className="subtle" style={{ margin: 0 }}>
+              Review each garment Wearabouts could confidently prepare from the source outfit.
+            </p>
+          </section>
         ) : null}
 
         {isLoadingBatch ? (

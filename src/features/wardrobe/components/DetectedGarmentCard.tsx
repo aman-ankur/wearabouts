@@ -70,8 +70,10 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
           {garment.brand || "Add brand"}
         </div>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <span className="pill">{garment.sourceType === "outfit_photo" ? "outfit photo" : "item photo"}</span>
           <span className="pill">{garment.category}</span>
           <span className="pill">{garment.confidence} confidence</span>
+          {garment.visibilityState ? <span className="pill">{garment.visibilityState.replace("_", " ")}</span> : null}
         </div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 8 }}>
           <button type="button" className="button ghost" onClick={() => onRetry(garment.id)} style={{ minHeight: 42 }}>

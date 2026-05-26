@@ -1,8 +1,8 @@
-import type { ClosetAsset, DetectedGarment, UploadBatch, WardrobeItem } from "@/src/domain/wardrobe";
+import type { ClosetAsset, DetectedGarment, UploadBatch, UploadSourceType, WardrobeItem } from "@/src/domain/wardrobe";
 
 export interface DevCachedUploadRepository {
   listWardrobeItems: () => Promise<WardrobeItem[]>;
-  createUploadBatch: (input: { sourceType: "item_photo"; title: string }) => Promise<UploadBatch>;
+  createUploadBatch: (input: { sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">; title: string }) => Promise<UploadBatch>;
   createDetectedGarment: (input: {
     uploadBatchId: string;
     proposedName: string;
@@ -10,34 +10,43 @@ export interface DevCachedUploadRepository {
     confidence: DetectedGarment["confidence"];
     prettifyStatus: DetectedGarment["prettifyStatus"];
     readyForMixer: boolean;
+    sourceType?: Extract<UploadSourceType, "item_photo" | "outfit_photo">;
     asset: ClosetAsset;
   }) => Promise<DetectedGarment>;
 }
 
-export async function createDevCachedUpload(repository: DevCachedUploadRepository, uploadedFilename: string) {
+export async function createDevCachedUpload(
+  repository: DevCachedUploadRepository,
+  input: { sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">; uploadedFilename: string },
+) {
   const cachedItems = await repository.listWardrobeItems();
-  const cachedItem = cachedItems.at(-1);
-  if (!cachedItem) {
+  const cachedSelection = input.sourceType === "outfit_photo" ? cachedItems.slice(-4) : cachedItems.slice(-1);
+  if (cachedSelection.length === 0) {
     throw new Error("Dev mode needs at least one cached closet item.");
   }
 
   const batch = await repository.createUploadBatch({
-    sourceType: "item_photo",
-    title: `Dev cached upload: ${uploadedFilename}`,
+    sourceType: input.sourceType,
+    title: `Dev cached upload: ${input.uploadedFilename}`,
   });
-  const garment = await repository.createDetectedGarment({
-    uploadBatchId: batch.id,
-    proposedName: cachedItem.name,
-    category: cachedItem.category,
-    confidence: "high",
-    prettifyStatus: "ready",
-    readyForMixer: cachedItem.readyForMixer,
-    asset: cachedItem.asset,
-  });
+  const garments = await Promise.all(
+    cachedSelection.map((cachedItem) =>
+      repository.createDetectedGarment({
+        uploadBatchId: batch.id,
+        proposedName: cachedItem.name,
+        category: cachedItem.category,
+        confidence: "high",
+        prettifyStatus: "ready",
+        readyForMixer: cachedItem.readyForMixer,
+        sourceType: input.sourceType,
+        asset: cachedItem.asset,
+      }),
+    ),
+  );
 
   return {
-    batch: { ...batch, detectedGarments: [garment] },
-    garment,
-    cachedFromWardrobeItemId: cachedItem.id,
+    batch: { ...batch, detectedGarments: garments },
+    garment: garments[0],
+    cachedFromWardrobeItemId: cachedSelection.at(-1)?.id,
   };
 }

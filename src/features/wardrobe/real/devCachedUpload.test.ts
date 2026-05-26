@@ -37,13 +37,13 @@ function createRepository(items: WardrobeItem[]): DevCachedUploadRepository {
     },
     async createDetectedGarment(input) {
       const garment: DetectedGarment = {
-        id: "garment-dev-cache-1",
+        id: `garment-dev-cache-${input.proposedName.toLowerCase().replaceAll(" ", "-")}`,
         uploadBatchId: input.uploadBatchId,
         proposedName: input.proposedName,
         brand: "",
         category: input.category,
         ownerProfileId: "profile-aankur",
-        sourceType: "item_photo",
+        sourceType: input.sourceType ?? "item_photo",
         confidence: input.confidence,
         prettifyStatus: input.prettifyStatus,
         isLayered: false,
@@ -58,15 +58,51 @@ function createRepository(items: WardrobeItem[]): DevCachedUploadRepository {
 
 describe("createDevCachedUpload", () => {
   it("creates a review batch from the latest cached wardrobe item", async () => {
-    const result = await createDevCachedUpload(createRepository([cachedItem]), "test upload.jpg");
+    const result = await createDevCachedUpload(createRepository([cachedItem]), {
+      sourceType: "item_photo",
+      uploadedFilename: "test upload.jpg",
+    });
 
     expect(result.batch.id).toBe("batch-dev-cache-1");
     expect(result.garment.proposedName).toBe("Cached Linen Overshirt");
     expect(result.garment.asset).toMatchObject({ imageUrl: "https://signed.example/cached.png" });
   });
 
+  it("creates multiple review cards for an outfit-photo dev upload", async () => {
+    const pants: WardrobeItem = {
+      ...cachedItem,
+      id: "wardrobe-cached-2",
+      name: "Cached Travel Pants",
+      category: "bottoms",
+    };
+    const shoes: WardrobeItem = {
+      ...cachedItem,
+      id: "wardrobe-cached-3",
+      name: "Cached Brown Shoes",
+      category: "footwear",
+    };
+
+    const result = await createDevCachedUpload(createRepository([cachedItem, pants, shoes]), {
+      sourceType: "outfit_photo",
+      uploadedFilename: "outfit.jpg",
+    });
+
+    expect(result.batch.sourceType).toBe("outfit_photo");
+    expect(result.batch.detectedGarments.map((garment) => garment.proposedName)).toEqual([
+      "Cached Linen Overshirt",
+      "Cached Travel Pants",
+      "Cached Brown Shoes",
+    ]);
+    expect(result.batch.detectedGarments.every((garment) => garment.sourceType === "outfit_photo")).toBe(true);
+  });
+
   it("fails clearly when no cached real items exist", async () => {
-    await expect(createDevCachedUpload(createRepository([]), "test upload.jpg")).rejects.toThrow(
+    await expect(
+      createDevCachedUpload(createRepository([]), {
+        sourceType: "item_photo",
+        uploadedFilename: "test upload.jpg",
+      }),
+    ).rejects.toThrow(
       "Dev mode needs at least one cached closet item.",
     );
   });

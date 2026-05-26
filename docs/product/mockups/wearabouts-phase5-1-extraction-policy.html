@@ -1,0 +1,697 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Phase 5.1 Extraction Policy</title>
+    <style>
+      :root {
+        --ink: #151412;
+        --muted: #69645d;
+        --quiet: #918b82;
+        --paper: #fbfaf7;
+        --panel: #ffffff;
+        --line: #ded6cb;
+        --wash: #f1ece4;
+        --dark: #111111;
+        --green: #516954;
+        --blue: #245c9f;
+        --amber: #8b6834;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #ebe6de;
+        color: var(--ink);
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+      }
+
+      main {
+        width: min(1180px, 100%);
+        margin: 0 auto;
+        padding: 32px 18px 54px;
+      }
+
+      .intro {
+        max-width: 850px;
+        display: grid;
+        gap: 10px;
+        margin-bottom: 26px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+        letter-spacing: 0;
+      }
+
+      h1 {
+        font-size: clamp(30px, 5vw, 48px);
+        line-height: 1.04;
+      }
+
+      .intro p {
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.55;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 22px;
+        align-items: start;
+      }
+
+      .card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 18px;
+        display: grid;
+        gap: 16px;
+      }
+
+      .card h2 {
+        font-size: 20px;
+        line-height: 1.15;
+      }
+
+      .card p {
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.5;
+      }
+
+      .policy {
+        display: grid;
+        gap: 10px;
+      }
+
+      .policy-row {
+        display: grid;
+        grid-template-columns: 32px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        min-height: 56px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fffdf9;
+      }
+
+      .dot {
+        width: 26px;
+        height: 26px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        color: #fff;
+        font-weight: 800;
+        font-size: 13px;
+      }
+
+      .dot.green {
+        background: var(--green);
+      }
+
+      .dot.blue {
+        background: var(--blue);
+      }
+
+      .dot.amber {
+        background: var(--amber);
+      }
+
+      .dot.gray {
+        background: #777168;
+      }
+
+      .policy-copy {
+        display: grid;
+        gap: 2px;
+      }
+
+      .policy-copy strong {
+        font-size: 14px;
+      }
+
+      .policy-copy span {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .tag {
+        min-height: 28px;
+        display: inline-flex;
+        align-items: center;
+        border-radius: 999px;
+        padding: 0 10px;
+        background: var(--wash);
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 750;
+        white-space: nowrap;
+      }
+
+      .tag.dark {
+        background: var(--dark);
+        color: #fff;
+      }
+
+      .phone {
+        width: min(390px, 100%);
+        min-height: 740px;
+        margin: 0 auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        overflow: hidden;
+        box-shadow: 0 20px 46px rgba(24, 19, 14, 0.12);
+      }
+
+      .screen {
+        min-height: 740px;
+        padding: 26px 20px 82px;
+        display: grid;
+        align-content: start;
+        gap: 18px;
+      }
+
+      .topbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .title {
+        font-size: 26px;
+        line-height: 1.08;
+        font-weight: 800;
+      }
+
+      .subtitle {
+        margin-top: 8px;
+        color: var(--muted);
+        font-size: 14px;
+        line-height: 1.45;
+      }
+
+      .mode {
+        min-height: 38px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        padding: 0 14px;
+        font-weight: 800;
+        color: var(--ink);
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--panel);
+        padding: 16px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .eyebrow {
+        color: var(--quiet);
+        font-size: 12px;
+        line-height: 1;
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-weight: 850;
+      }
+
+      .upload {
+        min-height: 170px;
+        border: 1px dashed #d6c9bb;
+        border-radius: 8px;
+        background: #fffdf9;
+        display: grid;
+        place-items: center;
+        text-align: center;
+        padding: 22px;
+        gap: 8px;
+      }
+
+      .upload strong {
+        font-size: 18px;
+      }
+
+      .upload span {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .photo-icon {
+        width: 36px;
+        height: 36px;
+        border: 2px solid var(--ink);
+        border-radius: 7px;
+        position: relative;
+      }
+
+      .photo-icon::before {
+        content: "";
+        position: absolute;
+        width: 7px;
+        height: 7px;
+        right: 7px;
+        top: 7px;
+        border: 2px solid var(--ink);
+        border-radius: 999px;
+      }
+
+      .photo-icon::after {
+        content: "";
+        position: absolute;
+        left: 7px;
+        right: 7px;
+        bottom: 7px;
+        height: 13px;
+        border-left: 2px solid var(--ink);
+        border-bottom: 2px solid var(--ink);
+        transform: skew(-23deg);
+      }
+
+      .primary {
+        min-height: 50px;
+        border: 0;
+        border-radius: 999px;
+        background: var(--dark);
+        color: #fff;
+        font-weight: 850;
+        font-size: 15px;
+      }
+
+      .choice {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf9;
+        padding: 12px;
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 12px;
+        align-items: center;
+      }
+
+      .choice.selected {
+        border-color: var(--ink);
+        box-shadow: inset 0 0 0 1px var(--ink);
+      }
+
+      .choice strong {
+        font-size: 15px;
+      }
+
+      .choice span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.35;
+      }
+
+      .radio {
+        width: 22px;
+        height: 22px;
+        border: 2px solid var(--line);
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+      }
+
+      .selected .radio {
+        border-color: var(--ink);
+      }
+
+      .selected .radio::after {
+        content: "";
+        width: 10px;
+        height: 10px;
+        border-radius: 999px;
+        background: var(--ink);
+      }
+
+      .candidate {
+        display: grid;
+        grid-template-columns: 52px minmax(0, 1fr) auto;
+        gap: 10px;
+        align-items: center;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fffdf9;
+      }
+
+      .thumb {
+        width: 52px;
+        height: 52px;
+        border-radius: 8px;
+        background:
+          linear-gradient(135deg, rgba(21, 20, 18, 0.12), transparent 62%),
+          var(--wash);
+      }
+
+      .candidate strong {
+        font-size: 14px;
+      }
+
+      .candidate span {
+        display: block;
+        margin-top: 3px;
+        color: var(--muted);
+        font-size: 12px;
+      }
+
+      .flow {
+        display: grid;
+        grid-template-columns: repeat(5, minmax(0, 1fr));
+        gap: 8px;
+        align-items: stretch;
+      }
+
+      .node {
+        min-height: 82px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fffdf9;
+        padding: 10px;
+        display: grid;
+        align-content: center;
+        gap: 4px;
+        position: relative;
+      }
+
+      .node:not(:last-child)::after {
+        content: "→";
+        position: absolute;
+        right: -15px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: var(--quiet);
+        font-weight: 900;
+      }
+
+      .node strong {
+        font-size: 13px;
+      }
+
+      .node span {
+        color: var(--muted);
+        font-size: 11px;
+        line-height: 1.3;
+      }
+
+      .matrix {
+        display: grid;
+        gap: 8px;
+      }
+
+      .matrix-row {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) 100px 100px;
+        gap: 8px;
+        align-items: center;
+      }
+
+      .matrix-row > * {
+        min-height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 10px;
+        background: #fffdf9;
+        font-size: 12px;
+        display: grid;
+        align-items: center;
+      }
+
+      .matrix-row.header > * {
+        background: transparent;
+        border-color: transparent;
+        color: var(--quiet);
+        font-weight: 850;
+        text-transform: uppercase;
+        letter-spacing: 0.07em;
+      }
+
+      .bottom-nav {
+        position: sticky;
+        bottom: 0;
+        height: 64px;
+        border-top: 1px solid var(--line);
+        background: rgba(251, 250, 247, 0.94);
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        text-align: center;
+        color: var(--quiet);
+        font-size: 11px;
+        font-weight: 800;
+      }
+
+      .bottom-nav .active {
+        color: var(--ink);
+      }
+
+      @media (max-width: 760px) {
+        main {
+          padding: 20px 12px 40px;
+        }
+
+        .flow {
+          grid-template-columns: 1fr;
+        }
+
+        .node:not(:last-child)::after {
+          content: "↓";
+          right: auto;
+          left: 50%;
+          top: auto;
+          bottom: -16px;
+          transform: translateX(-50%);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro">
+        <h1>Extraction policy for cheaper, faster outfit upload</h1>
+        <p>
+          Wearabouts should detect generously, then generate selectively. The default should make the core outfit
+          closet-ready without spending on every visible accessory.
+        </p>
+      </section>
+
+      <section class="grid">
+        <article class="card">
+          <h2>Problem</h2>
+          <p>
+            The first successful outfit run generated every visible candidate. Quality was strong, but latency and cost
+            were too high because a watch and shoes waited in the same queue as the core garments.
+          </p>
+          <div class="flow" aria-label="Current expensive flow">
+            <div class="node"><strong>Upload</strong><span>one outfit photo</span></div>
+            <div class="node"><strong>Detect</strong><span>top, pants, shoes, watch</span></div>
+            <div class="node"><strong>Generate all</strong><span>4 image edits</span></div>
+            <div class="node"><strong>Validate all</strong><span>4 comparisons</span></div>
+            <div class="node"><strong>Review</strong><span>after slowest item</span></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Default policy</h2>
+          <p>
+            Core outfit generation should include the garments that matter most to Closet, Mixer, and Trips. Everything
+            else can be detected and saved for optional generation.
+          </p>
+          <div class="policy">
+            <div class="policy-row">
+              <span class="dot green">✓</span>
+              <span class="policy-copy"><strong>Clear top or outerwear</strong><span>Always generate the best visible upper-body garment.</span></span>
+              <span class="tag dark">default</span>
+            </div>
+            <div class="policy-row">
+              <span class="dot green">✓</span>
+              <span class="policy-copy"><strong>Clear bottoms</strong><span>Always generate pants, jeans, shorts, or skirt when visible.</span></span>
+              <span class="tag dark">default</span>
+            </div>
+            <div class="policy-row">
+              <span class="dot blue">?</span>
+              <span class="policy-copy"><strong>Prominent shoes</strong><span>Generate only if visible, high confidence, and large enough.</span></span>
+              <span class="tag">usually</span>
+            </div>
+            <div class="policy-row">
+              <span class="dot gray">+</span>
+              <span class="policy-copy"><strong>Accessories</strong><span>Detect, but generate only when the user asks.</span></span>
+              <span class="tag">manual</span>
+            </div>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Recommended upload screen</h2>
+          <p>
+            Keep the default elegant: Core outfit is selected, with a small alternative for One piece. No technical
+            terms, no cost anxiety.
+          </p>
+          <div class="phone">
+            <div class="screen">
+              <header class="topbar">
+                <div>
+                  <h3 class="title">Add clothing</h3>
+                  <p class="subtitle">Choose how much Wearabouts should prepare from this photo.</p>
+                </div>
+                <button class="mode">Real</button>
+              </header>
+
+              <section class="panel">
+                <span class="eyebrow">Prepare</span>
+                <div class="choice selected">
+                  <span>
+                    <strong>Core outfit</strong>
+                    <span>Top, bottoms, and prominent shoes.</span>
+                  </span>
+                  <span class="radio" aria-hidden="true"></span>
+                </div>
+                <div class="choice">
+                  <span>
+                    <strong>One piece</strong>
+                    <span>Pick one garment after detection.</span>
+                  </span>
+                  <span class="radio" aria-hidden="true"></span>
+                </div>
+
+                <div class="upload">
+                  <span class="photo-icon" aria-hidden="true"></span>
+                  <strong>Choose photo</strong>
+                  <span>JPG, PNG, or WebP under 10MB</span>
+                </div>
+
+                <button class="primary">Upload photo</button>
+              </section>
+            </div>
+            <nav class="bottom-nav">
+              <span>Home</span>
+              <span>Closet</span>
+              <span class="active">Add</span>
+              <span>Mixer</span>
+              <span>Trips</span>
+            </nav>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>One-piece flow</h2>
+          <p>
+            Ask which garment after metadata detection. This lets Wearabouts show what it actually sees and prevents the
+            user from choosing an invisible or weakly detected item.
+          </p>
+          <div class="phone">
+            <div class="screen">
+              <header>
+                <h3 class="title">Pick one piece</h3>
+                <p class="subtitle">Wearabouts found these visible garments. Choose one to generate.</p>
+              </header>
+
+              <section class="panel">
+                <span class="eyebrow">Detected</span>
+                <div class="candidate">
+                  <span class="thumb"></span>
+                  <span><strong>White graphic T-shirt</strong><span>High confidence · recommended</span></span>
+                  <span class="tag dark">Pick</span>
+                </div>
+                <div class="candidate">
+                  <span class="thumb"></span>
+                  <span><strong>Sage green cargo pants</strong><span>High confidence · recommended</span></span>
+                  <span class="tag">Pick</span>
+                </div>
+                <div class="candidate">
+                  <span class="thumb"></span>
+                  <span><strong>White running sneakers</strong><span>Prominent · optional</span></span>
+                  <span class="tag">Pick</span>
+                </div>
+                <div class="candidate">
+                  <span class="thumb"></span>
+                  <span><strong>Dark smartwatch</strong><span>Accessory · generate only if needed</span></span>
+                  <span class="tag">Pick</span>
+                </div>
+                <button class="primary">Generate selected piece</button>
+              </section>
+            </div>
+            <nav class="bottom-nav">
+              <span>Home</span>
+              <span>Closet</span>
+              <span class="active">Add</span>
+              <span>Mixer</span>
+              <span>Trips</span>
+            </nav>
+          </div>
+        </article>
+
+        <article class="card">
+          <h2>Proposed implementation flow</h2>
+          <div class="flow" aria-label="Optimized implementation flow">
+            <div class="node"><strong>Upload</strong><span>source image</span></div>
+            <div class="node"><strong>Detect all</strong><span>cheap metadata call</span></div>
+            <div class="node"><strong>Policy filter</strong><span>core outfit or one piece</span></div>
+            <div class="node"><strong>Generate selected</strong><span>2-3 image edits max</span></div>
+            <div class="node"><strong>Review</strong><span>extras stay optional</span></div>
+          </div>
+          <p>
+            The parent job becomes ready after selected candidates finish. Optional candidates remain available for a
+            later "Generate this too" action.
+          </p>
+        </article>
+
+        <article class="card">
+          <h2>Cost behavior</h2>
+          <div class="matrix">
+            <div class="matrix-row header">
+              <span>Mode</span>
+              <span>Generate</span>
+              <span>Cost</span>
+            </div>
+            <div class="matrix-row">
+              <span>Core outfit</span>
+              <span>2-3 items</span>
+              <span>Lower</span>
+            </div>
+            <div class="matrix-row">
+              <span>One piece</span>
+              <span>1 item</span>
+              <span>Lowest</span>
+            </div>
+            <div class="matrix-row">
+              <span>Everything visible</span>
+              <span>All items</span>
+              <span>Highest</span>
+            </div>
+          </div>
+          <p>
+            "Everything visible" should not be a default MVP action. It can live behind an advanced/manual control later.
+          </p>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>

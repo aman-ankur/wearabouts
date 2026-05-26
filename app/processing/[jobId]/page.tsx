@@ -27,6 +27,7 @@ export default function ProcessingPage() {
   const jobId = params.jobId;
   const didStartRun = useRef(false);
   const [status, setStatus] = useState<PrettifyJobStatus>("queued");
+  const [jobKind, setJobKind] = useState<PrettifyJobRecord["jobKind"]>("single_item");
   const [isRunning, setIsRunning] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -39,6 +40,7 @@ export default function ProcessingPage() {
     }
 
     setStatus(payload.job.status);
+    setJobKind(payload.job.jobKind);
     setError(payload.job.errorMessage);
     return payload.job;
   }, [jobId]);
@@ -56,6 +58,7 @@ export default function ProcessingPage() {
       }
 
       setStatus(payload.job.status);
+      setJobKind(payload.job.jobKind);
       setError(payload.job.errorMessage);
     } catch (caughtError) {
       setStatus("failed");
@@ -88,21 +91,26 @@ export default function ProcessingPage() {
     return () => window.clearInterval(intervalId);
   }, [isRunning, loadJob]);
 
-  const steps = getPrettifyJobSteps(status);
+  const steps = getPrettifyJobSteps(status, jobKind);
   const isReady = status === "ready";
   const isFailed = status === "failed";
+  const isOutfitJob = jobKind === "outfit_parent";
 
   return (
     <AppShell>
       <div className="appbar">
         <div>
-          <h1 className="app-title">Prettifying</h1>
+          <h1 className="app-title">{isOutfitJob ? "Building Outfit Items" : "Prettifying"}</h1>
           <p className="subtle">
             {isReady
-              ? "Your item is ready for review."
+              ? isOutfitJob
+                ? "Your outfit items are ready for review."
+                : "Your item is ready for review."
               : isFailed
                 ? "This upload needs another try."
-                : "Keeping the upload moving while the asset is prepared."}
+                : isOutfitJob
+                  ? "Detecting visible garments and preparing closet assets."
+                  : "Keeping the upload moving while the asset is prepared."}
           </p>
         </div>
       </div>
@@ -153,7 +161,7 @@ export default function ProcessingPage() {
       <div className="bottom-actions">
         {isReady && batchId ? (
           <Link className="full-button" href={`/review/${batchId}`} style={{ display: "grid", placeItems: "center" }}>
-            Review item
+            {isOutfitJob ? "Review items" : "Review item"}
           </Link>
         ) : (
           <button type="button" className="full-button" onClick={runJob} disabled={!isFailed && isRunning}>

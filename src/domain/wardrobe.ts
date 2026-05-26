@@ -18,6 +18,22 @@ export type PrettifyStatus = "not_started" | "processing" | "ready" | "needs_rev
 
 export type PrettifyJobStatus = "queued" | "analyzing" | "prettifying" | "validating" | "ready" | "failed";
 
+export type GarmentVisibilityState = "visible" | "occluded" | "needs_review";
+
+export interface GarmentBoundingBox {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
+export interface UploadBatchCandidateSummary {
+  detectedCount: number;
+  generatedCount: number;
+  skippedCount: number;
+  failedCount: number;
+}
+
 export interface WardrobeProfile {
   id: WardrobeProfileId;
   displayName: string;
@@ -63,6 +79,10 @@ export interface DetectedGarment {
   isLayered: boolean;
   readyForMixer: boolean;
   asset: ClosetAsset;
+  sourceImageId?: string;
+  garmentCandidateId?: string;
+  visibilityState?: GarmentVisibilityState;
+  sourceBoundingBox?: GarmentBoundingBox;
   retryVariantId?: string;
 }
 
@@ -143,4 +163,5 @@ export interface UploadBatch {
   title: string;
   createdAtIso: string;
   detectedGarments: DetectedGarment[];
+  candidateSummary?: UploadBatchCandidateSummary;
 }
