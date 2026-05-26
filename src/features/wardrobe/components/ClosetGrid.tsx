@@ -1,5 +1,5 @@
 import type { WardrobeItem } from "@/src/domain/wardrobe";
-import { GarmentArtwork } from "./GarmentArtwork";
+import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
 
 export function ClosetGrid({ items }: { items: WardrobeItem[] }) {
   if (items.length === 0) {
@@ -18,7 +18,7 @@ export function ClosetGrid({ items }: { items: WardrobeItem[] }) {
       {items.map((item) => (
         <article key={item.id} className="card" style={{ minHeight: 170, display: "grid", gap: 8 }}>
           <div style={{ minHeight: 112, display: "grid", placeItems: "center", background: "#f7f4ef", borderRadius: 8 }}>
-            <GarmentArtwork token={item.asset.visualToken} />
+            <ClosetAssetArtwork asset={item.asset} />
           </div>
           <strong style={{ fontSize: 13 }}>{item.name}</strong>
           <span className="subtle">{item.category}</span>

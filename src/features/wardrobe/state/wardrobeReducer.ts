@@ -10,7 +10,10 @@ export type WardrobeAction =
   | { type: "batchUpdated"; batch: UploadBatch }
   | { type: "garmentAdded"; garmentId: string; addedAtIso: string }
   | { type: "garmentDeleted"; garmentId: string }
-  | { type: "allGarmentsAdded"; addedAtIso: string };
+  | { type: "allGarmentsAdded"; addedAtIso: string }
+  | { type: "realBatchLoaded"; batch: UploadBatch }
+  | { type: "realClosetLoaded"; closetItems: WardrobeItem[] }
+  | { type: "realGarmentAdded"; garmentId: string; wardrobeItem: WardrobeItem };
 
 export const initialWardrobeState: WardrobeState = {
   activeBatch: null,
@@ -85,5 +88,19 @@ export function wardrobeReducer(state: WardrobeState, action: WardrobeAction): W
         closetItems: [...state.closetItems, ...newItems],
       };
     }
+
+    case "realBatchLoaded":
+      return { ...state, activeBatch: action.batch };
+
+    case "realClosetLoaded":
+      return { ...state, closetItems: action.closetItems };
+
+    case "realGarmentAdded":
+      return {
+        activeBatch: state.activeBatch ? removeDetectedGarment(state.activeBatch, action.garmentId) : state.activeBatch,
+        closetItems: state.closetItems.some((item) => item.id === action.wardrobeItem.id)
+          ? state.closetItems
+          : [...state.closetItems, action.wardrobeItem],
+      };
   }
 }

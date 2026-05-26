@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useContext, useMemo, useReducer, type ReactNode } from "react";
-import type { OutfitSlot, UploadSourceType, WardrobeProfileId } from "@/src/domain/wardrobe";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
+import type { OutfitSlot, UploadBatch, UploadSourceType, WardrobeItem, WardrobeProfileId } from "@/src/domain/wardrobe";
+import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { demoTrip } from "@/src/features/wardrobe/fixtures/demoTrip";
 import { createDemoWardrobeProvider } from "@/src/features/wardrobe/providers/demoWardrobeProvider";
 import { getInitialMixerSelections } from "@/src/features/wardrobe/selectors/mixerSelectors";
@@ -19,6 +20,9 @@ interface WardrobeContextValue {
   addGarment: (garmentId: string) => void;
   deleteGarment: (garmentId: string) => void;
   addAllGarments: () => void;
+  loadRealBatch: (batchId: string) => Promise<UploadBatch>;
+  addRealGarment: (garmentId: string) => Promise<WardrobeItem>;
+  retryRealGarment: (garmentId: string) => Promise<void>;
   startMixer: () => void;
   selectMixerItem: (slot: OutfitSlot, wardrobeItemId: string | null) => void;
   toggleMixerSlotLock: (slot: OutfitSlot) => void;
@@ -35,6 +39,51 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [mixerState, mixerDispatch] = useReducer(mixerReducer, initialMixerState);
   const [tripState, tripDispatch] = useReducer(tripReducer, initialTripState);
   const provider = useMemo(() => createDemoWardrobeProvider(), []);
+  const runtimeMode = useMemo(() => getRuntimeMode(), []);
+
+  useEffect(() => {
+    if (runtimeMode !== "real") {
+      return;
+    }
+
+    void fetch("/api/wardrobe/closet")
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load closet."))))
+      .then((payload: { closetItems: WardrobeItem[] }) => {
+        dispatch({ type: "realClosetLoaded", closetItems: payload.closetItems });
+      })
+      .catch(() => {
+        dispatch({ type: "realClosetLoaded", closetItems: [] });
+      });
+  }, [runtimeMode]);
+
+  const loadRealBatch = useCallback(async (batchId: string) => {
+    const response = await fetch(`/api/wardrobe/batches/${batchId}`);
+    if (!response.ok) {
+      throw new Error("Could not load upload batch.");
+    }
+
+    const payload = (await response.json()) as { batch: UploadBatch };
+    dispatch({ type: "realBatchLoaded", batch: payload.batch });
+    return payload.batch;
+  }, []);
+
+  const addRealGarment = useCallback(async (garmentId: string) => {
+    const response = await fetch(`/api/wardrobe/garments/${garmentId}/add`, { method: "POST" });
+    if (!response.ok) {
+      throw new Error("Could not add garment to closet.");
+    }
+
+    const payload = (await response.json()) as { wardrobeItem: WardrobeItem };
+    dispatch({ type: "realGarmentAdded", garmentId, wardrobeItem: payload.wardrobeItem });
+    return payload.wardrobeItem;
+  }, []);
+
+  const retryRealGarment = useCallback(async (garmentId: string) => {
+    const response = await fetch(`/api/wardrobe/garments/${garmentId}/retry`, { method: "POST" });
+    if (!response.ok) {
+      throw new Error("Could not retry garment.");
+    }
+  }, []);
 
   const value: WardrobeContextValue = {
     state,
@@ -62,6 +111,9 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     addAllGarments() {
       dispatch({ type: "allGarmentsAdded", addedAtIso: new Date().toISOString() });
     },
+    loadRealBatch,
+    addRealGarment,
+    retryRealGarment,
     startMixer() {
       mixerDispatch({
         type: "mixerStarted",

@@ -1,6 +1,6 @@
 import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
 import { demoBodyPreview } from "@/src/features/wardrobe/fixtures/demoMixer";
-import { GarmentArtwork } from "./GarmentArtwork";
+import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
 
 interface MixerBodyStageProps {
   selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>;
@@ -24,7 +24,7 @@ function BoardItem({ item, scale = 1 }: { item?: WardrobeItem; scale?: number })
 
   return (
     <div style={{ transform: `scale(${scale})`, display: "grid", placeItems: "center" }}>
-      <GarmentArtwork token={item.asset.visualToken} />
+      <ClosetAssetArtwork asset={item.asset} />
     </div>
   );
 }

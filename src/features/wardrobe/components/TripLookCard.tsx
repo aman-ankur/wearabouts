@@ -1,7 +1,7 @@
 import { Check, RefreshCw } from "lucide-react";
 import type { TripDay, TripLook, WardrobeItem } from "@/src/domain/wardrobe";
 import { getSelectedItem } from "@/src/features/wardrobe/selectors/mixerSelectors";
-import { GarmentArtwork } from "./GarmentArtwork";
+import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
 
 interface TripLookCardProps {
   day: TripDay;
@@ -52,7 +52,7 @@ export function TripLookCard({ day, look, closetItems, onApprove, onSwap }: Trip
             }}
           >
             <div style={{ transform: "scale(.58)" }}>
-              <GarmentArtwork token={item.asset.visualToken} />
+              <ClosetAssetArtwork asset={item.asset} />
             </div>
           </div>
         ))}

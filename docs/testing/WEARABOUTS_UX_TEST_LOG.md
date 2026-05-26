@@ -104,3 +104,54 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 - Phase 3 remains demo-mode and in-memory only; a hard browser reload resets closet, saved outfits, and trips.
 - Trip looks use deterministic fixture/selector logic, not AI recommendations.
 - There is still no Supabase, auth, real upload, weather, itinerary import, or avatar try-on pipeline.
+
+## 2026-05-26 - Phase 4 Real Upload Foundation UX Pass
+
+### Environment
+
+- Branch: `codex/phase-4-real-upload-prettify-foundation`
+- Local URL: `http://localhost:3000`
+- Surface: mobile viewport in temporary headless Chrome
+- Scope: Phase 4 real-mode entry/status UX plus demo-mode regression
+
+### Flow Tested
+
+1. Started the app in real mode with `NEXT_PUBLIC_TRAVOGUE_MODE=real`.
+2. Opened `/upload`.
+3. Confirmed upload shows a single `item_photo` file picker.
+4. Confirmed Outfit photo and Batch upload are marked as later.
+5. Opened `/processing/manual-job?batchId=manual-batch` without Supabase/OpenAI credentials.
+6. Confirmed processing screen renders failed status and Retry state instead of freezing.
+7. Restarted the app in default demo mode.
+8. Re-ran the Phase 3 demo trip-flow screenshot script to confirm upload, review, closet, trips, swap, approve, and packing list still work.
+
+### Screenshots
+
+- [Phase 4 real upload entry](../../testing/screenshots/wearabouts-ux-phase4-real-upload.png)
+- [Phase 4 processing failed without env](../../testing/screenshots/wearabouts-ux-phase4-processing-failed-no-env.png)
+- [Trips empty state regression](../../testing/screenshots/wearabouts-ux-trips-empty.png)
+- [Trips start state regression](../../testing/screenshots/wearabouts-ux-trips-start.png)
+- [Generated trip looks regression](../../testing/screenshots/wearabouts-ux-trip-looks.png)
+- [Packing list regression](../../testing/screenshots/wearabouts-ux-packing-list.png)
+
+### Assets And Scripts
+
+- Phase 4 screenshot helper: `testing/scripts/capture-phase4-real-mode.mjs`
+- Demo regression helper: `testing/scripts/capture-trip-flow.mjs`
+- New screenshots:
+  - `testing/screenshots/wearabouts-ux-phase4-real-upload.png`
+  - `testing/screenshots/wearabouts-ux-phase4-processing-failed-no-env.png`
+
+### Findings Fixed In This Pass
+
+- Added a real-mode upload branch while keeping demo upload choices unchanged.
+- Added a processing screen with queued, analyzing, prettifying, validating, ready, and failed states.
+- Added a failure-safe rendering path for missing real-mode environment variables.
+- Replaced raw real-asset image rendering with Next Image using signed-url-safe `unoptimized` rendering.
+- Added a pipeline guard so re-running an already-ready job returns the existing garment instead of creating a duplicate review item.
+
+### Remaining Notes
+
+- Live real upload was not executed because this workspace does not contain Supabase and OpenAI credentials.
+- The manual failed-processing screenshot validates UI behavior only; it is not evidence that OpenAI generated a closet asset.
+- A true Phase 4 end-to-end test still needs `.env.local`, the Supabase migration applied, private buckets available, and one local garment photo.
