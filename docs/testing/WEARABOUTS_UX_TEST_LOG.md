@@ -155,3 +155,44 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 - Live real upload was not executed because this workspace does not contain Supabase and OpenAI credentials.
 - The manual failed-processing screenshot validates UI behavior only; it is not evidence that OpenAI generated a closet asset.
 - A true Phase 4 end-to-end test still needs `.env.local`, the Supabase migration applied, private buckets available, and one local garment photo.
+
+## 2026-05-26 - Phase 4 Live Real Upload And Dev Cache Pass
+
+### Environment
+
+- Branch: `codex/fix-openai-image-normalization`
+- Local URL: `http://localhost:3000`
+- Surface: desktop Chrome viewing the mobile web app frame
+- Scope: live Supabase/OpenAI upload, review UI polish, and cached Dev mode
+
+### Flow Tested
+
+1. Started the app with `.env.local` real-mode credentials.
+2. Uploaded `IMG_5125.jpg`, an iPhone outfit/person photo, through the real upload flow.
+3. Observed the first OpenAI attempt fail with `400 Invalid image file or mode`.
+4. Confirmed the stored source image was a valid RGB Display P3 iPhone JPEG.
+5. Normalized the source image to orientation-correct sRGB PNG and confirmed OpenAI accepted it.
+6. Added normalization before metadata, image edit, and validation calls.
+7. Retried/uploaded again and confirmed the job reached `ready`.
+8. Reviewed the generated neutral studio shirt asset and added it to Closet.
+9. Enlarged review and closet previews so generated real assets are inspectable.
+10. Added and tested the in-app **Dev** toggle on `/upload`.
+11. Confirmed Dev mode creates a review batch from the latest cached closet asset without starting a processing job or calling OpenAI.
+12. Fixed the enlarged review card layout so image, brand text, badges, delete, Retry, and Add controls no longer overlap.
+13. Captured a browser screenshot after the generated image finished loading to verify the review layout.
+
+### Findings Fixed In This Pass
+
+- Normalized source images to sRGB PNG before OpenAI calls to support iPhone/Display P3 uploads.
+- Enlarged generated asset previews in Review and Closet.
+- Added a positioned real-asset image wrapper so signed images stay constrained to their frame.
+- Reworked the review card as a vertical approval layout with separated image, metadata, badges, and actions.
+- Added in-app Dev mode for cached no-OpenAI UI iteration.
+- Added a no-OpenAI dev upload route backed by the latest cached real closet item.
+- Updated PR verification after every code change.
+
+### Remaining Notes
+
+- The successful real upload used an outfit/person photo even though Phase 4 is scoped to standalone item photos. The system generated one shirt asset and labelled the input `combo` with low/high confidence depending on run state; true pants/inner-shirt extraction belongs to a future outfit decomposition phase.
+- Dev mode currently reuses the latest real closet item. A stronger cache can later use a normalized image hash to reuse the exact matching generated output.
+- The floating `N` browser/plugin control visible in manual screenshots is outside the app UI.
