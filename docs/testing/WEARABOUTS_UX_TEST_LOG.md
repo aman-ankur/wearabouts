@@ -266,3 +266,29 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 ### Remaining Notes
 
 - This pass did not run live Supabase/OpenAI upload. A live pass should apply `20260526002000_phase5_1_smart_extraction_selection.sql`, upload a repeated-jeans outfit photo, and confirm the picker keeps shoes/accessories optional and allows forced generation of likely duplicates.
+
+## 2026-05-26 - Phase 5.1 Real Scan Latency Benchmark
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Scope: real OpenAI metadata detection benchmark without Supabase uploads, image generation, validation, or closet writes
+- Script: `npm run benchmark:detection -- "/path/to/image-or-folder" --limit 3`
+
+### Results
+
+- Original profile: `1600px PNG` with `gpt-5.4`
+  - Average scan time: about 17.16 seconds
+  - Average total tokens: about 2,975
+  - Average normalized image size: about 3.85 MB
+- Fast profile: `1024px JPEG` with `gpt-5.4`
+  - Average scan time: about 7.63 seconds
+  - Average total tokens: about 1,605
+  - Average normalized image size: about 127 KB
+- Candidate counts matched on all three sampled photos.
+
+### Decision
+
+- Use the `1024px JPEG` profile for metadata detection by default.
+- Keep generated closet assets on the existing selected-crop image generation path.
+- Keep faster metadata models as an experiment, not default; `gpt-4.1-mini` was slightly faster in the same sample but missed one smartwatch candidate.

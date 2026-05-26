@@ -79,7 +79,13 @@ SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
 OPENAI_METADATA_MODEL=gpt-5.4
 OPENAI_IMAGE_MODEL=gpt-image-1.5
+OPENAI_DETECTION_IMAGE_MAX_DIMENSION=1024
+OPENAI_DETECTION_IMAGE_FORMAT=jpeg
+OPENAI_DETECTION_IMAGE_QUALITY=82
 ```
+
+Outfit scan detection uses the smaller detection image profile above. Final generated closet
+assets still use the image generation model and source crop path.
 
 Apply the Supabase migrations before testing real upload:
 

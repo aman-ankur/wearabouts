@@ -374,6 +374,38 @@ describe("RealWardrobePipeline", () => {
     expect(getPrettifyCallCount()).toBe(1);
   });
 
+  it("skips validation for forced high-confidence visible core candidates even when they look existing", async () => {
+    const { pipeline, candidates, wardrobeItems, getValidationCallCount } = createHarness();
+    wardrobeItems.push({
+      id: "wardrobe-existing-overshirt",
+      sourceDetectedGarmentId: "garment-existing-overshirt",
+      name: "Blue Denim Overshirt",
+      brand: "",
+      category: "outerwear",
+      ownerProfileId: "profile-aankur",
+      asset: {
+        id: "asset-existing-overshirt",
+        kind: "prettified",
+        label: "existing overshirt",
+        bucket: "closet-assets",
+        storagePath: "demo-household/profile-aankur/existing-overshirt.png",
+        imageUrl: "https://signed.example/existing-overshirt.png",
+      },
+      addedAtIso: "2026-05-25T10:00:00.000Z",
+      readyForMixer: true,
+    });
+    const { job } = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+    await pipeline.runPrettifyJob(job.id);
+
+    const overshirtCandidate = Array.from(candidates.values()).find(
+      (candidate) => candidate.proposedName === "Blue Denim Overshirt",
+    );
+    const result = await pipeline.generateOutfitCandidates(job.id, [overshirtCandidate?.id ?? ""]);
+
+    expect(result.garments.map((garment) => garment.proposedName)).toEqual(["Blue Denim Overshirt"]);
+    expect(getValidationCallCount()).toBe(0);
+  });
+
   it("returns an existing detection-only outfit job without duplicating candidates", async () => {
     const { pipeline, candidates } = createHarness();
     const { job } = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));

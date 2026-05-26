@@ -10,7 +10,12 @@ export function createRealWardrobeServices() {
   const supabase = createSupabaseServiceClient();
   const repository = new SupabaseRealWardrobeRepository(supabase);
   const storage = new SupabaseRealAssetStorage(supabase);
-  const ai = new OpenAIPrettifyProvider(config.openaiApiKey, config.openaiMetadataModel, config.openaiImageModel);
+  const ai = new OpenAIPrettifyProvider(
+    config.openaiApiKey,
+    config.openaiMetadataModel,
+    config.openaiImageModel,
+    config.openaiDetectionImage,
+  );
   const pipeline = new RealWardrobePipeline({ repository, storage, ai });
 
   return { repository, pipeline };

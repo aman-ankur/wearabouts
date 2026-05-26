@@ -8,7 +8,7 @@ import type {
   RealSourceImageRecord,
   ValidationResult,
 } from "./realWardrobePipeline";
-import { normalizeImageForOpenAI } from "./openaiImageNormalizer";
+import { normalizeImageForOpenAI, type OpenAIImageNormalizationOptions } from "./openaiImageNormalizer";
 import type { GarmentVisibilityState } from "@/src/domain/wardrobe";
 import {
   createTimer,
@@ -40,6 +40,12 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     apiKey: string,
     private readonly metadataModel: string,
     private readonly imageModel: string,
+    private readonly detectionImageOptions: OpenAIImageNormalizationOptions = {
+      maxDimension: 1024,
+      format: "jpeg",
+      quality: 82,
+      filenamePrefix: "wearabouts-openai-detection",
+    },
   ) {
     this.client = new OpenAI({ apiKey });
   }
@@ -49,7 +55,10 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     bytes: Uint8Array;
   }): Promise<OutfitDetectionResult> {
     const timer = createTimer();
-    const normalized = await normalizeImageForOpenAI(input.bytes);
+    const normalizeTimer = createTimer();
+    const normalized = await normalizeImageForOpenAI(input.bytes, this.detectionImageOptions);
+    const normalizeDurationMs = normalizeTimer.elapsedMs();
+    const apiTimer = createTimer();
     const response = (await this.client.responses.create({
       model: this.metadataModel,
       input: [
@@ -122,11 +131,20 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
         },
       },
     })) as OpenAIResponseWithText;
+    const apiDurationMs = apiTimer.elapsedMs();
 
     const detection = this.parseOutfitDetection(this.extractText(response));
     logWearaboutsTelemetry("openai.detect_outfit.completed", {
       sourceImageId: input.sourceImage.id,
       model: this.metadataModel,
+      apiDurationMs,
+      detectionImage: {
+        durationMs: normalizeDurationMs,
+        contentType: normalized.contentType,
+        sizeBytes: normalized.bytes.byteLength,
+        width: normalized.width,
+        height: normalized.height,
+      },
       durationMs: timer.elapsedMs(),
       candidateCount: detection.candidates.length,
       usage: response.usage ?? null,

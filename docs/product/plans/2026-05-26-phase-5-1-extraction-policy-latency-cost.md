@@ -49,7 +49,20 @@ Default generation should create the core outfit only:
 
 Detected-but-not-generated items should be stored as candidates and can be generated later only when the user explicitly chooses them.
 
-## Recommended UX
+## Updated UX Direction
+
+The implemented MVP direction is scan-first:
+
+- Upload asks what Wearabouts should prepare, with smart extraction behavior.
+- The default real outfit flow runs metadata detection only.
+- Review shows detected candidates so the user can choose the pieces they actually want.
+- `Skip items already in Closet` is on by default.
+- Likely existing pieces are still selectable so the user can force generation when the duplicate hint is wrong.
+- Shoes and accessories are optional by default and do not get generated unless selected.
+
+This is better for repeated-outfit photos: if the same jeans appear in ten photos with ten different shirts, the user can pick only the new shirt instead of paying for duplicate pants every time.
+
+## Earlier UX Option
 
 Use a simple upload setting called `What should Wearabouts prepare?`
 
@@ -183,14 +196,37 @@ After Phase 5.1:
 - Time: expected 45-90 seconds for core outfit
 - Cost: materially lower, likely about half or less for common outfits
 
+## Live Benchmark Notes
+
+After applying the Phase 5.1 schema migration and testing real upload:
+
+- Scan-only picker readiness was about 15-17 seconds with the original metadata image profile.
+- Selected image generations run with concurrency 2, so two generated pieces completed in about 54 seconds total rather than sequentially.
+- A forced high-confidence visible core item now skips the extra validation call even when it had a duplicate hint.
+
+Detection image benchmark over three real photos:
+
+- Original detection profile: `1600px PNG`, average scan time about 17.16 seconds, average total tokens about 2,975, average normalized image size about 3.85 MB.
+- Faster detection profile: `1024px JPEG`, average scan time about 7.63 seconds, average total tokens about 1,605, average normalized image size about 127 KB.
+- Candidate counts matched across all three benchmark photos.
+
+Implemented default:
+
+- `OPENAI_DETECTION_IMAGE_MAX_DIMENSION=1024`
+- `OPENAI_DETECTION_IMAGE_FORMAT=jpeg`
+- `OPENAI_DETECTION_IMAGE_QUALITY=82`
+
+This optimization applies only to metadata detection. Final generated closet assets still use the selected crop and image-generation path.
+
 ## Open Decisions
 
 - Whether `Core outfit` should include prominent shoes by default or make shoes a toggle.
-- Whether validation can be skipped for high-confidence generated items.
-- Whether `One piece` should be exposed on the first upload screen or only as a post-detection option.
+- Whether `768px JPEG` is accurate enough for detection after a larger photo benchmark.
+- Whether a smaller/faster metadata model is good enough. In a 3-photo sample, `gpt-4.1-mini` was slightly faster on the fast image profile but missed one smartwatch candidate.
+- Whether detection schema can drop long `reason` / `cropPrompt` fields and generate crop guidance only after selection.
 
 Recommendation:
 
-- First screen: `Core outfit` default, `One piece` optional.
-- If `One piece` is chosen, ask which piece after detection.
+- First screen/default path: scan first, then let the user pick from detected pieces.
+- Keep duplicate skipping on by default but allow forced generation.
 - Keep accessories manual-only for now.

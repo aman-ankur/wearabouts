@@ -581,7 +581,8 @@ export class RealWardrobePipeline {
       const generated = await this.ai.prettifyGarment({ sourceImage, bytes: cropBytes, analysis });
 
       await this.repository.updatePrettifyJob(job.id, { status: "validating" });
-      const validation = this.shouldValidateOutfitCandidate(candidate)
+      const shouldValidate = this.shouldValidateOutfitCandidate(candidate);
+      const validation = shouldValidate
         ? await this.ai.validatePrettifiedAsset({
             sourceImage,
             sourceBytes: cropBytes,
@@ -589,7 +590,7 @@ export class RealWardrobePipeline {
             analysis,
           })
         : { accepted: true };
-      if (!this.shouldValidateOutfitCandidate(candidate)) {
+      if (!shouldValidate) {
         logWearaboutsTelemetry("pipeline.validation.skipped", {
           jobId: job.id,
           batchId: job.uploadBatchId,
@@ -683,8 +684,7 @@ export class RealWardrobePipeline {
     return !(
       candidate.confidence === "high" &&
       candidate.visibilityState === "visible" &&
-      (candidate.category === "tops" || candidate.category === "outerwear" || candidate.category === "bottoms") &&
-      !candidate.duplicateHint
+      (candidate.category === "tops" || candidate.category === "outerwear" || candidate.category === "bottoms")
     );
   }
 
