@@ -22,10 +22,13 @@ describe("outfitGarmentCandidates", () => {
     expect(isOutfitCandidatePrettifyEligible({ ...visibleTop, confidence: "medium" })).toBe(true);
   });
 
-  it("skips low confidence, occluded, or explicitly rejected candidates", () => {
+  it("does not let a false shouldPrettify flag override visible high-confidence garments", () => {
+    expect(isOutfitCandidatePrettifyEligible({ ...visibleTop, shouldPrettify: false })).toBe(true);
+  });
+
+  it("skips low confidence or occluded candidates", () => {
     expect(isOutfitCandidatePrettifyEligible({ ...visibleTop, confidence: "low" })).toBe(false);
     expect(isOutfitCandidatePrettifyEligible({ ...visibleTop, visibilityState: "occluded" })).toBe(false);
-    expect(isOutfitCandidatePrettifyEligible({ ...visibleTop, shouldPrettify: false })).toBe(false);
   });
 
   it("summarizes candidate outcomes for review context", () => {
@@ -57,6 +60,21 @@ describe("outfitGarmentCandidates", () => {
       top: 496,
       width: 200,
       height: 304,
+    });
+  });
+
+  it("accepts pixel bounding boxes from model output", () => {
+    const region = createPaddedCropRegion(
+      { imageWidth: 1000, imageHeight: 1600 },
+      { x: 425, y: 1254, width: 263, height: 273 },
+      0.2,
+    );
+
+    expect(region).toEqual({
+      left: 372,
+      top: 1199,
+      width: 369,
+      height: 383,
     });
   });
 });

@@ -42,7 +42,6 @@ export interface OutfitCandidateSummary {
 
 export function isOutfitCandidatePrettifyEligible(candidate: OutfitGarmentCandidateAnalysis): boolean {
   return (
-    candidate.shouldPrettify &&
     candidate.visibilityState !== "occluded" &&
     (candidate.confidence === "high" || candidate.confidence === "medium")
   );
@@ -62,10 +61,12 @@ export function createPaddedCropRegion(
   boundingBox: NormalizedBoundingBox,
   paddingRatio = 0.18,
 ): CropRegion {
-  const boxLeft = boundingBox.x * dimensions.imageWidth;
-  const boxTop = boundingBox.y * dimensions.imageHeight;
-  const boxWidth = boundingBox.width * dimensions.imageWidth;
-  const boxHeight = boundingBox.height * dimensions.imageHeight;
+  const isPixelBox =
+    boundingBox.x > 1 || boundingBox.y > 1 || boundingBox.width > 1 || boundingBox.height > 1;
+  const boxLeft = isPixelBox ? boundingBox.x : boundingBox.x * dimensions.imageWidth;
+  const boxTop = isPixelBox ? boundingBox.y : boundingBox.y * dimensions.imageHeight;
+  const boxWidth = isPixelBox ? boundingBox.width : boundingBox.width * dimensions.imageWidth;
+  const boxHeight = isPixelBox ? boundingBox.height : boundingBox.height * dimensions.imageHeight;
   const paddingX = boxWidth * paddingRatio;
   const paddingY = boxHeight * paddingRatio;
 

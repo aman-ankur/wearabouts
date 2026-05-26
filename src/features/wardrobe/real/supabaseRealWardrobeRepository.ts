@@ -285,7 +285,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       throw new Error("Real detected garments require an image asset.");
     }
 
-    const row = await this.insertSingle<SupabaseDetectedGarmentRow>("detected_garments", {
+    const values: Record<string, unknown> = {
       household_id: REAL_HOUSEHOLD_ID,
       upload_batch_id: input.uploadBatchId,
       proposed_name: input.proposedName,
@@ -301,11 +301,22 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       asset_label: input.asset.label,
       asset_bucket: input.asset.bucket,
       asset_storage_path: input.asset.storagePath,
-      source_image_id: input.sourceImageId ?? null,
-      garment_candidate_id: input.garmentCandidateId ?? null,
-      visibility_state: input.visibilityState ?? null,
-      source_bounding_box: input.sourceBoundingBox ?? null,
-    });
+    };
+
+    if (input.sourceImageId) {
+      values.source_image_id = input.sourceImageId;
+    }
+    if (input.garmentCandidateId) {
+      values.garment_candidate_id = input.garmentCandidateId;
+    }
+    if (input.visibilityState) {
+      values.visibility_state = input.visibilityState;
+    }
+    if (input.sourceBoundingBox) {
+      values.source_bounding_box = input.sourceBoundingBox;
+    }
+
+    const row = await this.insertSingle<SupabaseDetectedGarmentRow>("detected_garments", values);
 
     return mapSupabaseDetectedGarment(row, input.asset.imageUrl);
   }
@@ -407,7 +418,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       .select("status")
       .eq("upload_batch_id", batchId);
     if (candidateError) {
-      throw new Error(candidateError.message);
+      return mapSupabaseUploadBatch(batch as SupabaseUploadBatchRow, garments);
     }
 
     return mapSupabaseUploadBatch(

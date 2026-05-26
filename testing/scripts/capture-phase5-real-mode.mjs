@@ -102,20 +102,17 @@ try {
     mobile: false,
   });
 
-  await waitFor(client, `() => document.body.innerText.includes('Real Auto-Prettify')`);
+  await client.send("Runtime.evaluate", {
+    expression: `window.localStorage.removeItem('wearabouts_runtime_mode_override'); window.location.reload()`,
+  });
+  await waitFor(client, `() => document.body.innerText.includes('AUTO-PRETTIFY')`);
   await new Promise((resolve) => setTimeout(resolve, 500));
   await screenshot(client, "wearabouts-ux-phase5-real-upload-item.png");
 
   await client.send("Runtime.evaluate", {
-    expression: `Array.from(document.querySelectorAll('[role="tab"]')).find((tab) => tab.textContent.includes('Outfit photo')).click()`,
-  });
-  await waitFor(client, `() => document.body.innerText.includes('Upload and Detect Outfit')`);
-  await screenshot(client, "wearabouts-ux-phase5-real-upload-outfit.png");
-
-  await client.send("Runtime.evaluate", {
     expression: `Array.from(document.querySelectorAll('button')).find((button) => button.textContent.includes('Dev')).click()`,
   });
-  await waitFor(client, `() => document.body.innerText.includes('Upload and Use Multi-Card Cache')`);
+  await waitFor(client, `() => document.body.innerText.includes('Use cached result')`);
   await screenshot(client, "wearabouts-ux-phase5-dev-upload-outfit.png");
 
   console.log("Captured Phase 5 real-mode upload screenshots.");
