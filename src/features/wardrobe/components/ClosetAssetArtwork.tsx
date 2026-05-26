@@ -16,7 +16,7 @@ export function ClosetAssetArtwork({ asset }: ClosetAssetArtworkProps) {
         width={132}
         height={132}
         unoptimized
-        style={{ width: "100%", height: "100%", maxHeight: 132, objectFit: "contain" }}
+        style={{ width: "100%", height: "100%", maxHeight: "100%", objectFit: "contain" }}
       />
     );
   }

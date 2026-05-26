@@ -15,13 +15,21 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
       className="card"
       style={{
         display: "grid",
-        gridTemplateColumns: "96px minmax(0,1fr)",
-        gap: 12,
+        gap: 14,
         background: "#4a4a4a",
         color: "white",
       }}
     >
-      <div style={{ minHeight: 112, borderRadius: 8, background: "#626262", display: "grid", placeItems: "center" }}>
+      <div
+        style={{
+          height: 260,
+          borderRadius: 8,
+          background: "#626262",
+          display: "grid",
+          placeItems: "center",
+          padding: 10,
+        }}
+      >
         <ClosetAssetArtwork asset={garment.asset} />
       </div>
       <div style={{ minWidth: 0 }}>
@@ -52,7 +60,7 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
           <span className="pill">{garment.category}</span>
           <span className="pill">{garment.confidence} confidence</span>
         </div>
-        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8 }}>
+        <div style={{ display: "flex", justifyContent: "flex-end", gap: 8, flexWrap: "wrap" }}>
           <button type="button" className="button ghost" onClick={() => onRetry(garment.id)} style={{ minHeight: 36 }}>
             <RotateCcw size={15} /> Retry
           </button>
