@@ -1,4 +1,4 @@
-# Travogue Project Context
+# Wearabouts Project Context
 
 Read this file first in any new chat or coding session. It compresses the product decisions, design direction, technical strategy, and implementation boundaries discussed so far.
 
@@ -7,12 +7,16 @@ Read this file first in any new chat or coding session. It compresses the produc
 - Product PRD and technical spec: `docs/product/specs/2026-05-26-travogue-mvp-design.md`
 - Static product flow mockups: `docs/product/mockups/travogue-product-flows.html`
 - HTML mockup implementation plan: `docs/product/plans/2026-05-26-travogue-html-flow-mockups.md`
+- Phase 0-1 implementation plan: `docs/product/plans/2026-05-26-phase-0-1-foundation-upload-review.md`
+- Phase 2 Closet Mixer implementation plan: `docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md`
 
 Open the HTML file directly in a browser. No dev server is needed for the mockup.
 
 ## Product One-Liner
 
-Travogue is a mobile-web-first personal wardrobe and travel packing app for a household. It turns real wardrobe photos into clean standardized closet assets, helps users mix outfits visually, plans day-by-day trip looks, derives packing lists, and remembers what people actually wore.
+Wearabouts is a mobile-web-first personal wardrobe and travel packing app for a household. It turns real wardrobe photos into clean standardized closet assets, helps users mix outfits visually, plans day-by-day trip looks, derives packing lists, and remembers what people actually wore.
+
+The project was originally discussed under the working name Travogue. Current product name: **Wearabouts**.
 
 ## Core Product Bet
 
@@ -31,7 +35,7 @@ The product is inspired by the category of apps like Alta Daily, especially:
 - Avatar setup using face and full-body photos.
 - Final outfit rendering on an avatar.
 
-Travogue should not copy Alta exactly. The differentiation is:
+Wearabouts should not copy Alta exactly. The differentiation is:
 
 - Travel-first rather than daily-first in the MVP.
 - Household profiles for the user and wife.
@@ -438,3 +442,12 @@ Recommended next step:
 
 Do not start real AI provider integration until the demo upload/review/closet flow feels right.
 
+## Next Chat Handoff
+
+Recommended next chat prompt:
+
+```text
+Please read AGENTS.md, docs/product/PROJECT_CONTEXT.md, and docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md, then implement Phase 2 on a new codex/phase-2-closet-mixer branch.
+```
+
+Phase 2 should build the demo Closet Mixer only. Keep it demo-mode and client-side: body preview, swipable item rails, lock/unlock slots, save outfit, and saved looks in closet. Do not start Supabase, real AI, or avatar generation in Phase 2.
