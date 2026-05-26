@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Plus, Shirt, Shuffle } from "lucide-react";
+import { CalendarDays, Home, Plus, Shirt, Shuffle } from "lucide-react";
 
 const navLinkStyle = {
   display: "grid",
@@ -19,7 +19,7 @@ export function BottomNav() {
         bottom: 0,
         height: 58,
         display: "grid",
-        gridTemplateColumns: "1fr 1fr 1fr 1fr",
+        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
         alignItems: "center",
         borderTop: "1px solid var(--line)",
         background: "rgba(255,255,255,.94)",
@@ -40,6 +40,10 @@ export function BottomNav() {
       <Link href="/mixer" style={navLinkStyle}>
         <Shuffle size={18} />
         Mixer
+      </Link>
+      <Link href="/trips" style={navLinkStyle}>
+        <CalendarDays size={18} />
+        Trips
       </Link>
     </nav>
   );

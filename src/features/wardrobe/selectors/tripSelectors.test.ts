@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { DemoTrip, SavedOutfit, WardrobeItem } from "@/src/domain/wardrobe";
-import { createTripLooks, getPackingListItems } from "./tripSelectors";
+import { createSwappedTripLook, createTripLooks, getPackingListItems } from "./tripSelectors";
 
 const trip: DemoTrip = {
   id: "trip-goa-demo",
@@ -91,5 +91,30 @@ describe("tripSelectors", () => {
       { wardrobeItemId: "wardrobe-shoes", wearCount: 3 },
       { wardrobeItemId: "wardrobe-top", wearCount: 2 },
     ]);
+  });
+
+  it("swaps the first unlocked slot to the next available item", () => {
+    const looks = createTripLooks(trip, [
+      ...closetItems,
+      {
+        ...closetItems[0],
+        id: "wardrobe-top-2",
+        name: "Second Top",
+        asset: { id: "asset-top-2", kind: "prettified", label: "Second Top", visualToken: "crew-wine" },
+      },
+    ], []);
+
+    const swappedLook = createSwappedTripLook(looks[0], [
+      ...closetItems,
+      {
+        ...closetItems[0],
+        id: "wardrobe-top-2",
+        name: "Second Top",
+        asset: { id: "asset-top-2", kind: "prettified", label: "Second Top", visualToken: "crew-wine" },
+      },
+    ]);
+
+    expect(swappedLook.selections.find((selection) => selection.slot === "top")?.wardrobeItemId).toBe("wardrobe-top-2");
+    expect(swappedLook.status).toBe("suggested");
   });
 });

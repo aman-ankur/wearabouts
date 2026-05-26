@@ -1,5 +1,5 @@
 import type { DemoTrip, PackingListItem, SavedOutfit, TripLook, WardrobeItem } from "@/src/domain/wardrobe";
-import { getInitialMixerSelections } from "./mixerSelectors";
+import { getInitialMixerSelections, getItemsForSlot, mixerSlots } from "./mixerSelectors";
 
 const demoLookTitles = ["Arrival walk", "Beach day", "Dinner plan"];
 const demoLookNotes = ["Easy layers for travel.", "Light pieces for sun and cafe time.", "A sharper outfit for dinner."];
@@ -35,4 +35,30 @@ export function getPackingListItems(looks: TripLook[]): PackingListItem[] {
   });
 
   return Array.from(itemCounts, ([wardrobeItemId, wearCount]) => ({ wardrobeItemId, wearCount }));
+}
+
+export function createSwappedTripLook(look: TripLook, closetItems: WardrobeItem[]): TripLook {
+  const swappableSlot = mixerSlots.find((slot) => {
+    const selection = look.selections.find((item) => item.slot === slot);
+    return selection && !selection.locked && getItemsForSlot(closetItems, slot).length > 1;
+  });
+
+  if (!swappableSlot) {
+    return { ...look, status: "suggested" };
+  }
+
+  const slotItems = getItemsForSlot(closetItems, swappableSlot);
+  const selection = look.selections.find((item) => item.slot === swappableSlot);
+  const selectedIndex = slotItems.findIndex((item) => item.id === selection?.wardrobeItemId);
+  const nextItem = slotItems[(selectedIndex + 1) % slotItems.length];
+
+  return {
+    ...look,
+    title: `${look.title} remix`,
+    note: "Swapped one unlocked item for another demo option.",
+    status: "suggested",
+    selections: look.selections.map((item) =>
+      item.slot === swappableSlot ? { ...item, wardrobeItemId: nextItem?.id ?? item.wardrobeItemId } : item,
+    ),
+  };
 }
