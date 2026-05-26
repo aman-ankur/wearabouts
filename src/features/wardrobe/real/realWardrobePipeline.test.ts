@@ -29,6 +29,7 @@ function createHarness() {
   const jobs = new Map<string, PrettifyJobRecord>();
   const detectedGarments = new Map<string, DetectedGarment>();
   const wardrobeItems: WardrobeItem[] = [];
+  let createDetectedGarmentCount = 0;
 
   const repository: RealWardrobeRepository = {
     async createUploadBatch(input) {
@@ -82,6 +83,7 @@ function createHarness() {
       return sourceImages.get(sourceImageId) ?? null;
     },
     async createDetectedGarment(input) {
+      createDetectedGarmentCount += 1;
       const garment: DetectedGarment = {
         id: "garment-real-1",
         uploadBatchId: input.uploadBatchId,
@@ -163,7 +165,14 @@ function createHarness() {
     },
   };
 
-  return { pipeline: new RealWardrobePipeline({ repository, storage, ai }), ai, jobs, detectedGarments, wardrobeItems };
+  return {
+    pipeline: new RealWardrobePipeline({ repository, storage, ai }),
+    ai,
+    jobs,
+    detectedGarments,
+    wardrobeItems,
+    getCreateDetectedGarmentCount: () => createDetectedGarmentCount,
+  };
 }
 
 describe("RealWardrobePipeline", () => {
@@ -200,6 +209,18 @@ describe("RealWardrobePipeline", () => {
 
     expect(result.job.status).toBe("failed");
     expect(result.job.errorMessage).toBe("OpenAI unavailable");
+  });
+
+  it("returns an existing ready garment without creating a duplicate", async () => {
+    const harness = createHarness();
+    const { job } = await harness.pipeline.createSingleItemUpload(createUploadFile());
+
+    const firstResult = await harness.pipeline.runPrettifyJob(job.id);
+    const secondResult = await harness.pipeline.runPrettifyJob(job.id);
+
+    expect(firstResult.garment?.id).toBe("garment-real-1");
+    expect(secondResult.garment?.id).toBe("garment-real-1");
+    expect(harness.getCreateDetectedGarmentCount()).toBe(1);
   });
 
   it("reruns a failed job when retrying", async () => {

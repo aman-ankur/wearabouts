@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import type { UploadBatch, WardrobeItem } from "@/src/domain/wardrobe";
 import { demoDetectedGarments, demoUploadBatch } from "@/src/features/wardrobe/fixtures/demoWardrobe";
 import { initialWardrobeState, wardrobeReducer } from "./wardrobeReducer";
 
@@ -57,6 +58,98 @@ describe("wardrobeReducer", () => {
     });
 
     expect(state.closetItems).toHaveLength(demoDetectedGarments.length);
+    expect(state.activeBatch?.detectedGarments).toHaveLength(0);
+  });
+
+  it("loads a real upload batch from the API", () => {
+    const realBatch: UploadBatch = {
+      id: "batch-real-1",
+      sourceType: "item_photo",
+      title: "Real upload",
+      createdAtIso: "2026-05-26T10:00:00.000Z",
+      detectedGarments: [],
+    };
+
+    const state = wardrobeReducer(initialWardrobeState, { type: "realBatchLoaded", batch: realBatch });
+
+    expect(state.activeBatch).toEqual(realBatch);
+  });
+
+  it("loads real closet items from the API", () => {
+    const closetItem: WardrobeItem = {
+      id: "wardrobe-real-1",
+      sourceDetectedGarmentId: "garment-real-1",
+      name: "Blue Oxford Shirt",
+      brand: "",
+      category: "tops",
+      ownerProfileId: "profile-aankur",
+      asset: {
+        id: "asset-real-1",
+        kind: "prettified",
+        label: "Generated studio asset",
+        bucket: "closet-assets",
+        storagePath: "demo-household/profile-aankur/asset-real-1.png",
+        imageUrl: "https://signed.example/asset.png",
+      },
+      addedAtIso: "2026-05-26T10:30:00.000Z",
+      readyForMixer: true,
+    };
+
+    const state = wardrobeReducer(initialWardrobeState, { type: "realClosetLoaded", closetItems: [closetItem] });
+
+    expect(state.closetItems).toEqual([closetItem]);
+  });
+
+  it("adds a real garment returned by the API and removes it from review", () => {
+    const realBatch: UploadBatch = {
+      id: "batch-real-1",
+      sourceType: "item_photo",
+      title: "Real upload",
+      createdAtIso: "2026-05-26T10:00:00.000Z",
+      detectedGarments: [
+        {
+          id: "garment-real-1",
+          uploadBatchId: "batch-real-1",
+          proposedName: "Blue Oxford Shirt",
+          brand: "",
+          category: "tops",
+          ownerProfileId: "profile-aankur",
+          sourceType: "item_photo",
+          confidence: "high",
+          prettifyStatus: "ready",
+          isLayered: false,
+          readyForMixer: true,
+          asset: {
+            id: "asset-real-1",
+            kind: "prettified",
+            label: "Generated studio asset",
+            bucket: "closet-assets",
+            storagePath: "demo-household/profile-aankur/asset-real-1.png",
+            imageUrl: "https://signed.example/asset.png",
+          },
+        },
+      ],
+    };
+    const withBatch = wardrobeReducer(initialWardrobeState, { type: "realBatchLoaded", batch: realBatch });
+    const wardrobeItem: WardrobeItem = {
+      id: "wardrobe-real-1",
+      sourceDetectedGarmentId: "garment-real-1",
+      name: "Blue Oxford Shirt",
+      brand: "",
+      category: "tops",
+      ownerProfileId: "profile-aankur",
+      asset: realBatch.detectedGarments[0].asset,
+      addedAtIso: "2026-05-26T10:30:00.000Z",
+      readyForMixer: true,
+    };
+
+    const state = wardrobeReducer(withBatch, {
+      type: "realGarmentAdded",
+      garmentId: "garment-real-1",
+      wardrobeItem,
+    });
+
+    expect(state.closetItems).toEqual([wardrobeItem]);
     expect(state.activeBatch?.detectedGarments).toHaveLength(0);
   });
 });

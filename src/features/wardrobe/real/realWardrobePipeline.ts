@@ -139,6 +139,13 @@ export class RealWardrobePipeline {
 
   async runPrettifyJob(jobId: string): Promise<{ job: PrettifyJobRecord; garment: DetectedGarment | null }> {
     const job = await this.requireJob(jobId);
+    if (job.status === "ready" && job.detectedGarmentId) {
+      const existingGarment = await this.repository.getDetectedGarment(job.detectedGarmentId);
+      if (existingGarment) {
+        return { job, garment: existingGarment };
+      }
+    }
+
     const sourceImage = await this.requireSourceImage(job.sourceImageId);
 
     try {
