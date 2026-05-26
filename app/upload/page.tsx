@@ -1,6 +1,6 @@
 "use client";
 
-import { FileImage, Lock, Sparkles } from "lucide-react";
+import { FileImage, Images, Sparkles } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import type { UploadSourceType } from "@/src/domain/wardrobe";
@@ -15,6 +15,9 @@ export default function UploadPage() {
   const router = useRouter();
   const { createDemoBatch } = useWardrobe();
   const [runtimeMode, setRuntimeMode] = useState(() => getRuntimeMode());
+  const [selectedSourceType, setSelectedSourceType] = useState<Extract<UploadSourceType, "item_photo" | "outfit_photo">>(
+    "item_photo",
+  );
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -43,6 +46,7 @@ export default function UploadPage() {
     try {
       const formData = new FormData();
       formData.append("item_photo", selectedFile);
+      formData.append("source_type", selectedSourceType);
 
       const response = await fetch(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
         method: "POST",
@@ -76,8 +80,8 @@ export default function UploadPage() {
             <h1 className="app-title">Add To Closet</h1>
             <p className="subtle">
               {isDevMode
-                ? "Upload anything to reuse the latest cached closet asset without calling OpenAI."
-                : "Upload one standalone clothing photo. Wearabouts will prep it for review."}
+                ? "Upload anything to reuse cached closet assets without calling OpenAI."
+                : "Upload an item photo or outfit photo. Wearabouts will prep review cards."}
             </p>
           </div>
           <button type="button" className="button secondary" onClick={handleToggleDevMode}>
@@ -96,6 +100,56 @@ export default function UploadPage() {
               </span>
             </div>
 
+            <div
+              role="tablist"
+              aria-label="Upload type"
+              style={{
+                display: "grid",
+                gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+                gap: 8,
+              }}
+            >
+              {[
+                {
+                  sourceType: "item_photo" as const,
+                  label: "Item photo",
+                  description: "One garment",
+                  icon: FileImage,
+                },
+                {
+                  sourceType: "outfit_photo" as const,
+                  label: "Outfit photo",
+                  description: "Multiple garments",
+                  icon: Images,
+                },
+              ].map((choice) => {
+                const Icon = choice.icon;
+                const isSelected = selectedSourceType === choice.sourceType;
+
+                return (
+                  <button
+                    key={choice.sourceType}
+                    type="button"
+                    role="tab"
+                    aria-selected={isSelected}
+                    className={isSelected ? "button secondary" : "button ghost"}
+                    onClick={() => {
+                      setSelectedSourceType(choice.sourceType);
+                      setSelectedFile(null);
+                      setUploadError(null);
+                    }}
+                    style={{ minHeight: 58, justifyContent: "flex-start" }}
+                  >
+                    <Icon size={17} />
+                    <span style={{ display: "grid", gap: 2, textAlign: "left" }}>
+                      <strong>{choice.label}</strong>
+                      <span style={{ fontSize: 12 }}>{choice.description}</span>
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
             <label
               htmlFor="item_photo"
               style={{
@@ -109,8 +163,10 @@ export default function UploadPage() {
                 padding: 18,
               }}
             >
-              <FileImage size={34} />
-              <strong style={{ marginTop: 10 }}>Item photo</strong>
+              {selectedSourceType === "outfit_photo" ? <Images size={34} /> : <FileImage size={34} />}
+              <strong style={{ marginTop: 10 }}>
+                {selectedSourceType === "outfit_photo" ? "Outfit photo" : "Item photo"}
+              </strong>
               <span className="subtle">
                 {selectedFile
                   ? selectedFile.name
@@ -135,34 +191,24 @@ export default function UploadPage() {
             ) : null}
 
             <button type="submit" className="full-button" disabled={isUploading}>
-              {isUploading ? "Starting..." : isDevMode ? "Upload and Use Cache" : "Upload and Prettify"}
+              {isUploading
+                ? "Starting..."
+                : isDevMode
+                  ? selectedSourceType === "outfit_photo"
+                    ? "Upload and Use Multi-Card Cache"
+                    : "Upload and Use Cache"
+                  : selectedSourceType === "outfit_photo"
+                    ? "Upload and Detect Outfit"
+                    : "Upload and Prettify"}
             </button>
           </form>
 
-          {[
-            ["Outfit photo", "Multi-garment detection comes after this proof."],
-            ["Batch upload", "Bulk closet import comes after single-item reliability."],
-          ].map(([title, description]) => (
-            <section
-              key={title}
-              className="card"
-              style={{
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "space-between",
-                gap: 12,
-                opacity: 0.72,
-              }}
-            >
-              <div>
-                <strong>{title}</strong>
-                <p className="subtle" style={{ marginBottom: 0 }}>
-                  {description}
-                </p>
-              </div>
-              <Lock size={18} />
-            </section>
-          ))}
+          <section className="card" style={{ opacity: 0.72 }}>
+            <strong>Batch upload</strong>
+            <p className="subtle" style={{ marginBottom: 0 }}>
+              Bulk closet import comes after outfit decomposition is reliable.
+            </p>
+          </section>
 
           <PrettifyExplainer />
         </div>

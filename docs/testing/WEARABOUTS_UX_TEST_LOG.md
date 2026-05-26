@@ -196,3 +196,47 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 - The successful real upload used an outfit/person photo even though Phase 4 is scoped to standalone item photos. The system generated one shirt asset and labelled the input `combo` with low/high confidence depending on run state; true pants/inner-shirt extraction belongs to a future outfit decomposition phase.
 - Dev mode currently reuses the latest real closet item. A stronger cache can later use a normalized image hash to reuse the exact matching generated output.
 - The floating `N` browser/plugin control visible in manual screenshots is outside the app UI.
+
+## 2026-05-26 - Phase 5 Real Outfit Upload Entry UX Pass
+
+### Environment
+
+- Branch: `codex/phase-5-real-outfit-decomposition`
+- Local URL: `http://localhost:3001`
+- Surface: mobile viewport in temporary headless Chrome
+- Scope: real-mode upload entry and Dev cache outfit-photo UI
+
+### Flow Tested
+
+1. Started the app with `NEXT_PUBLIC_TRAVOGUE_MODE=real`.
+2. Opened `/upload` in a 390px mobile viewport.
+3. Confirmed real mode now shows Item photo and Outfit photo choices.
+4. Confirmed Item photo remains the default standalone-garment path.
+5. Selected Outfit photo and confirmed the file picker and primary action update to outfit decomposition copy.
+6. Toggled Dev mode while Outfit photo is selected.
+7. Confirmed Dev mode keeps the Outfit photo choice and exposes the no-OpenAI multi-card cache action.
+
+### Screenshots
+
+- [Phase 5 real item upload](../../testing/screenshots/wearabouts-ux-phase5-real-upload-item.png)
+- [Phase 5 real outfit upload](../../testing/screenshots/wearabouts-ux-phase5-real-upload-outfit.png)
+- [Phase 5 dev outfit upload](../../testing/screenshots/wearabouts-ux-phase5-dev-upload-outfit.png)
+
+### Assets And Scripts
+
+- Screenshot capture helper: `testing/scripts/capture-phase5-real-mode.mjs`
+- New screenshots:
+  - `testing/screenshots/wearabouts-ux-phase5-real-upload-item.png`
+  - `testing/screenshots/wearabouts-ux-phase5-real-upload-outfit.png`
+  - `testing/screenshots/wearabouts-ux-phase5-dev-upload-outfit.png`
+
+### Findings Fixed In This Pass
+
+- Added the real-mode Item photo / Outfit photo chooser without changing demo upload choices.
+- Kept Dev mode available from the upload page and made the outfit-photo Dev action explicit.
+- Verified the mobile upload layout has no obvious text or control overlap in item, outfit, or Dev outfit states.
+
+### Remaining Notes
+
+- This pass did not spend OpenAI calls. The live decomposition pipeline still needs the Phase 5 Supabase migration applied before an end-to-end real outfit upload.
+- The Dev outfit path uses cached closet assets to exercise the multi-card review UI; it does not prove garment detection quality.

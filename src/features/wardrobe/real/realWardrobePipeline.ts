@@ -2,13 +2,24 @@ import type {
   ClosetAsset,
   ConfidenceLevel,
   DetectedGarment,
+  GarmentBoundingBox,
   GarmentCategory,
+  GarmentVisibilityState,
   PrettifyJobStatus,
   PrettifyStatus,
   UploadBatch,
+  UploadSourceType,
   WardrobeItem,
 } from "@/src/domain/wardrobe";
+import {
+  cropGarmentCandidateImage,
+  isOutfitCandidatePrettifyEligible,
+  type GarmentCandidateStatus,
+  type OutfitGarmentCandidateAnalysis,
+} from "./outfitGarmentCandidates";
 import { getTerminalPrettifyStatus } from "./prettifyJobStatus";
+
+export type PrettifyJobKind = "single_item" | "outfit_parent" | "outfit_candidate";
 
 export interface RealUploadFile {
   name: string;
@@ -31,7 +42,27 @@ export interface PrettifyJobRecord {
   id: string;
   uploadBatchId: string;
   sourceImageId: string;
+  jobKind: PrettifyJobKind;
+  parentJobId: string | null;
+  garmentCandidateId: string | null;
   status: PrettifyJobStatus;
+  errorMessage: string | null;
+  detectedGarmentId: string | null;
+}
+
+export interface GarmentCandidateRecord {
+  id: string;
+  uploadBatchId: string;
+  sourceImageId: string;
+  parentJobId: string;
+  proposedName: string;
+  category: GarmentCategory;
+  confidence: ConfidenceLevel;
+  visibilityState: GarmentVisibilityState;
+  boundingBox: GarmentBoundingBox;
+  cropPrompt: string;
+  shouldPrettify: boolean;
+  status: GarmentCandidateStatus;
   errorMessage: string | null;
   detectedGarmentId: string | null;
 }
@@ -42,6 +73,7 @@ export interface GarmentAnalysisResult {
   category: GarmentCategory;
   confidence: ConfidenceLevel;
   readyForMixer: boolean;
+  cropPrompt?: string;
 }
 
 export interface GeneratedImageResult {
@@ -53,13 +85,26 @@ export interface ValidationResult {
   accepted: boolean;
 }
 
+export interface OutfitDetectionResult {
+  candidates: OutfitGarmentCandidateAnalysis[];
+}
+
 export interface RealWardrobeRepository {
-  createUploadBatch: (input: { sourceType: "item_photo"; title: string }) => Promise<UploadBatch>;
+  createUploadBatch: (input: { sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">; title: string }) => Promise<UploadBatch>;
   createSourceImage: (input: Omit<RealSourceImageRecord, "id">) => Promise<RealSourceImageRecord>;
-  createPrettifyJob: (input: { uploadBatchId: string; sourceImageId: string }) => Promise<PrettifyJobRecord>;
+  createPrettifyJob: (input: {
+    uploadBatchId: string;
+    sourceImageId: string;
+    jobKind?: PrettifyJobKind;
+    parentJobId?: string | null;
+    garmentCandidateId?: string | null;
+  }) => Promise<PrettifyJobRecord>;
   getPrettifyJob: (jobId: string) => Promise<PrettifyJobRecord | null>;
   updatePrettifyJob: (jobId: string, patch: Partial<PrettifyJobRecord>) => Promise<PrettifyJobRecord>;
   getSourceImage: (sourceImageId: string) => Promise<RealSourceImageRecord | null>;
+  createGarmentCandidate: (input: Omit<GarmentCandidateRecord, "id" | "errorMessage" | "detectedGarmentId">) => Promise<GarmentCandidateRecord>;
+  getGarmentCandidate: (candidateId: string) => Promise<GarmentCandidateRecord | null>;
+  updateGarmentCandidate: (candidateId: string, patch: Partial<GarmentCandidateRecord>) => Promise<GarmentCandidateRecord>;
   createDetectedGarment: (input: {
     uploadBatchId: string;
     proposedName: string;
@@ -68,8 +113,14 @@ export interface RealWardrobeRepository {
     prettifyStatus: PrettifyStatus;
     readyForMixer: boolean;
     asset: ClosetAsset;
+    sourceType?: Extract<UploadSourceType, "item_photo" | "outfit_photo">;
+    sourceImageId?: string;
+    garmentCandidateId?: string;
+    visibilityState?: GarmentVisibilityState;
+    sourceBoundingBox?: GarmentBoundingBox;
   }) => Promise<DetectedGarment>;
   getDetectedGarment: (garmentId: string) => Promise<DetectedGarment | null>;
+  listDetectedGarmentsForBatch: (batchId: string) => Promise<DetectedGarment[]>;
   deleteDetectedGarment: (garmentId: string) => Promise<void>;
   createWardrobeItem: (input: { garment: DetectedGarment; addedAtIso: string }) => Promise<WardrobeItem>;
 }
@@ -86,6 +137,7 @@ export interface RealAssetStorage {
 
 export interface PrettifyAIProvider {
   analyzeGarment: (input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }) => Promise<GarmentAnalysisResult>;
+  detectOutfitGarments: (input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }) => Promise<OutfitDetectionResult>;
   prettifyGarment: (input: {
     sourceImage: RealSourceImageRecord;
     bytes: Uint8Array;
@@ -117,10 +169,68 @@ export class RealWardrobePipeline {
   }
 
   async createSingleItemUpload(file: RealUploadFile) {
+    return this.createStoredUpload(file, "item_photo", "single_item");
+  }
+
+  async createOutfitUpload(file: RealUploadFile) {
+    return this.createStoredUpload(file, "outfit_photo", "outfit_parent");
+  }
+
+  async runPrettifyJob(jobId: string): Promise<{
+    job: PrettifyJobRecord;
+    garment: DetectedGarment | null;
+    garments: DetectedGarment[];
+  }> {
+    const job = await this.requireJob(jobId);
+    if (job.jobKind === "outfit_parent") {
+      return this.runOutfitParentJob(job);
+    }
+    if (job.jobKind === "outfit_candidate") {
+      return this.runOutfitCandidateJob(job);
+    }
+
+    return this.runSingleItemJob(job);
+  }
+
+  async retryPrettifyJob(jobId: string) {
+    const existingJob = await this.requireJob(jobId);
+    await this.repository.updatePrettifyJob(jobId, {
+      status: "queued",
+      errorMessage: null,
+      detectedGarmentId: null,
+    });
+
+    if (existingJob.garmentCandidateId) {
+      await this.repository.updateGarmentCandidate(existingJob.garmentCandidateId, {
+        status: "detected",
+        errorMessage: null,
+        detectedGarmentId: null,
+      });
+    }
+
+    return this.runPrettifyJob(jobId);
+  }
+
+  async addDetectedGarmentToCloset(garmentId: string, addedAtIso: string): Promise<WardrobeItem> {
+    const garment = await this.repository.getDetectedGarment(garmentId);
+    if (!garment) {
+      throw new Error("Detected garment not found");
+    }
+
+    const wardrobeItem = await this.repository.createWardrobeItem({ garment, addedAtIso });
+    await this.repository.deleteDetectedGarment(garment.id);
+    return wardrobeItem;
+  }
+
+  private async createStoredUpload(
+    file: RealUploadFile,
+    sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">,
+    jobKind: PrettifyJobKind,
+  ) {
     this.assertValidImage(file);
 
     const batch = await this.repository.createUploadBatch({
-      sourceType: "item_photo",
+      sourceType,
       title: file.name,
     });
     const storedSource = await this.storage.uploadSourceImage({ file, uploadBatchId: batch.id });
@@ -132,17 +242,20 @@ export class RealWardrobePipeline {
       contentType: file.type,
       originalFilename: file.name,
     });
-    const job = await this.repository.createPrettifyJob({ uploadBatchId: batch.id, sourceImageId: sourceImage.id });
+    const job = await this.repository.createPrettifyJob({
+      uploadBatchId: batch.id,
+      sourceImageId: sourceImage.id,
+      jobKind,
+    });
 
     return { batch, sourceImage, job };
   }
 
-  async runPrettifyJob(jobId: string): Promise<{ job: PrettifyJobRecord; garment: DetectedGarment | null }> {
-    const job = await this.requireJob(jobId);
+  private async runSingleItemJob(job: PrettifyJobRecord) {
     if (job.status === "ready" && job.detectedGarmentId) {
       const existingGarment = await this.repository.getDetectedGarment(job.detectedGarmentId);
       if (existingGarment) {
-        return { job, garment: existingGarment };
+        return { job, garment: existingGarment, garments: [existingGarment] };
       }
     }
 
@@ -176,6 +289,8 @@ export class RealWardrobePipeline {
         prettifyStatus: getTerminalPrettifyStatus("ready", analysis.accepted && validation.accepted),
         readyForMixer: analysis.readyForMixer && validation.accepted,
         asset,
+        sourceType: "item_photo",
+        sourceImageId: sourceImage.id,
       });
       const readyJob = await this.repository.updatePrettifyJob(job.id, {
         status: "ready",
@@ -183,36 +298,182 @@ export class RealWardrobePipeline {
         detectedGarmentId: garment.id,
       });
 
-      return { job: readyJob, garment };
+      return { job: readyJob, garment, garments: [garment] };
     } catch (error) {
       const failedJob = await this.repository.updatePrettifyJob(job.id, {
         status: "failed",
         errorMessage: error instanceof Error ? error.message : "Prettify job failed",
       });
 
-      return { job: failedJob, garment: null };
+      return { job: failedJob, garment: null, garments: [] };
     }
   }
 
-  async retryPrettifyJob(jobId: string) {
-    await this.repository.updatePrettifyJob(jobId, {
-      status: "queued",
-      errorMessage: null,
-      detectedGarmentId: null,
-    });
-
-    return this.runPrettifyJob(jobId);
-  }
-
-  async addDetectedGarmentToCloset(garmentId: string, addedAtIso: string): Promise<WardrobeItem> {
-    const garment = await this.repository.getDetectedGarment(garmentId);
-    if (!garment) {
-      throw new Error("Detected garment not found");
+  private async runOutfitParentJob(job: PrettifyJobRecord) {
+    if (job.status === "ready") {
+      const existingGarments = await this.repository.listDetectedGarmentsForBatch(job.uploadBatchId);
+      if (existingGarments.length > 0) {
+        return { job, garment: existingGarments[0] ?? null, garments: existingGarments };
+      }
     }
 
-    const wardrobeItem = await this.repository.createWardrobeItem({ garment, addedAtIso });
-    await this.repository.deleteDetectedGarment(garment.id);
-    return wardrobeItem;
+    const sourceImage = await this.requireSourceImage(job.sourceImageId);
+
+    try {
+      await this.repository.updatePrettifyJob(job.id, { status: "analyzing", errorMessage: null });
+      const source = await this.storage.downloadSourceImage(sourceImage);
+      const detection = await this.ai.detectOutfitGarments({ sourceImage, bytes: source.bytes });
+
+      await this.repository.updatePrettifyJob(job.id, { status: "prettifying" });
+      const candidateJobs = await Promise.all(
+        detection.candidates.map(async (candidateAnalysis) => {
+          const candidate = await this.repository.createGarmentCandidate({
+            uploadBatchId: job.uploadBatchId,
+            sourceImageId: sourceImage.id,
+            parentJobId: job.id,
+            proposedName: candidateAnalysis.proposedName,
+            category: candidateAnalysis.category,
+            confidence: candidateAnalysis.confidence,
+            visibilityState: candidateAnalysis.visibilityState,
+            boundingBox: candidateAnalysis.boundingBox,
+            cropPrompt: candidateAnalysis.cropPrompt,
+            shouldPrettify: candidateAnalysis.shouldPrettify,
+            status: isOutfitCandidatePrettifyEligible(candidateAnalysis) ? "detected" : "skipped",
+          });
+
+          if (candidate.status === "skipped") {
+            return null;
+          }
+
+          return this.repository.createPrettifyJob({
+            uploadBatchId: job.uploadBatchId,
+            sourceImageId: sourceImage.id,
+            jobKind: "outfit_candidate",
+            parentJobId: job.id,
+            garmentCandidateId: candidate.id,
+          });
+        }),
+      );
+
+      await this.repository.updatePrettifyJob(job.id, { status: "validating" });
+      const generatedGarments: DetectedGarment[] = [];
+      for (const candidateJob of candidateJobs) {
+        if (!candidateJob) {
+          continue;
+        }
+
+        const result = await this.runOutfitCandidateJobWithSource(candidateJob, sourceImage, source.bytes);
+        generatedGarments.push(...result.garments);
+      }
+
+      if (generatedGarments.length === 0) {
+        const failedJob = await this.repository.updatePrettifyJob(job.id, {
+          status: "failed",
+          errorMessage: "No reviewable garments were generated from this outfit photo.",
+        });
+        return { job: failedJob, garment: null, garments: [] };
+      }
+
+      const readyJob = await this.repository.updatePrettifyJob(job.id, { status: "ready", errorMessage: null });
+      return { job: readyJob, garment: generatedGarments[0] ?? null, garments: generatedGarments };
+    } catch (error) {
+      const failedJob = await this.repository.updatePrettifyJob(job.id, {
+        status: "failed",
+        errorMessage: error instanceof Error ? error.message : "Outfit decomposition failed",
+      });
+
+      return { job: failedJob, garment: null, garments: [] };
+    }
+  }
+
+  private async runOutfitCandidateJob(job: PrettifyJobRecord) {
+    const sourceImage = await this.requireSourceImage(job.sourceImageId);
+    const source = await this.storage.downloadSourceImage(sourceImage);
+    return this.runOutfitCandidateJobWithSource(job, sourceImage, source.bytes);
+  }
+
+  private async runOutfitCandidateJobWithSource(
+    job: PrettifyJobRecord,
+    sourceImage: RealSourceImageRecord,
+    sourceBytes: Uint8Array,
+  ) {
+    if (job.status === "ready" && job.detectedGarmentId) {
+      const existingGarment = await this.repository.getDetectedGarment(job.detectedGarmentId);
+      if (existingGarment) {
+        return { job, garment: existingGarment, garments: [existingGarment] };
+      }
+    }
+    if (!job.garmentCandidateId) {
+      throw new Error("Outfit candidate job is missing candidate metadata.");
+    }
+
+    const candidate = await this.repository.getGarmentCandidate(job.garmentCandidateId);
+    if (!candidate) {
+      throw new Error("Garment candidate not found.");
+    }
+
+    try {
+      await this.repository.updatePrettifyJob(job.id, { status: "prettifying", errorMessage: null });
+      await this.repository.updateGarmentCandidate(candidate.id, { status: "prettifying", errorMessage: null });
+      const cropBytes = await cropGarmentCandidateImage(sourceBytes, candidate.boundingBox);
+      const analysis: GarmentAnalysisResult = {
+        accepted: true,
+        proposedName: candidate.proposedName,
+        category: candidate.category,
+        confidence: candidate.confidence,
+        readyForMixer: true,
+        cropPrompt: candidate.cropPrompt,
+      };
+      const generated = await this.ai.prettifyGarment({ sourceImage, bytes: cropBytes, analysis });
+
+      await this.repository.updatePrettifyJob(job.id, { status: "validating" });
+      const validation = await this.ai.validatePrettifiedAsset({
+        sourceImage,
+        sourceBytes: cropBytes,
+        assetBytes: generated.bytes,
+        analysis,
+      });
+      const asset = await this.storage.uploadClosetAsset({
+        bytes: generated.bytes,
+        contentType: generated.contentType,
+        label: `${candidate.proposedName} studio asset`,
+      });
+      const garment = await this.repository.createDetectedGarment({
+        uploadBatchId: job.uploadBatchId,
+        proposedName: candidate.proposedName,
+        category: candidate.category,
+        confidence: candidate.confidence,
+        prettifyStatus: getTerminalPrettifyStatus("ready", validation.accepted),
+        readyForMixer: validation.accepted,
+        asset,
+        sourceType: "outfit_photo",
+        sourceImageId: sourceImage.id,
+        garmentCandidateId: candidate.id,
+        visibilityState: candidate.visibilityState,
+        sourceBoundingBox: candidate.boundingBox,
+      });
+      await this.repository.updateGarmentCandidate(candidate.id, {
+        status: "ready",
+        errorMessage: null,
+        detectedGarmentId: garment.id,
+      });
+      const readyJob = await this.repository.updatePrettifyJob(job.id, {
+        status: "ready",
+        errorMessage: null,
+        detectedGarmentId: garment.id,
+      });
+
+      return { job: readyJob, garment, garments: [garment] };
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Garment candidate prettify failed";
+      await this.repository.updateGarmentCandidate(candidate.id, { status: "failed", errorMessage: message });
+      const failedJob = await this.repository.updatePrettifyJob(job.id, {
+        status: "failed",
+        errorMessage: message,
+      });
+
+      return { job: failedJob, garment: null, garments: [] };
+    }
   }
 
   private assertValidImage(file: RealUploadFile) {

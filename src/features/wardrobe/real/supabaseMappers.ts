@@ -2,9 +2,12 @@ import type {
   ClosetAssetBucket,
   ConfidenceLevel,
   DetectedGarment,
+  GarmentBoundingBox,
   GarmentCategory,
+  GarmentVisibilityState,
   PrettifyStatus,
   UploadBatch,
+  UploadBatchCandidateSummary,
   UploadSourceType,
   WardrobeItem,
   WardrobeProfileId,
@@ -15,6 +18,7 @@ export interface SupabaseUploadBatchRow {
   source_type: UploadSourceType;
   title: string;
   created_at: string;
+  candidate_summary?: UploadBatchCandidateSummary;
 }
 
 export interface SupabaseDetectedGarmentRow {
@@ -33,6 +37,10 @@ export interface SupabaseDetectedGarmentRow {
   asset_label: string;
   asset_bucket: ClosetAssetBucket;
   asset_storage_path: string;
+  source_image_id?: string | null;
+  garment_candidate_id?: string | null;
+  visibility_state?: GarmentVisibilityState | null;
+  source_bounding_box?: GarmentBoundingBox | null;
 }
 
 export interface SupabaseWardrobeItemRow {
@@ -60,6 +68,7 @@ export function mapSupabaseUploadBatch(
     title: row.title,
     createdAtIso: row.created_at,
     detectedGarments,
+    candidateSummary: row.candidate_summary,
   };
 }
 
@@ -76,6 +85,10 @@ export function mapSupabaseDetectedGarment(row: SupabaseDetectedGarmentRow, imag
     prettifyStatus: row.prettify_status,
     isLayered: row.is_layered,
     readyForMixer: row.ready_for_mixer,
+    sourceImageId: row.source_image_id ?? undefined,
+    garmentCandidateId: row.garment_candidate_id ?? undefined,
+    visibilityState: row.visibility_state ?? undefined,
+    sourceBoundingBox: row.source_bounding_box ?? undefined,
     asset: {
       id: row.asset_id,
       kind: "prettified",

@@ -9,13 +9,14 @@ export async function POST(request: Request) {
     const formData = await request.formData();
     const file = formData.get("item_photo") ?? formData.get("file");
     const filename = file instanceof File ? file.name : "cached-dev-upload";
+    const sourceType = formData.get("source_type") === "outfit_photo" ? "outfit_photo" : "item_photo";
 
     const { repository } = createRealWardrobeServices();
-    const result = await createDevCachedUpload(repository, filename);
+    const result = await createDevCachedUpload(repository, { sourceType, uploadedFilename: filename });
 
     return NextResponse.json({
       batchId: result.batch.id,
-      garmentId: result.garment.id,
+      garmentId: result.garment?.id,
       cachedFromWardrobeItemId: result.cachedFromWardrobeItemId,
     });
   } catch (error) {

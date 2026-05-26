@@ -7,13 +7,17 @@ export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const file = formData.get("item_photo") ?? formData.get("file");
+    const sourceType = formData.get("source_type") === "outfit_photo" ? "outfit_photo" : "item_photo";
 
     if (!(file instanceof File)) {
       return NextResponse.json({ error: "Upload a clothing photo file." }, { status: 400 });
     }
 
     const { pipeline } = createRealWardrobeServices();
-    const result = await pipeline.createSingleItemUpload(file);
+    const result =
+      sourceType === "outfit_photo"
+        ? await pipeline.createOutfitUpload(file)
+        : await pipeline.createSingleItemUpload(file);
 
     return NextResponse.json({
       batchId: result.batch.id,

@@ -3,14 +3,17 @@ import type { ConfidenceLevel, GarmentCategory } from "@/src/domain/wardrobe";
 import type {
   GarmentAnalysisResult,
   GeneratedImageResult,
+  OutfitDetectionResult,
   PrettifyAIProvider,
   RealSourceImageRecord,
   ValidationResult,
 } from "./realWardrobePipeline";
 import { normalizeImageForOpenAI } from "./openaiImageNormalizer";
+import type { GarmentVisibilityState } from "@/src/domain/wardrobe";
 
 const garmentCategories: GarmentCategory[] = ["tops", "bottoms", "outerwear", "footwear", "accessories", "combo"];
 const confidenceLevels: ConfidenceLevel[] = ["high", "medium", "low"];
+const visibilityStates: GarmentVisibilityState[] = ["visible", "occluded", "needs_review"];
 
 interface OpenAIResponseWithText {
   output_text?: string;
@@ -32,6 +35,87 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     private readonly imageModel: string,
   ) {
     this.client = new OpenAI({ apiKey });
+  }
+
+  async detectOutfitGarments(input: {
+    sourceImage: RealSourceImageRecord;
+    bytes: Uint8Array;
+  }): Promise<OutfitDetectionResult> {
+    const normalized = await normalizeImageForOpenAI(input.bytes);
+    const response = (await this.client.responses.create({
+      model: this.metadataModel,
+      input: [
+        {
+          role: "user",
+          content: [
+            {
+              type: "input_text",
+              text:
+                "Analyze this outfit/person photo for Wearabouts. Detect each visible wardrobe garment separately. Return only JSON with candidates. Include outer layers, inner tops, bottoms, shoes, and visible accessories only when enough of the item is visible to create a closet asset. Do not invent hidden garments.",
+            },
+            {
+              type: "input_image",
+              image_url: this.toDataUrl(normalized.bytes, normalized.contentType),
+              detail: "auto",
+            },
+          ],
+        },
+      ],
+      text: {
+        format: {
+          type: "json_schema",
+          name: "wearabouts_outfit_decomposition",
+          strict: true,
+          schema: {
+            type: "object",
+            additionalProperties: false,
+            properties: {
+              candidates: {
+                type: "array",
+                maxItems: 8,
+                items: {
+                  type: "object",
+                  additionalProperties: false,
+                  properties: {
+                    proposedName: { type: "string" },
+                    category: { type: "string", enum: garmentCategories },
+                    confidence: { type: "string", enum: confidenceLevels },
+                    visibilityState: { type: "string", enum: visibilityStates },
+                    boundingBox: {
+                      type: "object",
+                      additionalProperties: false,
+                      properties: {
+                        x: { type: "number" },
+                        y: { type: "number" },
+                        width: { type: "number" },
+                        height: { type: "number" },
+                      },
+                      required: ["x", "y", "width", "height"],
+                    },
+                    cropPrompt: { type: "string" },
+                    shouldPrettify: { type: "boolean" },
+                    reason: { type: "string" },
+                  },
+                  required: [
+                    "proposedName",
+                    "category",
+                    "confidence",
+                    "visibilityState",
+                    "boundingBox",
+                    "cropPrompt",
+                    "shouldPrettify",
+                    "reason",
+                  ],
+                },
+              },
+            },
+            required: ["candidates"],
+          },
+        },
+      },
+    })) as OpenAIResponseWithText;
+
+    return this.parseOutfitDetection(this.extractText(response));
   }
 
   async analyzeGarment(input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }): Promise<GarmentAnalysisResult> {
@@ -93,7 +177,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       image,
       size: "1024x1024",
       quality: "high",
-      prompt: `Create a clean neutral studio catalog image of this exact real garment: ${input.analysis.proposedName}. Preserve color, pattern, silhouette, logos, hems, sleeves, and distinctive details. Center it on a light neutral background with even lighting. Do not invent a different garment.`,
+      prompt: `Create a clean neutral studio catalog image of this exact real garment: ${input.analysis.proposedName}. ${input.analysis.cropPrompt ? `Target garment guidance: ${input.analysis.cropPrompt}. ` : ""}Preserve color, pattern, silhouette, logos, hems, sleeves, and distinctive details. Center it on a light neutral background with even lighting. Do not invent a different garment.`,
     })) as OpenAIImageResponse;
     const base64 = response.data?.[0]?.b64_json;
     if (!base64) {
@@ -179,5 +263,22 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       confidence: parsed.confidence,
       readyForMixer: Boolean(parsed.readyForMixer),
     };
+  }
+
+  private parseOutfitDetection(text: string): OutfitDetectionResult {
+    const parsed = JSON.parse(text) as OutfitDetectionResult;
+    const candidates = Array.isArray(parsed.candidates) ? parsed.candidates : [];
+
+    for (const candidate of candidates) {
+      if (
+        !garmentCategories.includes(candidate.category) ||
+        !confidenceLevels.includes(candidate.confidence) ||
+        !visibilityStates.includes(candidate.visibilityState)
+      ) {
+        throw new Error("OpenAI returned unsupported outfit garment metadata.");
+      }
+    }
+
+    return { candidates };
   }
 }

@@ -12,6 +12,16 @@ describe("prettifyJobStatus", () => {
     ]);
   });
 
+  it("uses outfit-specific processing labels for outfit jobs", () => {
+    expect(getPrettifyJobSteps("prettifying", "outfit_parent")).toEqual([
+      { id: "queued", label: "Upload", state: "complete" },
+      { id: "analyzing", label: "Detect garments", state: "complete" },
+      { id: "prettifying", label: "Prettify garments", state: "active" },
+      { id: "validating", label: "Validate assets", state: "pending" },
+      { id: "ready", label: "Review", state: "pending" },
+    ]);
+  });
+
   it("maps failed jobs to a failed terminal prettify status", () => {
     expect(getTerminalPrettifyStatus("failed")).toBe("failed");
   });
