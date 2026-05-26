@@ -79,13 +79,20 @@ SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
 OPENAI_METADATA_MODEL=gpt-5.4
 OPENAI_IMAGE_MODEL=gpt-image-1.5
+OPENAI_DETECTION_IMAGE_MAX_DIMENSION=1024
+OPENAI_DETECTION_IMAGE_FORMAT=jpeg
+OPENAI_DETECTION_IMAGE_QUALITY=82
 ```
+
+Outfit scan detection uses the smaller detection image profile above. Final generated closet
+assets still use the image generation model and source crop path.
 
 Apply the Supabase migrations before testing real upload:
 
 ```text
 supabase/migrations/20260526000000_phase4_real_upload.sql
 supabase/migrations/20260526001000_phase5_outfit_decomposition.sql
+supabase/migrations/20260526002000_phase5_1_smart_extraction_selection.sql
 ```
 
 To test UI changes without spending OpenAI tokens, use the **Dev** button on `/upload`. Item photo reuses the latest cached real closet asset; Outfit photo creates a multi-card review batch from recent cached closet assets.

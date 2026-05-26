@@ -1,16 +1,24 @@
 "use client";
 
 import Link from "next/link";
-import { useParams, useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
+import type { GarmentCandidateChoice, UploadSourceImageReference } from "@/src/domain/wardrobe";
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
+import {
+  CandidateCropThumbnail,
+  CandidateNumber,
+  DetectedCandidatePhotoReference,
+} from "@/src/features/wardrobe/components/DetectedCandidatePhotoReference";
 import { DetectedGarmentCard } from "@/src/features/wardrobe/components/DetectedGarmentCard";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
 export default function ReviewPage() {
   const router = useRouter();
   const params = useParams<{ batchId: string }>();
+  const searchParams = useSearchParams();
+  const jobId = searchParams.get("jobId");
   const runtimeMode = getRuntimeMode();
   const {
     state,
@@ -21,6 +29,7 @@ export default function ReviewPage() {
     loadRealBatch,
     addRealGarment,
     retryRealGarment,
+    generateRealCandidates,
   } = useWardrobe();
   const isPersistentMode = runtimeMode === "real" || runtimeMode === "dev";
   const [isLoadingBatch, setIsLoadingBatch] = useState(isPersistentMode);
@@ -29,6 +38,20 @@ export default function ReviewPage() {
   const garments = state.activeBatch?.detectedGarments ?? [];
   const isOutfitBatch = state.activeBatch?.sourceType === "outfit_photo";
   const candidateSummary = state.activeBatch?.candidateSummary;
+  const candidateChoices = useMemo(() => state.activeBatch?.garmentCandidates ?? [], [state.activeBatch]);
+  const hasCandidatePicker = isPersistentMode && isOutfitBatch && garments.length === 0 && candidateChoices.length > 0;
+  const primaryCandidates = candidateChoices.filter((candidate) =>
+    ["primary", "selected", "skipped_existing"].includes(candidate.selectionStatus),
+  );
+  const optionalCandidates = candidateChoices.filter((candidate) =>
+    ["optional", "not_recommended"].includes(candidate.selectionStatus),
+  );
+  const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
+  const [isSourcePhotoExpanded, setIsSourcePhotoExpanded] = useState(false);
+  const candidateIndexById = useMemo(
+    () => new Map(candidateChoices.map((candidate, index) => [candidate.id, index])),
+    [candidateChoices],
+  );
 
   useEffect(() => {
     if (!isPersistentMode) {
@@ -46,6 +69,18 @@ export default function ReviewPage() {
         setIsLoadingBatch(false);
       });
   }, [isPersistentMode, loadRealBatch, params.batchId]);
+
+  useEffect(() => {
+    if (!hasCandidatePicker) {
+      return;
+    }
+
+    setSelectedCandidateIds(
+      candidateChoices
+        .filter((candidate) => candidate.selectionStatus === "primary" || candidate.selectionStatus === "selected")
+        .map((candidate) => candidate.id),
+    );
+  }, [candidateChoices, hasCandidatePicker]);
 
   async function handleAddAll() {
     if (isPersistentMode) {
@@ -103,6 +138,34 @@ export default function ReviewPage() {
     void retryGarment(garmentId);
   }
 
+  async function handlePrepareSelectedCandidates() {
+    if (!jobId) {
+      setReviewError("Open this review from the processing screen to prepare selected pieces.");
+      return;
+    }
+    if (selectedCandidateIds.length === 0) {
+      setReviewError("Choose at least one piece to prepare.");
+      return;
+    }
+
+    setIsUpdating(true);
+    setReviewError(null);
+    try {
+      await generateRealCandidates(jobId, selectedCandidateIds);
+      await loadRealBatch(params.batchId);
+    } catch (error) {
+      setReviewError(error instanceof Error ? error.message : "Could not prepare selected pieces.");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  function toggleCandidate(candidateId: string) {
+    setSelectedCandidateIds((current) =>
+      current.includes(candidateId) ? current.filter((id) => id !== candidateId) : [...current, candidateId],
+    );
+  }
+
   return (
     <AppShell>
       <div className="appbar">
@@ -150,6 +213,93 @@ export default function ReviewPage() {
             <h1 className="app-title">Loading review</h1>
             <p className="subtle">Fetching the generated closet asset.</p>
           </section>
+        ) : hasCandidatePicker ? (
+          <section className="card" style={{ display: "grid", gap: 14 }}>
+            <div>
+              <h1 className="app-title" style={{ fontSize: 24 }}>Choose what to prepare</h1>
+              <p className="subtle" style={{ margin: "6px 0 0" }}>
+                Wearabouts found these pieces in the photo. New tops and bottoms are selected first.
+              </p>
+            </div>
+
+            {state.activeBatch?.sourceImage ? (
+              <DetectedCandidatePhotoReference
+                sourceImage={state.activeBatch.sourceImage}
+                candidates={candidateChoices}
+                expanded={isSourcePhotoExpanded}
+                onToggleExpanded={() => setIsSourcePhotoExpanded((current) => !current)}
+              />
+            ) : null}
+
+            <section
+              style={{
+                border: "1px solid rgba(17,17,17,0.12)",
+                borderRadius: 8,
+                background: "linear-gradient(135deg, rgba(17,17,17,0.03), rgba(255,255,255,0.92))",
+                padding: "12px 13px",
+                display: "flex",
+                justifyContent: "space-between",
+                gap: 12,
+                alignItems: "center",
+              }}
+            >
+              <span style={{ display: "grid", gap: 3 }}>
+                <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>
+                  Closet matching
+                </strong>
+                <span className="subtle" style={{ fontSize: 13 }}>
+                  Pieces that look saved stay optional.
+                </span>
+              </span>
+              <span
+                aria-label="Closet matching is on"
+                style={{
+                  borderRadius: 999,
+                  background: "var(--ink)",
+                  color: "var(--white)",
+                  padding: "7px 12px",
+                  fontSize: 12,
+                  fontWeight: 850,
+                  lineHeight: 1,
+                  whiteSpace: "nowrap",
+                  boxShadow: "0 6px 16px rgba(17,17,17,0.14)",
+                }}
+              >
+                On
+              </span>
+            </section>
+
+            <CandidateChoiceList
+              title="New closet pieces"
+              candidates={primaryCandidates}
+              selectedCandidateIds={selectedCandidateIds}
+              sourceImage={state.activeBatch?.sourceImage}
+              candidateIndexById={candidateIndexById}
+              onToggle={toggleCandidate}
+            />
+
+            {optionalCandidates.length > 0 ? (
+              <CandidateChoiceList
+                title="Optional"
+                candidates={optionalCandidates}
+                selectedCandidateIds={selectedCandidateIds}
+                sourceImage={state.activeBatch?.sourceImage}
+                candidateIndexById={candidateIndexById}
+                onToggle={toggleCandidate}
+              />
+            ) : null}
+
+            <button
+              type="button"
+              className="full-button"
+              disabled={isUpdating}
+              onClick={() => {
+                void handlePrepareSelectedCandidates();
+              }}
+            >
+              {isUpdating ? "Preparing..." : "Prepare selected pieces"}
+            </button>
+          </section>
         ) : garments.length === 0 ? (
           <section className="card">
             <h1 className="app-title">Nothing left to review</h1>
@@ -175,5 +325,96 @@ export default function ReviewPage() {
         )}
       </div>
     </AppShell>
+  );
+}
+
+function CandidateChoiceList({
+  title,
+  candidates,
+  selectedCandidateIds,
+  sourceImage,
+  candidateIndexById,
+  onToggle,
+}: {
+  title: string;
+  candidates: GarmentCandidateChoice[];
+  selectedCandidateIds: string[];
+  sourceImage?: UploadSourceImageReference;
+  candidateIndexById: Map<string, number>;
+  onToggle: (candidateId: string) => void;
+}) {
+  if (candidates.length === 0) {
+    return null;
+  }
+
+  return (
+    <div style={{ display: "grid", gap: 8 }}>
+      <span
+        style={{
+          color: "var(--muted)",
+          fontSize: 12,
+          fontWeight: 800,
+          letterSpacing: "0.08em",
+          textTransform: "uppercase",
+        }}
+      >
+        {title}
+      </span>
+      {candidates.map((candidate) => {
+        const isSelected = selectedCandidateIds.includes(candidate.id);
+        const isOptional = candidate.selectionStatus === "optional" || candidate.selectionStatus === "not_recommended";
+        const isDuplicate = candidate.selectionStatus === "skipped_existing";
+        const candidateIndex = candidateIndexById.get(candidate.id) ?? 0;
+        const rowBackground =
+          isSelected || (!isOptional && !isDuplicate) ? "var(--paper)" : "rgba(255,255,255,0.72)";
+        const statusLabel = isDuplicate ? "Already saved" : isSelected ? "Selected" : "Optional";
+        return (
+          <button
+            key={candidate.id}
+            type="button"
+            onClick={() => onToggle(candidate.id)}
+            aria-pressed={isSelected}
+            style={{
+              width: "100%",
+              border: `1px solid ${isSelected ? "var(--ink)" : "var(--line)"}`,
+              borderRadius: 8,
+              background: rowBackground,
+              padding: 12,
+              textAlign: "left",
+              display: "grid",
+              gridTemplateColumns: sourceImage ? "24px 52px minmax(0, 1fr)" : "24px minmax(0, 1fr)",
+              gap: 10,
+              alignItems: "center",
+              boxShadow: isSelected ? "0 8px 22px rgba(17,17,17,0.05)" : "none",
+              opacity: isSelected || !isOptional ? 1 : 0.86,
+            }}
+          >
+            <CandidateNumber index={candidateIndex} variant="neutral" />
+            <CandidateCropThumbnail sourceImage={sourceImage} candidate={candidate} />
+            <span style={{ display: "grid", gap: 5, minWidth: 0 }}>
+              <strong style={{ color: "var(--ink)", fontSize: 15, lineHeight: 1.2 }}>{candidate.proposedName}</strong>
+              <span className="subtle" style={{ fontSize: 13 }}>
+                {isDuplicate
+                  ? "Looks like something already in Closet. Select it if this is a different piece."
+                  : candidate.selectionReason}
+              </span>
+              <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+                <span
+                  className="pill"
+                  style={{
+                    background: isSelected ? "var(--ink)" : "var(--wash)",
+                    color: isSelected ? "var(--white)" : "var(--muted)",
+                    border: `1px solid ${isSelected ? "var(--ink)" : "transparent"}`,
+                  }}
+                >
+                  {statusLabel}
+                </span>
+                <span className="pill">{candidate.category}</span>
+              </span>
+            </span>
+          </button>
+        );
+      })}
+    </div>
   );
 }

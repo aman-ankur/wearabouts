@@ -160,7 +160,11 @@ export default function ProcessingPage() {
 
       <div className="bottom-actions">
         {isReady && batchId ? (
-          <Link className="full-button" href={`/review/${batchId}`} style={{ display: "grid", placeItems: "center" }}>
+          <Link
+            className="full-button"
+            href={`/review/${batchId}?jobId=${jobId}`}
+            style={{ display: "grid", placeItems: "center" }}
+          >
             {isOutfitJob ? "Review items" : "Review item"}
           </Link>
         ) : (

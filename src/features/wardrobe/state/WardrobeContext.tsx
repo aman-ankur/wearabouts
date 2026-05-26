@@ -23,6 +23,7 @@ interface WardrobeContextValue {
   loadRealBatch: (batchId: string) => Promise<UploadBatch>;
   addRealGarment: (garmentId: string) => Promise<WardrobeItem>;
   retryRealGarment: (garmentId: string) => Promise<void>;
+  generateRealCandidates: (jobId: string, candidateIds: string[]) => Promise<void>;
   startMixer: () => void;
   selectMixerItem: (slot: OutfitSlot, wardrobeItemId: string | null) => void;
   toggleMixerSlotLock: (slot: OutfitSlot) => void;
@@ -85,6 +86,17 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const generateRealCandidates = useCallback(async (jobId: string, candidateIds: string[]) => {
+    const response = await fetch(`/api/wardrobe/jobs/${jobId}/candidates/generate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ candidateIds }),
+    });
+    if (!response.ok) {
+      throw new Error("Could not prepare selected pieces.");
+    }
+  }, []);
+
   const value: WardrobeContextValue = {
     state,
     mixerState,
@@ -114,6 +126,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     loadRealBatch,
     addRealGarment,
     retryRealGarment,
+    generateRealCandidates,
     startMixer() {
       mixerDispatch({
         type: "mixerStarted",

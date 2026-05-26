@@ -240,3 +240,112 @@ This is the living test log for hands-on Wearabouts UX/UI checks. Add a new date
 
 - This pass did not spend OpenAI calls. The live decomposition pipeline still needs the Phase 5 Supabase migration applied before an end-to-end real outfit upload.
 - The Dev outfit path uses cached closet assets to exercise the multi-card review UI; it does not prove garment detection quality.
+
+## 2026-05-26 - Phase 5.1 Smart Extraction Selection Verification
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Scope: unit/build verification for smart extraction selection behavior
+
+### Flow Covered
+
+1. Real outfit upload now carries an extraction mode and a default "skip items already in Closet" preference.
+2. Default outfit processing scans and stores candidate choices without immediately generating every visible item.
+3. Review can render a candidate picker before generation.
+4. User-selected candidates are generated through a dedicated selected-candidate route.
+5. Core outfit mode generates only top/outerwear and bottoms by default; shoes and accessories remain optional.
+
+### Verification
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+
+### Remaining Notes
+
+- This pass did not run live Supabase/OpenAI upload. A live pass should apply `20260526002000_phase5_1_smart_extraction_selection.sql`, upload a repeated-jeans outfit photo, and confirm the picker keeps shoes/accessories optional and allows forced generation of likely duplicates.
+
+## 2026-05-26 - Phase 5.1 Real Scan Latency Benchmark
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Scope: real OpenAI metadata detection benchmark without Supabase uploads, image generation, validation, or closet writes
+- Script: `npm run benchmark:detection -- "/path/to/image-or-folder" --limit 3`
+
+### Results
+
+- Original profile: `1600px PNG` with `gpt-5.4`
+  - Average scan time: about 17.16 seconds
+  - Average total tokens: about 2,975
+  - Average normalized image size: about 3.85 MB
+- Fast profile: `1024px JPEG` with `gpt-5.4`
+  - Average scan time: about 7.63 seconds
+  - Average total tokens: about 1,605
+  - Average normalized image size: about 127 KB
+- Candidate counts matched on all three sampled photos.
+
+### Decision
+
+- Use the `1024px JPEG` profile for metadata detection by default.
+- Keep generated closet assets on the existing selected-crop image generation path.
+- Keep faster metadata models as an experiment, not default; `gpt-4.1-mini` was slightly faster in the same sample but missed one smartwatch candidate.
+
+## 2026-05-26 - Phase 5.1 Detected Photo Reference Picker
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Local URL: `http://localhost:3000`
+- Scope: real outfit review picker after scan
+
+### Flow Covered
+
+1. Loaded an existing real scan-only outfit batch.
+2. Confirmed the batch API now includes a signed uploaded source image reference.
+3. Added the uploaded-photo reference above the candidate checklist.
+4. Rendered numbered bounding boxes over the uploaded photo using existing candidate bounding boxes.
+5. Added row-level crop thumbnails so each checklist item has a visible local reference.
+
+### Verification
+
+- `npm run test -- src/features/wardrobe/components/DetectedCandidatePhotoReference.test.tsx src/features/wardrobe/real/supabaseMappers.test.ts`
+- `npm run typecheck`
+- `npm run lint`
+
+### Remaining Notes
+
+- The overlay uses normalized candidate bounding boxes from the detection model and does not add OpenAI calls.
+- The row crop thumbnails use focal positioning around each bounding box center; a future pass can use exact CSS clipping if we want tighter crop previews.
+
+## 2026-05-27 - Phase 5.1 Extraction Review Visual Polish
+
+### Environment
+
+- Branch: `codex/phase-5-1-smart-extraction-mockups`
+- Local URL: `http://localhost:3000`
+- Scope: real outfit review picker and generated review card polish
+
+### Flow Covered
+
+1. Replaced source-photo rectangle overlays with soft numbered markers and short dotted leader lines.
+2. Kept candidate colors only on the uploaded-photo marker system, where they help map detection points to the legend.
+3. Changed candidate checklist rows to neutral Wearabouts styling: selected rows use a black border and `Selected` pill, optional rows stay visually quieter.
+4. Replaced the checkbox-like duplicate control with a compact `Closet matching` status control.
+5. Kept source crop thumbnails in candidate rows and zoomed them around the detected candidate center.
+6. Added a clickable generated-artwork preview on detected garment cards. The preview opens in a dark bottom sheet so the prettified item can be inspected at a larger size before adding it.
+
+### Verification
+
+- `npm run test`
+- `npm run typecheck`
+- `npm run lint`
+- `npm run build`
+- Confirmed the review page returns `200 OK` on `http://localhost:3000` after restarting the dev server.
+
+### Remaining Notes
+
+- The visual picker still uses normalized model bounding boxes from detection; no extra OpenAI calls were added for thumbnails or markers.
+- Running `npm run build` while `next dev` is active can leave stale `.next` chunks in the dev server. Restart the dev server on port 3000 after production builds before manual browser testing.

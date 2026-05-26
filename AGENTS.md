@@ -44,6 +44,17 @@ If the values are different, set them locally in this repo before committing. Do
 - Push feature work to a branch unless the user explicitly asks to push to `main`.
 - If rewriting identity/history is ever needed, confirm with the user before force-pushing.
 
+## Local Dev Server
+
+- Always run the Wearabouts dev server on port `3000`.
+- Do not allow Next.js or any other dev server to fall back to another port such as `3001`.
+- Before starting the dev server, check whether port `3000` is occupied. If it is, kill the process using port `3000`, then start the server on port `3000`.
+- Preferred command:
+
+```bash
+npm run dev -- -p 3000
+```
+
 ## Commit Hygiene
 
 - Keep commits small and phase-based.
@@ -56,4 +67,3 @@ npm run typecheck
 npm run lint
 npm run build
 ```
-

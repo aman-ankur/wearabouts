@@ -2,9 +2,11 @@ import { describe, expect, it } from "vitest";
 import {
   createPaddedCropRegion,
   isOutfitCandidatePrettifyEligible,
+  planOutfitExtraction,
   summarizeOutfitCandidates,
   type OutfitGarmentCandidateAnalysis,
 } from "./outfitGarmentCandidates";
+import type { WardrobeItem } from "@/src/domain/wardrobe";
 
 const visibleTop: OutfitGarmentCandidateAnalysis = {
   proposedName: "Blue Denim Overshirt",
@@ -14,6 +16,55 @@ const visibleTop: OutfitGarmentCandidateAnalysis = {
   boundingBox: { x: 0.2, y: 0.1, width: 0.5, height: 0.45 },
   cropPrompt: "outer blue shirt layer",
   shouldPrettify: true,
+};
+
+const visibleBottom: OutfitGarmentCandidateAnalysis = {
+  proposedName: "Indigo Straight Jeans",
+  category: "bottoms",
+  confidence: "high",
+  visibilityState: "visible",
+  boundingBox: { x: 0.26, y: 0.48, width: 0.34, height: 0.42 },
+  cropPrompt: "indigo jeans",
+  shouldPrettify: true,
+};
+
+const visibleShoes: OutfitGarmentCandidateAnalysis = {
+  proposedName: "White Sneakers",
+  category: "footwear",
+  confidence: "high",
+  visibilityState: "visible",
+  boundingBox: { x: 0.28, y: 0.87, width: 0.26, height: 0.08 },
+  cropPrompt: "white sneakers",
+  shouldPrettify: true,
+};
+
+const visibleWatch: OutfitGarmentCandidateAnalysis = {
+  proposedName: "Dark Smartwatch",
+  category: "accessories",
+  confidence: "high",
+  visibilityState: "visible",
+  boundingBox: { x: 0.68, y: 0.35, width: 0.06, height: 0.06 },
+  cropPrompt: "dark smartwatch",
+  shouldPrettify: true,
+};
+
+const closetJeans: WardrobeItem = {
+  id: "wardrobe-jeans-1",
+  sourceDetectedGarmentId: "garment-jeans-1",
+  name: "Indigo Straight Jeans",
+  brand: "",
+  category: "bottoms",
+  ownerProfileId: "profile-aankur",
+  asset: {
+    id: "asset-jeans-1",
+    kind: "prettified",
+    bucket: "closet-assets",
+    storagePath: "demo/jeans.png",
+    imageUrl: "https://signed.example/jeans.png",
+    label: "Indigo jeans",
+  },
+  addedAtIso: "2026-05-25T10:00:00.000Z",
+  readyForMixer: true,
 };
 
 describe("outfitGarmentCandidates", () => {
@@ -75,6 +126,70 @@ describe("outfitGarmentCandidates", () => {
       top: 1199,
       width: 369,
       height: 383,
+    });
+  });
+
+  it("keeps pick-after-scan candidates selectable without auto-selecting generation", () => {
+    const plan = planOutfitExtraction({
+      candidates: [visibleTop, visibleBottom, visibleShoes, visibleWatch],
+      mode: "pick_after_scan",
+      skipExistingItems: true,
+      existingClosetItems: [],
+    });
+
+    expect(plan.map((item) => [item.proposedName, item.selectionStatus, item.shouldGenerate])).toEqual([
+      ["Blue Denim Overshirt", "primary", false],
+      ["Indigo Straight Jeans", "primary", false],
+      ["White Sneakers", "optional", false],
+      ["Dark Smartwatch", "optional", false],
+    ]);
+  });
+
+  it("selects top and bottom for core outfit but leaves shoes and accessories optional", () => {
+    const plan = planOutfitExtraction({
+      candidates: [visibleTop, visibleBottom, visibleShoes, visibleWatch],
+      mode: "core_outfit",
+      skipExistingItems: true,
+      existingClosetItems: [],
+    });
+
+    expect(plan.map((item) => [item.proposedName, item.selectionStatus, item.shouldGenerate])).toEqual([
+      ["Blue Denim Overshirt", "selected", true],
+      ["Indigo Straight Jeans", "selected", true],
+      ["White Sneakers", "optional", false],
+      ["Dark Smartwatch", "optional", false],
+    ]);
+  });
+
+  it("uses new-tops mode to avoid regenerating repeated jeans", () => {
+    const plan = planOutfitExtraction({
+      candidates: [visibleTop, visibleBottom, visibleShoes],
+      mode: "new_tops",
+      skipExistingItems: true,
+      existingClosetItems: [closetJeans],
+    });
+
+    expect(plan.map((item) => [item.proposedName, item.selectionStatus, item.duplicateHint, item.shouldGenerate])).toEqual([
+      ["Blue Denim Overshirt", "selected", false, true],
+      ["Indigo Straight Jeans", "skipped_existing", true, false],
+      ["White Sneakers", "optional", false, false],
+    ]);
+  });
+
+  it("lets duplicate hints suppress defaults without making candidates unselectable", () => {
+    const plan = planOutfitExtraction({
+      candidates: [visibleBottom],
+      mode: "new_bottoms",
+      skipExistingItems: true,
+      existingClosetItems: [closetJeans],
+    });
+
+    expect(plan[0]).toMatchObject({
+      proposedName: "Indigo Straight Jeans",
+      selectionStatus: "skipped_existing",
+      duplicateHint: true,
+      shouldGenerate: false,
+      selectable: true,
     });
   });
 });

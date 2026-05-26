@@ -14,9 +14,40 @@ describe("supabaseMappers", () => {
     expect(mapSupabaseUploadBatch(row, [])).toEqual({
       id: "batch-real-1",
       sourceType: "item_photo",
+      extractionMode: "single_item",
+      skipExistingItems: true,
       title: "Real item upload",
       createdAtIso: "2026-05-26T10:00:00.000Z",
       detectedGarments: [],
+      candidateSummary: undefined,
+      garmentCandidates: undefined,
+      sourceImage: undefined,
+    });
+  });
+
+  it("maps an upload batch row with a signed source image reference", () => {
+    const row: SupabaseUploadBatchRow = {
+      id: "batch-real-1",
+      source_type: "outfit_photo",
+      title: "Real outfit upload",
+      created_at: "2026-05-26T10:00:00.000Z",
+      source_image: {
+        id: "source-real-1",
+        contentType: "image/jpeg",
+        originalFilename: "outfit.jpg",
+        imageUrl: "https://signed.example/source.jpg",
+      },
+    };
+
+    expect(mapSupabaseUploadBatch(row, [])).toMatchObject({
+      id: "batch-real-1",
+      sourceType: "outfit_photo",
+      sourceImage: {
+        id: "source-real-1",
+        contentType: "image/jpeg",
+        originalFilename: "outfit.jpg",
+        imageUrl: "https://signed.example/source.jpg",
+      },
     });
   });
 

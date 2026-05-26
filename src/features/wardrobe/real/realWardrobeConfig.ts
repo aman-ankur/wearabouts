@@ -1,3 +1,5 @@
+import type { OpenAIImageNormalizationOptions } from "./openaiImageNormalizer";
+
 export const REAL_HOUSEHOLD_ID = "demo-household";
 export const REAL_PROFILE_ID = "profile-aankur";
 
@@ -7,6 +9,7 @@ export interface RealWardrobeConfig {
   openaiApiKey: string;
   openaiMetadataModel: string;
   openaiImageModel: string;
+  openaiDetectionImage: Required<OpenAIImageNormalizationOptions>;
 }
 
 export function getRealWardrobeConfig(): RealWardrobeConfig {
@@ -24,5 +27,28 @@ export function getRealWardrobeConfig(): RealWardrobeConfig {
     openaiApiKey,
     openaiMetadataModel: process.env.OPENAI_METADATA_MODEL ?? "gpt-5.4",
     openaiImageModel: process.env.OPENAI_IMAGE_MODEL ?? "gpt-image-1.5",
+    openaiDetectionImage: {
+      maxDimension: parsePositiveInteger(process.env.OPENAI_DETECTION_IMAGE_MAX_DIMENSION, 1024),
+      format: parseDetectionFormat(process.env.OPENAI_DETECTION_IMAGE_FORMAT),
+      quality: parsePositiveInteger(process.env.OPENAI_DETECTION_IMAGE_QUALITY, 82),
+      filenamePrefix: "wearabouts-openai-detection",
+    },
   };
+}
+
+function parsePositiveInteger(value: string | undefined, fallback: number) {
+  if (!value) {
+    return fallback;
+  }
+
+  const parsed = Number.parseInt(value, 10);
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+}
+
+function parseDetectionFormat(value: string | undefined): Required<OpenAIImageNormalizationOptions>["format"] {
+  if (value === "png" || value === "jpeg" || value === "webp") {
+    return value;
+  }
+
+  return "jpeg";
 }

@@ -1,13 +1,16 @@
 import type {
   ClosetAssetBucket,
   ConfidenceLevel,
+  GarmentCandidateChoice,
   DetectedGarment,
   GarmentBoundingBox,
   GarmentCategory,
   GarmentVisibilityState,
+  OutfitExtractionMode,
   PrettifyStatus,
   UploadBatch,
   UploadBatchCandidateSummary,
+  UploadSourceImageReference,
   UploadSourceType,
   WardrobeItem,
   WardrobeProfileId,
@@ -16,9 +19,13 @@ import type {
 export interface SupabaseUploadBatchRow {
   id: string;
   source_type: UploadSourceType;
+  extraction_mode?: OutfitExtractionMode | null;
+  skip_existing_items?: boolean | null;
   title: string;
   created_at: string;
   candidate_summary?: UploadBatchCandidateSummary;
+  garment_candidates?: GarmentCandidateChoice[];
+  source_image?: UploadSourceImageReference;
 }
 
 export interface SupabaseDetectedGarmentRow {
@@ -65,10 +72,14 @@ export function mapSupabaseUploadBatch(
   return {
     id: row.id,
     sourceType: row.source_type,
+    extractionMode: row.extraction_mode ?? (row.source_type === "outfit_photo" ? "pick_after_scan" : "single_item"),
+    skipExistingItems: row.skip_existing_items ?? true,
     title: row.title,
     createdAtIso: row.created_at,
     detectedGarments,
     candidateSummary: row.candidate_summary,
+    garmentCandidates: row.garment_candidates,
+    sourceImage: row.source_image,
   };
 }
 

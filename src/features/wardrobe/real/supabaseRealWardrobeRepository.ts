@@ -1,9 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type {
   ClosetAsset,
+  CandidateSelectionStatus,
   DetectedGarment,
   GarmentBoundingBox,
   GarmentVisibilityState,
+  OutfitExtractionMode,
   UploadBatch,
   UploadSourceType,
   WardrobeItem,
@@ -59,6 +61,9 @@ interface GarmentCandidateRow {
   bounding_box: GarmentBoundingBox;
   crop_prompt: string;
   should_prettify: boolean;
+  selection_status?: CandidateSelectionStatus | null;
+  selection_reason?: string | null;
+  duplicate_hint?: boolean | null;
   status: GarmentCandidateStatus;
   error_message: string | null;
   detected_garment_id: string | null;
@@ -70,13 +75,22 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   async createUploadBatch(input: {
     sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">;
     title: string;
+    extractionMode?: OutfitExtractionMode;
+    skipExistingItems?: boolean;
   }): Promise<UploadBatch> {
-    const row = await this.insertSingle<SupabaseUploadBatchRow>("upload_batches", {
+    const values = {
       household_id: REAL_HOUSEHOLD_ID,
       profile_id: REAL_PROFILE_ID,
       source_type: input.sourceType,
+      extraction_mode: input.extractionMode ?? (input.sourceType === "outfit_photo" ? "pick_after_scan" : "single_item"),
+      skip_existing_items: input.skipExistingItems ?? true,
       title: input.title,
-    });
+    };
+
+    const row = await this.insertSingleWithSchemaFallback<SupabaseUploadBatchRow>("upload_batches", values, [
+      "extraction_mode",
+      "skip_existing_items",
+    ]);
 
     return mapSupabaseUploadBatch(row, []);
   }
@@ -182,6 +196,19 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return this.mapJob(data as PrettifyJobRow);
   }
 
+  async getUploadBatch(batchId: string): Promise<UploadBatch | null> {
+    const { data, error } = await this.supabase
+      .from("upload_batches")
+      .select("*")
+      .eq("id", batchId)
+      .maybeSingle();
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return data ? mapSupabaseUploadBatch(data as SupabaseUploadBatchRow, []) : null;
+  }
+
   async getSourceImage(sourceImageId: string): Promise<RealSourceImageRecord | null> {
     const { data, error } = await this.supabase.from("source_images").select("*").eq("id", sourceImageId).maybeSingle();
     if (error) {
@@ -206,7 +233,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   async createGarmentCandidate(
     input: Omit<GarmentCandidateRecord, "id" | "errorMessage" | "detectedGarmentId">,
   ): Promise<GarmentCandidateRecord> {
-    const row = await this.insertSingle<GarmentCandidateRow>("garment_candidates", {
+    const values = {
       household_id: REAL_HOUSEHOLD_ID,
       upload_batch_id: input.uploadBatchId,
       source_image_id: input.sourceImageId,
@@ -218,10 +245,19 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       bounding_box: input.boundingBox,
       crop_prompt: input.cropPrompt,
       should_prettify: input.shouldPrettify,
+      selection_status: input.selectionStatus,
+      selection_reason: input.selectionReason,
+      duplicate_hint: input.duplicateHint,
       status: input.status,
       error_message: null,
       detected_garment_id: null,
-    });
+    };
+
+    const row = await this.insertSingleWithSchemaFallback<GarmentCandidateRow>("garment_candidates", values, [
+      "selection_status",
+      "selection_reason",
+      "duplicate_hint",
+    ]);
 
     return this.mapCandidate(row);
   }
@@ -239,6 +275,19 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return data ? this.mapCandidate(data as GarmentCandidateRow) : null;
   }
 
+  async listGarmentCandidatesForBatch(batchId: string): Promise<GarmentCandidateRecord[]> {
+    const { data, error } = await this.supabase
+      .from("garment_candidates")
+      .select("*")
+      .eq("upload_batch_id", batchId)
+      .order("created_at", { ascending: true });
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return ((data ?? []) as GarmentCandidateRow[]).map((row) => this.mapCandidate(row));
+  }
+
   async updateGarmentCandidate(
     candidateId: string,
     patch: Partial<GarmentCandidateRecord>,
@@ -253,13 +302,33 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     if (patch.detectedGarmentId !== undefined) {
       rowPatch.detected_garment_id = patch.detectedGarmentId;
     }
+    if (patch.selectionStatus !== undefined) {
+      rowPatch.selection_status = patch.selectionStatus;
+    }
+    if (patch.selectionReason !== undefined) {
+      rowPatch.selection_reason = patch.selectionReason;
+    }
+    if (patch.duplicateHint !== undefined) {
+      rowPatch.duplicate_hint = patch.duplicateHint;
+    }
 
-    const { data, error } = await this.supabase
+    let { data, error } = await this.supabase
       .from("garment_candidates")
       .update(rowPatch)
       .eq("id", candidateId)
       .select()
       .single();
+    if (error && isMissingSchemaColumnError(error.message)) {
+      const fallbackPatch = withoutKeys(rowPatch, ["selection_status", "selection_reason", "duplicate_hint"]);
+      const fallbackResult = await this.supabase
+        .from("garment_candidates")
+        .update(fallbackPatch)
+        .eq("id", candidateId)
+        .select()
+        .single();
+      data = fallbackResult.data;
+      error = fallbackResult.error;
+    }
     if (error) {
       throw new Error(error.message);
     }
@@ -415,16 +484,33 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
 
     const { data: candidateRows, error: candidateError } = await this.supabase
       .from("garment_candidates")
-      .select("status")
+      .select("*")
       .eq("upload_batch_id", batchId);
     if (candidateError) {
       return mapSupabaseUploadBatch(batch as SupabaseUploadBatchRow, garments);
     }
 
+    const candidates = ((candidateRows ?? []) as GarmentCandidateRow[]).map((row) => this.mapCandidate(row));
+    const sourceImage = await this.getBatchSourceImageReference(batchId);
     return mapSupabaseUploadBatch(
       {
         ...(batch as SupabaseUploadBatchRow),
-        candidate_summary: summarizeOutfitCandidates((candidateRows ?? []) as Array<{ status: GarmentCandidateStatus }>),
+        candidate_summary: summarizeOutfitCandidates(candidates),
+        garment_candidates: candidates.map((candidate) => ({
+          id: candidate.id,
+          uploadBatchId: candidate.uploadBatchId,
+          proposedName: candidate.proposedName,
+          category: candidate.category,
+          confidence: candidate.confidence,
+          visibilityState: candidate.visibilityState,
+          boundingBox: candidate.boundingBox,
+          selectionStatus: candidate.selectionStatus,
+          selectionReason: candidate.selectionReason,
+          duplicateHint: candidate.duplicateHint,
+          status: candidate.status,
+          detectedGarmentId: candidate.detectedGarmentId,
+        })),
+        source_image: sourceImage ?? undefined,
       },
       garments,
     );
@@ -456,6 +542,22 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return data as T;
   }
 
+  private async insertSingleWithSchemaFallback<T>(
+    table: string,
+    values: Record<string, unknown>,
+    optionalColumns: string[],
+  ): Promise<T> {
+    try {
+      return await this.insertSingle<T>(table, values);
+    } catch (error) {
+      if (!(error instanceof Error) || !isMissingSchemaColumnError(error.message)) {
+        throw error;
+      }
+
+      return this.insertSingle<T>(table, withoutKeys(values, optionalColumns));
+    }
+  }
+
   private async createSignedUrl(bucket: string, storagePath: string): Promise<string> {
     const { data, error } = await this.supabase.storage.from(bucket).createSignedUrl(storagePath, 60 * 60);
     if (error) {
@@ -463,6 +565,27 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     return data.signedUrl;
+  }
+
+  private async getBatchSourceImageReference(batchId: string) {
+    const { data, error } = await this.supabase
+      .from("source_images")
+      .select("*")
+      .eq("upload_batch_id", batchId)
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) {
+      return null;
+    }
+
+    const row = data as SourceImageRow;
+    return {
+      id: row.id,
+      imageUrl: await this.createSignedUrl(row.bucket, row.storage_path),
+      contentType: row.content_type,
+      originalFilename: row.original_filename,
+    };
   }
 
   private mapJob(row: PrettifyJobRow): PrettifyJobRecord {
@@ -492,9 +615,50 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       boundingBox: row.bounding_box,
       cropPrompt: row.crop_prompt,
       shouldPrettify: row.should_prettify,
+      selectionStatus: row.selection_status ?? getFallbackSelectionStatus(row),
+      selectionReason: row.selection_reason ?? getFallbackSelectionReason(row),
+      duplicateHint: row.duplicate_hint ?? false,
       status: row.status,
       errorMessage: row.error_message,
       detectedGarmentId: row.detected_garment_id,
     };
   }
+}
+
+function withoutKeys(values: Record<string, unknown>, keys: string[]): Record<string, unknown> {
+  const stripped = { ...values };
+  for (const key of keys) {
+    delete stripped[key];
+  }
+
+  return stripped;
+}
+
+function isMissingSchemaColumnError(message: string): boolean {
+  return message.includes("Could not find the") && message.includes("column") && message.includes("schema cache");
+}
+
+function getFallbackSelectionStatus(row: GarmentCandidateRow): CandidateSelectionStatus {
+  if (row.confidence === "low" || row.visibility_state === "occluded") {
+    return "not_recommended";
+  }
+  if (row.category === "tops" || row.category === "outerwear" || row.category === "bottoms") {
+    return "primary";
+  }
+
+  return "optional";
+}
+
+function getFallbackSelectionReason(row: GarmentCandidateRow): string {
+  if (row.confidence === "low" || row.visibility_state === "occluded") {
+    return row.visibility_state === "occluded" ? "Not enough of this item is visible" : "Needs a clearer photo";
+  }
+  if (row.category === "footwear") {
+    return "Shoes are optional for this upload";
+  }
+  if (row.category === "accessories") {
+    return "Accessory saved as optional";
+  }
+
+  return "Clear clothing item";
 }
