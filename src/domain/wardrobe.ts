@@ -127,6 +127,16 @@ export interface WardrobeItem {
   asset: ClosetAsset;
   addedAtIso: string;
   readyForMixer: boolean;
+  colors?: string[];
+  pattern?: string;
+  material?: string;
+  formality?: "casual" | "smart" | "dressy" | "sport" | "technical";
+  season?: string[];
+  occasionTags?: string[];
+  comfortTags?: string[];
+  styleTags?: string[];
+  warmth?: "light" | "medium" | "warm";
+  rainSuitability?: "avoid" | "ok" | "good";
 }
 
 export type OutfitSlot = "top" | "bottom" | "shoes" | "layer" | "accessory";
@@ -143,6 +153,9 @@ export interface SavedOutfit {
   profileId: WardrobeProfileId;
   selections: OutfitSlotSelection[];
   createdAtIso: string;
+  source?: "manual" | "suggestion" | "refined";
+  intent?: string;
+  rationale?: string;
 }
 
 export interface MixerBodyPreview {

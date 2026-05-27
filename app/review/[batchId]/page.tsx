@@ -22,10 +22,12 @@ export default function ReviewPage() {
   const {
     state,
     addGarment,
+    addAllGarments,
     deleteGarment,
     retryGarment,
     loadRealBatch,
     addRealGarment,
+    addAllRealGarments,
     retryRealGarment,
     generateRealCandidates,
   } = useWardrobe();
@@ -37,13 +39,26 @@ export default function ReviewPage() {
   const isOutfitBatch = state.activeBatch?.sourceType === "outfit_photo";
   const candidateSummary = state.activeBatch?.candidateSummary;
   const candidateChoices = useMemo(() => state.activeBatch?.garmentCandidates ?? [], [state.activeBatch]);
-  const hasCandidatePicker = isPersistentMode && isOutfitBatch && garments.length === 0 && candidateChoices.length > 0;
-  const primaryCandidates = candidateChoices.filter((candidate) =>
-    ["primary", "selected", "skipped_existing"].includes(candidate.selectionStatus),
+  const ungeneratedCandidateChoices = useMemo(
+    () => candidateChoices.filter((candidate) => candidate.status !== "ready"),
+    [candidateChoices],
   );
-  const optionalCandidates = candidateChoices.filter((candidate) =>
-    ["optional", "not_recommended"].includes(candidate.selectionStatus),
+  const primaryCandidates = useMemo(
+    () =>
+      ungeneratedCandidateChoices.filter((candidate) =>
+        ["primary", "selected"].includes(candidate.selectionStatus),
+      ),
+    [ungeneratedCandidateChoices],
   );
+  const optionalCandidates = useMemo(
+    () =>
+      ungeneratedCandidateChoices.filter((candidate) =>
+        ["optional", "not_recommended", "skipped_existing"].includes(candidate.selectionStatus),
+      ),
+    [ungeneratedCandidateChoices],
+  );
+  const hasCandidatePicker =
+    isPersistentMode && isOutfitBatch && garments.length === 0 && primaryCandidates.length > 0;
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
   const [isSourcePhotoExpanded, setIsSourcePhotoExpanded] = useState(false);
   const candidateIndexById = useMemo(
@@ -80,11 +95,9 @@ export default function ReviewPage() {
     }
 
     setSelectedCandidateIds(
-      candidateChoices
-        .filter((candidate) => candidate.selectionStatus === "primary" || candidate.selectionStatus === "selected")
-        .map((candidate) => candidate.id),
+      primaryCandidates.map((candidate) => candidate.id),
     );
-  }, [candidateChoices, hasCandidatePicker]);
+  }, [hasCandidatePicker, primaryCandidates]);
 
   async function handleAdd(garmentId: string) {
     if (isPersistentMode) {
@@ -101,6 +114,27 @@ export default function ReviewPage() {
     }
 
     addGarment(garmentId);
+  }
+
+  async function handleAddAll() {
+    if (garments.length === 0) {
+      return;
+    }
+
+    if (isPersistentMode) {
+      setIsUpdating(true);
+      setReviewError(null);
+      try {
+        await addAllRealGarments();
+      } catch (error) {
+        setReviewError(error instanceof Error ? error.message : "Could not add all items.");
+      } finally {
+        setIsUpdating(false);
+      }
+      return;
+    }
+
+    addAllGarments();
   }
 
   async function handleRetry(garmentId: string) {
@@ -172,9 +206,14 @@ export default function ReviewPage() {
             <p className="subtle" style={{ margin: 0 }}>
               Review each item Wearabouts generated from the source outfit.
             </p>
-            <Link className="button secondary" href="/closet" style={{ justifySelf: "start", marginTop: 4 }}>
-              Back to wardrobe
-            </Link>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 4 }}>
+              <button type="button" className="button" disabled={isUpdating} onClick={() => void handleAddAll()}>
+                {isUpdating ? "Adding..." : "Add all"}
+              </button>
+              <Link className="button secondary" href="/closet">
+                Back to wardrobe
+              </Link>
+            </div>
           </section>
         ) : null}
 

@@ -16,6 +16,19 @@ Supporting mockup:
 
 - `docs/product/mockups/2026-05-27-phase6-mixer-options.html`
 
+Implementation handoff:
+
+- `docs/product/plans/2026-05-27-phase-6-smart-mixer-outfit-engine.md`
+
+Current implementation status:
+
+- The first end-to-end Phase 6 slice is implemented on `codex/phase6-smart-mixer`.
+- Mixer now opens with complete outfit suggestions when enough closet items exist.
+- Refinement supports slot locks and ranked alternatives.
+- Saved suggested/refined looks flow into the existing saved-look model.
+- Feedback buttons are session-local only; persistent learning is a next-phase task.
+- Same-image upload cache is not complete; add source-image hashing before AI calls in a future cache/cost phase.
+
 ## Primary User Story
 
 As a Wearabouts user with a real closet, I want to open Mixer and quickly see complete outfits from my wardrobe, so I can save looks I like and refine them without manually building every combination.

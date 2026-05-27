@@ -1,3 +1,4 @@
+import React from "react";
 import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
 import { demoBodyPreview } from "@/src/features/wardrobe/fixtures/demoMixer";
 import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
@@ -6,25 +7,68 @@ interface MixerBodyStageProps {
   selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>;
 }
 
-const boardCellStyle = {
-  minHeight: 120,
-  border: "1px solid rgba(230,222,212,.9)",
-  borderRadius: 8,
-  background: "rgba(255,255,255,.72)",
-  display: "grid",
-  placeItems: "center",
-  position: "relative",
-  overflow: "hidden",
-} satisfies React.CSSProperties;
+interface BoardItemPlacement {
+  left?: string;
+  right?: string;
+  top?: string;
+  bottom?: string;
+  width: string;
+  height: number;
+  scale: number;
+  opacity?: number;
+  zIndex: number;
+}
 
-function BoardItem({ item, scale = 1 }: { item?: WardrobeItem; scale?: number }) {
+const boardItemPlacement: Record<OutfitSlot, BoardItemPlacement> = {
+  layer: { left: "2%", top: "40px", width: "38%", height: 160, scale: 1.2, opacity: 0.15, zIndex: 1 },
+  top: { left: "4%", top: "38px", width: "50%", height: 176, scale: 1.24, zIndex: 3 },
+  bottom: { right: "3%", top: "44px", width: "42%", height: 284, scale: 0.98, zIndex: 2 },
+  shoes: { left: "19%", bottom: "36px", width: "62%", height: 124, scale: 1.04, zIndex: 4 },
+  accessory: { right: "6%", bottom: "124px", width: "26%", height: 78, scale: 1.35, zIndex: 5 },
+};
+
+function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
   if (!item) {
-    return <span style={{ width: 54, height: 2, borderRadius: 999, background: "var(--line)" }} />;
+    return null;
   }
 
+  const placement = boardItemPlacement[slot];
+  const shouldSoftenEdges = slot === "top" || slot === "layer" || slot === "accessory";
+
   return (
-    <div style={{ transform: `scale(${scale})`, display: "grid", placeItems: "center" }}>
-      <ClosetAssetArtwork asset={item.asset} />
+    <div
+      data-mixer-board-item-frame={slot}
+      style={{
+        position: "absolute",
+        left: placement.left,
+        right: placement.right,
+        top: placement.top,
+        bottom: placement.bottom,
+        width: placement.width,
+        height: placement.height,
+        display: "grid",
+        placeItems: "center",
+        overflow: "hidden",
+        opacity: placement.opacity ?? 1,
+        zIndex: placement.zIndex,
+      }}
+    >
+      <div
+        style={{
+          width: "100%",
+          height: "100%",
+          transform: `scale(${placement.scale})`,
+          filter: "brightness(1.055) contrast(1.07) saturate(0.98)",
+          WebkitMaskImage: shouldSoftenEdges
+            ? "radial-gradient(ellipse 72% 76% at 50% 50%, #000 56%, rgba(0,0,0,.82) 70%, transparent 88%)"
+            : undefined,
+          maskImage: shouldSoftenEdges
+            ? "radial-gradient(ellipse 72% 76% at 50% 50%, #000 56%, rgba(0,0,0,.82) 70%, transparent 88%)"
+            : undefined,
+        }}
+      >
+        <ClosetAssetArtwork asset={item.asset} />
+      </div>
     </div>
   );
 }
@@ -33,74 +77,20 @@ export function MixerBodyStage({ selectedItems }: MixerBodyStageProps) {
   return (
     <section
       aria-label={demoBodyPreview.label}
+      data-mixer-board-canvas="clean"
       style={{
-        minHeight: 360,
-        border: "1px solid var(--line)",
-        borderRadius: 8,
-        background:
-          "radial-gradient(circle at 50% 18%, rgba(49,90,125,.08), transparent 32%), linear-gradient(180deg, #fbfaf7 0%, #eee8de 100%)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: 18,
+        minHeight: 390,
+        borderRadius: 0,
+        background: "#fff",
         position: "relative",
         overflow: "hidden",
       }}
     >
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: 36,
-          right: 36,
-          top: 48,
-          height: 1,
-          background: "rgba(17,17,17,.12)",
-        }}
-      />
-      <div
-        aria-hidden="true"
-        style={{
-          position: "absolute",
-          left: "50%",
-          top: 49,
-          width: 32,
-          height: 18,
-          borderLeft: "1px solid rgba(17,17,17,.16)",
-          borderRight: "1px solid rgba(17,17,17,.16)",
-          borderBottom: "1px solid rgba(17,17,17,.16)",
-          borderRadius: "0 0 18px 18px",
-          transform: "translateX(-50%)",
-        }}
-      />
-      <div
-        style={{
-          width: "min(100%, 300px)",
-          display: "grid",
-          gridTemplateColumns: "1.1fr .9fr",
-          gap: 10,
-          position: "relative",
-          zIndex: 1,
-        }}
-      >
-        <div style={{ ...boardCellStyle, minHeight: 178, gridRow: "span 2" }}>
-          {selectedItems.layer ? (
-            <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", opacity: 0.32 }}>
-              <BoardItem item={selectedItems.layer} scale={1.05} />
-            </div>
-          ) : null}
-          <BoardItem item={selectedItems.top} scale={0.95} />
-        </div>
-        <div style={{ ...boardCellStyle, minHeight: 178 }}>
-          <BoardItem item={selectedItems.bottom} scale={0.92} />
-        </div>
-        <div style={{ ...boardCellStyle, minHeight: 82 }}>
-          <BoardItem item={selectedItems.shoes} scale={1.05} />
-        </div>
-        <div style={{ ...boardCellStyle, minHeight: 72, gridColumn: "1 / -1" }}>
-          <BoardItem item={selectedItems.accessory} scale={0.52} />
-        </div>
-      </div>
+      <BoardItem item={selectedItems.layer} slot="layer" />
+      <BoardItem item={selectedItems.top} slot="top" />
+      <BoardItem item={selectedItems.bottom} slot="bottom" />
+      <BoardItem item={selectedItems.shoes} slot="shoes" />
+      <BoardItem item={selectedItems.accessory} slot="accessory" />
     </section>
   );
 }

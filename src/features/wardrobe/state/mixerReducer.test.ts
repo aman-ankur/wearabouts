@@ -43,4 +43,34 @@ describe("mixerReducer", () => {
     expect(state.savedOutfits[0]?.name).toBe("Tokyo walking look");
     expect(state.savedOutfits[0]?.selections).toEqual(selections);
   });
+
+  it("saves explicit suggestion selections instead of the current manual mixer state", () => {
+    const started = mixerReducer(initialMixerState, { type: "mixerStarted", selections });
+    const suggestionSelections: OutfitSlotSelection[] = [
+      { slot: "top", wardrobeItemId: "top-2", locked: false },
+      { slot: "bottom", wardrobeItemId: "bottom-2", locked: true },
+      { slot: "shoes", wardrobeItemId: "shoes-1", locked: false },
+      { slot: "layer", wardrobeItemId: null, locked: false },
+      { slot: "accessory", wardrobeItemId: null, locked: false },
+    ];
+    const state = mixerReducer(started, {
+      type: "outfitSaved",
+      outfitId: "outfit-2",
+      name: "Saved suggestion",
+      profileId: "profile-aankur",
+      createdAtIso: "2026-05-27T00:00:00.000Z",
+      selections: suggestionSelections,
+      source: "suggestion",
+      intent: "dinner",
+      rationale: "A smart dinner look.",
+    });
+
+    expect(state.savedOutfits[0]).toMatchObject({
+      name: "Saved suggestion",
+      selections: suggestionSelections,
+      source: "suggestion",
+      intent: "dinner",
+      rationale: "A smart dinner look.",
+    });
+  });
 });

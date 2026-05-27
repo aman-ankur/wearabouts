@@ -15,6 +15,10 @@ export type MixerAction =
       name: string;
       profileId: WardrobeProfileId;
       createdAtIso: string;
+      selections?: OutfitSlotSelection[];
+      source?: SavedOutfit["source"];
+      intent?: SavedOutfit["intent"];
+      rationale?: string;
     };
 
 export const initialMixerState: MixerState = {
@@ -56,8 +60,11 @@ export function mixerReducer(state: MixerState, action: MixerAction): MixerState
             id: action.outfitId,
             name: action.name,
             profileId: action.profileId,
-            selections: state.selections,
+            selections: action.selections ?? state.selections,
             createdAtIso: action.createdAtIso,
+            source: action.source ?? "manual",
+            intent: action.intent,
+            rationale: action.rationale,
           },
         ],
       };

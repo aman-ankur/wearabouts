@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Mixer Clean Canvas Mockup</title>
+    <style>
+      :root {
+        --ink: #080808;
+        --muted: #8a8782;
+        --soft: #f5f4f1;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #ffffff;
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        min-height: 100vh;
+        padding: 42px 0 56px 42px;
+        overflow: hidden;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(30px, 4vw, 48px);
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .note {
+        max-width: 880px;
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 18px;
+        line-height: 1.35;
+      }
+
+      .rail {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: minmax(330px, 400px);
+        gap: 54px;
+        margin-top: 42px;
+        overflow-x: auto;
+        padding: 0 42px 22px 0;
+        scroll-snap-type: x mandatory;
+      }
+
+      .look {
+        min-width: 0;
+        scroll-snap-align: start;
+      }
+
+      .canvas {
+        position: relative;
+        height: 620px;
+        background: #ffffff;
+        overflow: visible;
+      }
+
+      .garment {
+        position: absolute;
+        display: block;
+        object-fit: contain;
+        background: transparent;
+        filter: drop-shadow(0 18px 18px rgba(0, 0, 0, 0.08));
+      }
+
+      .blend {
+        mix-blend-mode: multiply;
+      }
+
+      .shirt {
+        left: 19%;
+        top: 10px;
+        width: 58%;
+        z-index: 3;
+      }
+
+      .pants {
+        left: 24%;
+        top: 238px;
+        width: 52%;
+        z-index: 2;
+      }
+
+      .shoes {
+        left: 27%;
+        top: 503px;
+        width: 46%;
+        z-index: 4;
+      }
+
+      .meta {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: end;
+        gap: 16px;
+        min-height: 82px;
+        margin-top: 8px;
+      }
+
+      h2 {
+        font-size: 26px;
+        line-height: 1.05;
+        letter-spacing: 0;
+      }
+
+      .sub {
+        margin-top: 6px;
+        color: var(--muted);
+        font-size: 17px;
+      }
+
+      .score {
+        color: var(--muted);
+        font-size: 18px;
+        font-weight: 760;
+        white-space: nowrap;
+      }
+
+      .mobile-frame {
+        max-width: 430px;
+        margin-top: 72px;
+        border-top: 1px solid #efefef;
+        padding-top: 28px;
+      }
+
+      .phone-card {
+        width: 390px;
+        max-width: calc(100vw - 32px);
+        border-radius: 0;
+        background: #ffffff;
+      }
+
+      .phone-card .canvas {
+        height: 520px;
+      }
+
+      .phone-card .shirt {
+        left: 18%;
+        top: 4px;
+        width: 62%;
+      }
+
+      .phone-card .pants {
+        left: 23%;
+        top: 192px;
+        width: 54%;
+      }
+
+      .phone-card .shoes {
+        left: 28%;
+        top: 420px;
+        width: 45%;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 12px;
+        margin-top: 18px;
+      }
+
+      button {
+        min-height: 54px;
+        border: 0;
+        border-radius: 999px;
+        font: inherit;
+        font-size: 17px;
+        font-weight: 850;
+      }
+
+      .primary {
+        background: #050505;
+        color: white;
+      }
+
+      .secondary {
+        background: var(--soft);
+        color: #111;
+      }
+
+      .truth {
+        max-width: 720px;
+        margin-top: 26px;
+        color: var(--muted);
+        font-size: 15px;
+        line-height: 1.45;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          padding: 28px 18px 46px;
+        }
+
+        .rail {
+          grid-auto-columns: minmax(280px, 340px);
+          gap: 34px;
+          margin-top: 30px;
+          padding-right: 18px;
+        }
+
+        .canvas {
+          height: 520px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>For you</h1>
+      <p class="note">
+        Clean direction: single white space, no product tiles, no slot borders, no empty accessory row. The clothing
+        should be stored as transparent cutouts so the outfit reads as one composition.
+      </p>
+
+      <section class="rail" aria-label="Clean mixer outfit examples">
+        <article class="look">
+          <div class="canvas">
+            <img
+              class="garment shirt"
+              alt="White graphic t-shirt"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-e831bd2a-025a-4eca-929a-dc705e102bcd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWU4MzFiZDJhLTAyNWEtNGVjYS05MjlhLWRjNzA1ZTEwMmJjZC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tNzTjZyKrsR2y-PDFtm128gYWFASuGxcE-lz-Vy10fs"
+            />
+            <img
+              class="garment pants blend"
+              alt="Dark brown straight-leg trousers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-35b2e398-090f-42e8-ace7-59e157ea5f86.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LTM1YjJlMzk4LTA5MGYtNDJlOC1hY2U3LTU5ZTE1N2VhNWY4Ni5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tofDBB9DaUCjmyG3obiXnTCUpt4YZ1c43fImtggztQ8"
+            />
+            <img
+              class="garment shoes blend"
+              alt="White running sneakers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b051b4c0-f532-4406-8e27-2e7d34623770.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWIwNTFiNGMwLWY1MzItNDQwNi04ZTI3LTJlN2QzNDYyMzc3MC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.WKskMnRFUnuv9clLBiSyeS0tlRl1SFCgB-9tf9tmoOc"
+            />
+          </div>
+          <div class="meta">
+            <div>
+              <h2>Dinner-ready white graphic t-shirt</h2>
+              <p class="sub">Aankur · dinner</p>
+            </div>
+            <span class="score">126</span>
+          </div>
+        </article>
+
+        <article class="look">
+          <div class="canvas">
+            <img
+              class="garment shirt"
+              alt="White graphic t-shirt"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-e831bd2a-025a-4eca-929a-dc705e102bcd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWU4MzFiZDJhLTAyNWEtNGVjYS05MjlhLWRjNzA1ZTEwMmJjZC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tNzTjZyKrsR2y-PDFtm128gYWFASuGxcE-lz-Vy10fs"
+            />
+            <img
+              class="garment pants blend"
+              alt="Dark brown straight-leg trousers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b68153bb-e0c4-4216-88ff-1156fe834319.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWI2ODE1M2JiLWUwYzQtNDIxNi04OGZmLTExNTZmZTgzNDMxOS5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.R398VcHyoFz_NhOaxZTYfRrT06AtutGhp86__cq0LKs"
+            />
+            <img
+              class="garment shoes blend"
+              alt="White running sneakers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b051b4c0-f532-4406-8e27-2e7d34623770.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWIwNTFiNGMwLWY1MzItNDQwNi04ZTI3LTJlN2QzNDYyMzc3MC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.WKskMnRFUnuv9clLBiSyeS0tlRl1SFCgB-9tf9tmoOc"
+            />
+          </div>
+          <div class="meta">
+            <div>
+              <h2>Clean casual dinner</h2>
+              <p class="sub">white tee · brown trouser · sneakers</p>
+            </div>
+            <span class="score">119</span>
+          </div>
+        </article>
+      </section>
+
+      <section class="mobile-frame" aria-label="Phone composition">
+        <article class="phone-card">
+          <div class="canvas">
+            <img
+              class="garment shirt"
+              alt="White graphic t-shirt"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-e831bd2a-025a-4eca-929a-dc705e102bcd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWU4MzFiZDJhLTAyNWEtNGVjYS05MjlhLWRjNzA1ZTEwMmJjZC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tNzTjZyKrsR2y-PDFtm128gYWFASuGxcE-lz-Vy10fs"
+            />
+            <img
+              class="garment pants blend"
+              alt="Dark brown straight-leg trousers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-35b2e398-090f-42e8-ace7-59e157ea5f86.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LTM1YjJlMzk4LTA5MGYtNDJlOC1hY2U3LTU5ZTE1N2VhNWY4Ni5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tofDBB9DaUCjmyG3obiXnTCUpt4YZ1c43fImtggztQ8"
+            />
+            <img
+              class="garment shoes blend"
+              alt="White running sneakers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b051b4c0-f532-4406-8e27-2e7d34623770.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWIwNTFiNGMwLWY1MzItNDQwNi04ZTI3LTJlN2QzNDYyMzc3MC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.WKskMnRFUnuv9clLBiSyeS0tlRl1SFCgB-9tf9tmoOc"
+            />
+          </div>
+          <div class="meta">
+            <div>
+              <h2>Dinner-ready white graphic t-shirt</h2>
+              <p class="sub">3 items · strong match</p>
+            </div>
+          </div>
+          <div class="actions">
+            <button class="primary">Save look</button>
+            <button class="secondary">Refine</button>
+          </div>
+        </article>
+      </section>
+
+      <p class="truth">
+        Note: this mockup demonstrates the target layout. To make it truly clean in-app, the generated closet assets
+        should be transparent PNG cutouts. CSS can hide some white backgrounds on a white canvas, but real background
+        removal is the correct product fix.
+      </p>
+    </main>
+  </body>
+</html>

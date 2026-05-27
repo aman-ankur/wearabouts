@@ -9,6 +9,8 @@ Read this file first in any new chat or coding session. It compresses the produc
 - HTML mockup implementation plan: `docs/product/plans/2026-05-26-travogue-html-flow-mockups.md`
 - Phase 0-1 implementation plan: `docs/product/plans/2026-05-26-phase-0-1-foundation-upload-review.md`
 - Phase 2 Closet Mixer implementation plan: `docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md`
+- Phase 6 Smart Mixer design: `docs/superpowers/specs/2026-05-27-phase6-smart-mixer-outfit-engine-design.md`
+- Phase 6 Smart Mixer implementation handoff: `docs/product/plans/2026-05-27-phase-6-smart-mixer-outfit-engine.md`
 
 Open the HTML file directly in a browser. No dev server is needed for the mockup.
 
@@ -157,16 +159,26 @@ The Closet Mixer should be one of the signature product moments.
 
 Interaction:
 
-- In the current Phase 2 demo, the center preview is an outfit board, not a body try-on.
-- Tops carousel swipes left/right.
-- Bottoms carousel swipes left/right.
-- Shoes and accessories appear as smaller rows/trays.
-- User can lock one item and keep changing others.
+- In Phase 6, Mixer opens with complete outfit suggestions from real/demo closet items.
+- The center preview is an outfit board, not a body try-on.
+- The user browses ranked looks with `Look X of N`, dots, and Previous/Next controls.
+- Each suggestion includes title, intent, confidence, score, rationale, item names, and actions.
 - User can save a look.
-- User can assign a look to a trip day.
-- User can ask for natural-language changes like "more casual", "better for rain", "less formal", "keep these pants".
+- User can reject a look with `Not this`.
+- User can ask for nearby combinations with `More like this`.
+- User can open `Refine`, lock slots, swap ranked alternatives, and save the refined look.
+- Later phases can add natural-language changes like "more casual", "better for rain", "less formal", "keep these pants".
 
 This is intentionally not full photoreal try-on for every swipe. It should feel fast, playful, and useful. Do not fake body try-on with poorly aligned overlays; if body/avatar preview quality is not available, use an honest outfit-board composition.
+
+Current Phase 6 technical direction:
+
+- Reusable outfit engine modules live under `src/features/wardrobe/outfits/`.
+- Deterministic scoring is the source of truth for the first slice.
+- Required outfit slots are top or outerwear plus bottom.
+- Shoes, layers, and accessories are optional.
+- `Not this` and `More like this` are currently session-local controls; persistent feedback is a next-phase task.
+- Same-image upload caching is not complete yet. Ready jobs/candidates are idempotent, but a newly uploaded identical photo may still spend AI tokens in real mode until source-image hash caching is added.
 
 ### Avatar Strategy
 

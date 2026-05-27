@@ -1,7 +1,15 @@
 "use client";
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
-import type { OutfitSlot, UploadBatch, UploadSourceType, WardrobeItem, WardrobeProfileId } from "@/src/domain/wardrobe";
+import type {
+  OutfitSlot,
+  OutfitSlotSelection,
+  SavedOutfit,
+  UploadBatch,
+  UploadSourceType,
+  WardrobeItem,
+  WardrobeProfileId,
+} from "@/src/domain/wardrobe";
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { demoTrip } from "@/src/features/wardrobe/fixtures/demoTrip";
 import { createDemoWardrobeProvider } from "@/src/features/wardrobe/providers/demoWardrobeProvider";
@@ -22,12 +30,18 @@ interface WardrobeContextValue {
   addAllGarments: () => void;
   loadRealBatch: (batchId: string) => Promise<UploadBatch>;
   addRealGarment: (garmentId: string) => Promise<WardrobeItem>;
+  addAllRealGarments: () => Promise<void>;
   retryRealGarment: (garmentId: string) => Promise<void>;
   generateRealCandidates: (jobId: string, candidateIds: string[]) => Promise<void>;
   startMixer: () => void;
   selectMixerItem: (slot: OutfitSlot, wardrobeItemId: string | null) => void;
   toggleMixerSlotLock: (slot: OutfitSlot) => void;
-  saveCurrentOutfit: (name: string, profileId: WardrobeProfileId) => void;
+  saveCurrentOutfit: (
+    name: string,
+    profileId: WardrobeProfileId,
+    selections?: OutfitSlotSelection[],
+    metadata?: Pick<SavedOutfit, "source" | "intent" | "rationale">,
+  ) => void;
   startDemoTrip: () => void;
   approveTripLook: (lookId: string) => void;
   swapTripLook: (lookId: string) => void;
@@ -79,6 +93,14 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     return payload.wardrobeItem;
   }, []);
 
+  const addAllRealGarments = useCallback(async () => {
+    const garmentIds = state.activeBatch?.detectedGarments.map((garment) => garment.id) ?? [];
+
+    for (const garmentId of garmentIds) {
+      await addRealGarment(garmentId);
+    }
+  }, [addRealGarment, state.activeBatch?.detectedGarments]);
+
   const retryRealGarment = useCallback(async (garmentId: string) => {
     const response = await fetch(`/api/wardrobe/garments/${garmentId}/retry`, { method: "POST" });
     if (!response.ok) {
@@ -125,6 +147,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     },
     loadRealBatch,
     addRealGarment,
+    addAllRealGarments,
     retryRealGarment,
     generateRealCandidates,
     startMixer() {
@@ -139,13 +162,17 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     toggleMixerSlotLock(slot) {
       mixerDispatch({ type: "slotLockToggled", slot });
     },
-    saveCurrentOutfit(name, profileId) {
+    saveCurrentOutfit(name, profileId, selections, metadata) {
       mixerDispatch({
         type: "outfitSaved",
         outfitId: `outfit-${Date.now()}`,
         name,
         profileId,
         createdAtIso: new Date().toISOString(),
+        selections,
+        source: metadata?.source,
+        intent: metadata?.intent,
+        rationale: metadata?.rationale,
       });
     },
     startDemoTrip() {
