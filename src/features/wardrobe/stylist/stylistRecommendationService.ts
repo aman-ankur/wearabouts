@@ -1,6 +1,7 @@
 import type { WardrobeItem } from "@/src/domain/wardrobe";
 import { buildOutfitSuggestions } from "@/src/features/wardrobe/outfits/outfitSuggestionProvider";
 import type { OutfitIntent } from "@/src/features/wardrobe/outfits/outfitTypes";
+import { buildMissingPieceIdeas } from "./stylistMissingPieceService";
 import type { StylistLook, StylistRequest } from "./stylistTypes";
 
 function intentFor(request: StylistRequest, variant: StylistLook["variant"]): OutfitIntent {
@@ -34,6 +35,7 @@ function styleRationale(variant: StylistLook["variant"]): string {
 export function buildStylistLooks(request: StylistRequest, closetItems: WardrobeItem[]): StylistLook[] {
   const variants: StylistLook["variant"][] = ["best", "sharper", "wildcard"];
   const usedSuggestionIds = new Set<string>();
+  const missingPieceIdeas = request.includeIdeas ? buildMissingPieceIdeas(request, closetItems) : [];
 
   return variants
     .flatMap((variant) => {
@@ -64,7 +66,7 @@ export function buildStylistLooks(request: StylistRequest, closetItems: Wardrobe
               : "Built from wardrobe and occasion because weather is unavailable.",
           styleRationale: styleRationale(variant),
           caveats: suggestion.warnings,
-          missingPieceIdeas: [],
+          missingPieceIdeas,
         },
       ];
     })

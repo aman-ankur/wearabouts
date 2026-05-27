@@ -89,4 +89,15 @@ describe("buildStylistLooks", () => {
 
     expect(looks[0]?.weatherRationale).toContain("weather is unavailable");
   });
+
+  it("attaches missing-piece ideas only when include ideas is true", () => {
+    const looks = buildStylistLooks(
+      request({ includeIdeas: true, occasion: "dinner_date", constraints: ["closet_only", "rain_ready"], weather: weather({ rainChancePercent: 72 }) }),
+      closetItems.filter((item) => item.category !== "outerwear"),
+    );
+
+    expect(looks[0]?.missingPieceIdeas.map((idea) => idea.label)).toEqual(
+      expect.arrayContaining(["Sleek waterproof city sneaker", "Cropped charcoal overshirt"]),
+    );
+  });
 });
