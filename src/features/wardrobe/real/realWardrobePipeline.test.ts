@@ -45,7 +45,7 @@ function createUploadFile(overrides: Partial<RealUploadFile> = {}): RealUploadFi
   };
 }
 
-function createHarness() {
+function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
   const uploadBatches = new Map<string, Awaited<ReturnType<RealWardrobeRepository["createUploadBatch"]>>>();
   const sourceImages = new Map<string, RealSourceImageRecord>();
   const jobs = new Map<string, PrettifyJobRecord>();
@@ -187,6 +187,11 @@ function createHarness() {
     },
     async deleteDetectedGarment(garmentId) {
       detectedGarments.delete(garmentId);
+      for (const [candidateId, candidate] of candidates) {
+        if (candidate.detectedGarmentId === garmentId) {
+          candidates.set(candidateId, { ...candidate, detectedGarmentId: null });
+        }
+      }
     },
     async createWardrobeItem(input) {
       const item: WardrobeItem = {
@@ -204,6 +209,10 @@ function createHarness() {
       return item;
     },
     async listWardrobeItems() {
+      if (options.failWardrobeItemLookup) {
+        throw new Error("TypeError: fetch failed");
+      }
+
       return wardrobeItems;
     },
     async listGarmentCandidatesForBatch(batchId) {
@@ -361,6 +370,22 @@ describe("RealWardrobePipeline", () => {
     ]);
   });
 
+  it("keeps outfit candidate review available when duplicate closet lookup fails", async () => {
+    const { pipeline, candidates } = createHarness({ failWardrobeItemLookup: true });
+    const { job } = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+
+    const result = await pipeline.runPrettifyJob(job.id);
+
+    expect(result.job.status).toBe("ready");
+    expect(result.garments).toEqual([]);
+    expect(Array.from(candidates.values()).map((candidate) => [candidate.proposedName, candidate.selectionStatus])).toEqual([
+      ["Blue Denim Overshirt", "primary"],
+      ["Black Travel Pants", "primary"],
+      ["Partially Hidden Watch", "not_recommended"],
+      ["White Sneakers", "optional"],
+    ]);
+  });
+
   it("generates selected outfit candidates after scan", async () => {
     const { pipeline, candidates, getPrettifyCallCount } = createHarness();
     const { job } = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
@@ -371,6 +396,18 @@ describe("RealWardrobePipeline", () => {
 
     expect(result.job.status).toBe("ready");
     expect(result.garments.map((garment) => garment.proposedName)).toEqual(["Black Travel Pants"]);
+    expect(getPrettifyCallCount()).toBe(1);
+  });
+
+  it("does not regenerate a ready candidate after its generated garment has moved to the closet", async () => {
+    const { pipeline, candidates, getPrettifyCallCount } = createHarness();
+    const { job } = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+    await pipeline.runPrettifyJob(job.id);
+    const pantsCandidate = Array.from(candidates.values()).find((candidate) => candidate.proposedName === "Black Travel Pants");
+    await pipeline.generateOutfitCandidates(job.id, [pantsCandidate?.id ?? ""]);
+    await pipeline.addDetectedGarmentToCloset(candidates.get(pantsCandidate?.id ?? "")?.detectedGarmentId ?? "", "2026-05-27T00:00:00.000Z");
+    await pipeline.generateOutfitCandidates(job.id, [pantsCandidate?.id ?? ""]);
+
     expect(getPrettifyCallCount()).toBe(1);
   });
 

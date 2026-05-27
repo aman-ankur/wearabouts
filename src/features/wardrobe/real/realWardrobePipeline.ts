@@ -282,7 +282,7 @@ export class RealWardrobePipeline {
         if (!candidate || candidate.uploadBatchId !== parentJob.uploadBatchId) {
           throw new Error("Selected garment candidate was not found.");
         }
-        if (candidate.status === "ready" && candidate.detectedGarmentId) {
+        if (candidate.status === "ready") {
           return null;
         }
 
@@ -432,7 +432,7 @@ export class RealWardrobePipeline {
       const detection = await this.ai.detectOutfitGarments({ sourceImage, bytes: source.bytes });
       const batch = await this.repository.getUploadBatch(job.uploadBatchId);
       const extractionMode = getOutfitExtractionMode(batch?.extractionMode);
-      const existingClosetItems = await this.repository.listWardrobeItems();
+      const existingClosetItems = await this.getExistingClosetItemsForDuplicateCheck(job);
       const plannedCandidates = planOutfitExtraction({
         candidates: detection.candidates,
         mode: extractionMode,
@@ -686,6 +686,19 @@ export class RealWardrobePipeline {
       candidate.visibilityState === "visible" &&
       (candidate.category === "tops" || candidate.category === "outerwear" || candidate.category === "bottoms")
     );
+  }
+
+  private async getExistingClosetItemsForDuplicateCheck(job: PrettifyJobRecord): Promise<WardrobeItem[]> {
+    try {
+      return await this.repository.listWardrobeItems();
+    } catch (error) {
+      logWearaboutsTelemetry("pipeline.outfit_detection.duplicate_lookup_failed", {
+        jobId: job.id,
+        batchId: job.uploadBatchId,
+        error: error instanceof Error ? error.message : "Could not load wardrobe items for duplicate detection.",
+      });
+      return [];
+    }
   }
 
   private async runWithConcurrency<TInput, TResult>(
