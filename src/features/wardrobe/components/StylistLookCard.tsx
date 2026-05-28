@@ -1,5 +1,7 @@
-import React from "react";
-import { Save, SlidersHorizontal } from "lucide-react";
+"use client";
+
+import React, { useState } from "react";
+import { SlidersHorizontal } from "lucide-react";
 import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
 import type { StylistLook } from "@/src/features/wardrobe/stylist/stylistTypes";
 import { MixerBodyStage } from "./MixerBodyStage";
@@ -9,6 +11,7 @@ interface StylistLookCardProps {
   closetItems: WardrobeItem[];
   onSave: (look: StylistLook) => void;
   onRefine: (look: StylistLook) => void;
+  onReject?: (look: StylistLook) => void;
 }
 
 function selectedItemsForLook(look: StylistLook, closetItems: WardrobeItem[]): Partial<Record<OutfitSlot, WardrobeItem>> {
@@ -28,17 +31,44 @@ function selectedItemNames(look: StylistLook, closetItems: WardrobeItem[]): stri
     .filter((name): name is string => Boolean(name));
 }
 
-export function StylistLookCard({ look, closetItems, onSave, onRefine }: StylistLookCardProps) {
+export function StylistLookCard({ look, closetItems, onSave, onRefine, onReject }: StylistLookCardProps) {
   const selectedItems = selectedItemsForLook(look, closetItems);
   const itemNames = selectedItemNames(look, closetItems);
+  const [dragX, setDragX] = useState(0);
+  const [dragStartX, setDragStartX] = useState<number | null>(null);
+
+  function finishDrag() {
+    const threshold = 86;
+    if (dragX >= threshold) {
+      onSave(look);
+    } else if (dragX <= -threshold && onReject) {
+      onReject(look);
+    }
+
+    setDragX(0);
+    setDragStartX(null);
+  }
 
   return (
     <article
       className="card"
+      onPointerDown={(event) => {
+        setDragStartX(event.clientX);
+        event.currentTarget.setPointerCapture(event.pointerId);
+      }}
+      onPointerMove={(event) => {
+        if (dragStartX === null) return;
+        setDragX(Math.max(-120, Math.min(120, event.clientX - dragStartX)));
+      }}
+      onPointerCancel={finishDrag}
+      onPointerUp={finishDrag}
       style={{
         display: "grid",
         gap: 12,
         background: "linear-gradient(180deg, #fffefa 0%, #f3eee6 100%)",
+        touchAction: "pan-y",
+        transform: `translateX(${dragX}px) rotate(${dragX / 26}deg)`,
+        transition: dragStartX === null ? "transform 180ms ease" : "none",
       }}
     >
       <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
@@ -53,13 +83,10 @@ export function StylistLookCard({ look, closetItems, onSave, onRefine }: Stylist
         </span>
       </div>
 
-      <MixerBodyStage selectedItems={selectedItems} />
+      <MixerBodyStage selectedItems={selectedItems} minHeight={304} background="#fffdf8" />
 
       <div style={{ display: "grid", gap: 8 }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-          <strong style={{ fontSize: 13 }}>Score {look.suggestion.score}</strong>
-          {look.caveats.length > 0 ? <span className="pill">{look.caveats[0]}</span> : null}
-        </div>
+        {look.caveats.length > 0 ? <span className="pill">{look.caveats[0]}</span> : null}
         <p className="subtle" style={{ margin: 0 }}>
           {look.weatherRationale}
         </p>
@@ -97,16 +124,30 @@ export function StylistLookCard({ look, closetItems, onSave, onRefine }: Stylist
         </section>
       ) : null}
 
-      <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
-        <button type="button" className="button" onClick={() => onSave(look)}>
-          <Save size={16} aria-hidden="true" />
-          Save
-        </button>
-        <button type="button" className="button secondary" onClick={() => onRefine(look)}>
+      {onReject ? (
+        <div style={{ display: "grid", gridTemplateColumns: "52px minmax(0, 1fr) 52px", gap: 8, alignItems: "center" }}>
+          <button type="button" className="button secondary" aria-label="Pass on this look" onClick={() => onReject(look)} style={{ padding: 0 }}>
+            ×
+          </button>
+          <button type="button" className="button secondary" onClick={() => onRefine(look)}>
+            <SlidersHorizontal size={16} aria-hidden="true" />
+            Refine this look
+          </button>
+          <button type="button" className="button" aria-label="Save this look" onClick={() => onSave(look)} style={{ padding: 0 }}>
+            ✓
+          </button>
+        </div>
+      ) : (
+        <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
+          <button type="button" className="button" onClick={() => onSave(look)}>
+            Save
+          </button>
+          <button type="button" className="button secondary" onClick={() => onRefine(look)}>
           <SlidersHorizontal size={16} aria-hidden="true" />
           Refine
-        </button>
-      </div>
+          </button>
+        </div>
+      )}
     </article>
   );
 }

@@ -5,6 +5,8 @@ import { ClosetAssetArtwork } from "./ClosetAssetArtwork";
 
 interface MixerBodyStageProps {
   selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>;
+  minHeight?: number;
+  background?: string;
 }
 
 interface BoardItemPlacement {
@@ -73,15 +75,15 @@ function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
   );
 }
 
-export function MixerBodyStage({ selectedItems }: MixerBodyStageProps) {
+export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#fff" }: MixerBodyStageProps) {
   return (
     <section
       aria-label={demoBodyPreview.label}
       data-mixer-board-canvas="clean"
       style={{
-        minHeight: 390,
+        minHeight,
         borderRadius: 0,
-        background: "#fff",
+        background,
         position: "relative",
         overflow: "hidden",
       }}

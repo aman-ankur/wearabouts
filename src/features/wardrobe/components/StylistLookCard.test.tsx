@@ -58,6 +58,7 @@ describe("StylistLookCard", () => {
 
     expect(html).toContain("Best choice");
     expect(html).toContain("Closet-only look");
+    expect(html).not.toContain("Score");
     expect(html).not.toContain("Not in your closet");
   });
 

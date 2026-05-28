@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useMemo, useState } from "react";
-import { fetchWeatherSummary, geocodeCity, weatherPeriodForDate, type Coordinates } from "./openMeteoWeather";
+import { fetchWeatherSummary, geocodeCity, reverseGeocodeCoordinates, weatherPeriodForDate, type Coordinates } from "./openMeteoWeather";
 import type { WeatherSummary } from "./stylistTypes";
 
 export type StylistLocationState = "unknown" | "locating" | "ready" | "denied" | "failed";
@@ -48,11 +48,14 @@ export function useStylistWeather(now: Date = new Date()) {
     setLocationState("locating");
     navigator.geolocation.getCurrentPosition(
       (position) => {
-        void loadWeather({
+        const coordinates = {
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
           label: "Current location",
-        });
+        };
+        void reverseGeocodeCoordinates(coordinates)
+          .then((label) => loadWeather({ ...coordinates, label: label ? `Current location · ${label}` : coordinates.label }))
+          .catch(() => loadWeather(coordinates));
       },
       (error) => {
         setWeather(failedWeather(period));

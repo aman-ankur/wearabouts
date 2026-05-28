@@ -73,6 +73,9 @@ export function generateStylistChips(input: GenerateStylistChipsInput): StylistC
     { id: "smart-casual", label: "Smart casual", kind: "occasion", reason: "Common daily stylist request." },
     { id: "sharper", label: "Sharper", kind: "vibe", reason: "Raises polish and style confidence." },
     { id: "lots-of-walking", label: "Lots of walking", kind: "constraint", reason: "Prioritizes comfortable footwear." },
+    { id: "avoid-black-jeans", label: "No black jeans", kind: "constraint", reason: "Avoids a common wardrobe fallback." },
+    { id: "light-layers", label: "Light layers", kind: "constraint", reason: "Keeps layering breathable and low bulk." },
+    { id: "easy-commute", label: "Easy commute", kind: "constraint", reason: "Keeps the outfit practical outside the destination." },
   );
 
   if ((input.weather.rainChancePercent ?? 0) >= 50) {

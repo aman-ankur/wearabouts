@@ -49,6 +49,24 @@ export async function geocodeCity(city: string): Promise<Coordinates | null> {
     : null;
 }
 
+export async function reverseGeocodeCoordinates(coordinates: Coordinates): Promise<string | null> {
+  const params = new URLSearchParams({
+    latitude: String(coordinates.latitude),
+    longitude: String(coordinates.longitude),
+    count: "1",
+    language: "en",
+    format: "json",
+  });
+  const response = await fetch(`https://geocoding-api.open-meteo.com/v1/reverse?${params.toString()}`);
+  if (!response.ok) {
+    return null;
+  }
+
+  const payload = (await response.json()) as GeocodingResult;
+  const first = payload.results?.[0];
+  return first ? [first.name, first.country].filter(Boolean).join(", ") : null;
+}
+
 export async function fetchWeatherSummary(
   coordinates: Coordinates,
   period: WeatherSummary["period"],
