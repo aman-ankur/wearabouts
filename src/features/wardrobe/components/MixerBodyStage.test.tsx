@@ -45,9 +45,28 @@ describe("MixerBodyStage", () => {
     expect(html).toContain('data-mixer-board-item-frame="top"');
     expect(html).toContain('data-mixer-board-item-frame="bottom"');
     expect(html).not.toContain('data-mixer-board-item-frame="accessory"');
-    expect(html).toContain("position:absolute");
+    expect(html).toContain("grid-template-columns:repeat(2, minmax(0, 1fr))");
     expect(html).toContain("overflow:hidden");
     expect(html).toContain('src="https://signed.example/top.png"');
     expect(html).toContain('src="https://signed.example/bottom.png"');
+  });
+
+  it("keeps outerwear visible on the outfit board", () => {
+    const html = renderToStaticMarkup(
+      <MixerBodyStage
+        selectedItems={{
+          layer: realItem({ id: "layer", name: "Beige overshirt jacket", category: "outerwear" }),
+          top: realItem({ id: "top", name: "White t-shirt", category: "tops" }),
+          bottom: realItem({ id: "bottom", name: "Dark trousers", category: "bottoms" }),
+          shoes: realItem({ id: "shoes", name: "White running sneakers", category: "footwear" }),
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-mixer-board-item-frame="layer"');
+    expect(html).toContain('src="https://signed.example/layer.png"');
+    expect(html).not.toContain("opacity:0.15");
+    expect(html).toContain("Layer");
+    expect(html).toContain("Beige overshirt jacket");
   });
 });

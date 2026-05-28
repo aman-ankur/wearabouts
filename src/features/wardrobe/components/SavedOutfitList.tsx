@@ -1,3 +1,5 @@
+import React from "react";
+import Link from "next/link";
 import type { SavedOutfit } from "@/src/domain/wardrobe";
 
 interface SavedOutfitListProps {
@@ -44,6 +46,13 @@ export function SavedOutfitList({ outfits }: SavedOutfitListProps) {
               <p className="subtle" style={{ margin: "3px 0 0" }}>
                 {profileLabels[outfit.profileId]}
               </p>
+              <Link
+                href={`/avatar?savedOutfitId=${encodeURIComponent(outfit.id)}`}
+                className="button secondary"
+                style={{ marginTop: 8, minHeight: 36, padding: "8px 12px", width: "auto" }}
+              >
+                Render avatar preview
+              </Link>
             </div>
             <span className="pill">{selectedItemCount} items</span>
           </article>

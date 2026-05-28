@@ -378,6 +378,16 @@ Use expensive image generation only when:
 
 Do not rely on cheap models alone for precise visual extraction. They may be useful for text reasoning, metadata, and drafts, but wardrobe trust depends on accuracy.
 
+## Phase 8 Avatar Studio Notes
+
+- Avatar Studio belongs after saved looks, not inside Mixer or Stylist browsing.
+- Face and body avatar references are saved once in real mode and reused until the user chooses to update photos.
+- Successful real avatar renders are saved automatically to Supabase and keyed by avatar profile, saved outfit, sorted wardrobe items, pose, quality, and prompt version.
+- Reopening the same saved look checks the avatar render cache before calling OpenAI.
+- Regenerate is explicit, limited, and intentionally bypasses cache.
+- Deleted avatar renders are soft-deleted so they can still be reviewed later.
+- The outfit-board fallback is a flat-lay item board with non-overlapping zones, not a body try-on or CSS garment overlay.
+
 ## Reliability Policy
 
 The app must be confidence-aware:

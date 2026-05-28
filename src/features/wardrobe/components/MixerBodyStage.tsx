@@ -9,24 +9,14 @@ interface MixerBodyStageProps {
   background?: string;
 }
 
-interface BoardItemPlacement {
-  left?: string;
-  right?: string;
-  top?: string;
-  bottom?: string;
-  width: string;
-  height: number;
-  scale: number;
-  opacity?: number;
-  zIndex: number;
-}
+const boardSlotOrder: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
 
-const boardItemPlacement: Record<OutfitSlot, BoardItemPlacement> = {
-  layer: { left: "2%", top: "40px", width: "38%", height: 160, scale: 1.2, opacity: 0.15, zIndex: 1 },
-  top: { left: "4%", top: "38px", width: "50%", height: 176, scale: 1.24, zIndex: 3 },
-  bottom: { right: "3%", top: "44px", width: "42%", height: 284, scale: 0.98, zIndex: 2 },
-  shoes: { left: "19%", bottom: "36px", width: "62%", height: 124, scale: 1.04, zIndex: 4 },
-  accessory: { right: "6%", bottom: "124px", width: "26%", height: 78, scale: 1.35, zIndex: 5 },
+const boardSlotLabels: Record<OutfitSlot, string> = {
+  layer: "Layer",
+  top: "Top",
+  bottom: "Bottom",
+  shoes: "Shoes",
+  accessory: "Accessory",
 };
 
 function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
@@ -34,48 +24,68 @@ function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
     return null;
   }
 
-  const placement = boardItemPlacement[slot];
-  const shouldSoftenEdges = slot === "top" || slot === "layer" || slot === "accessory";
+  const isTallGarment = slot === "bottom" || slot === "layer";
 
   return (
     <div
       data-mixer-board-item-frame={slot}
       style={{
-        position: "absolute",
-        left: placement.left,
-        right: placement.right,
-        top: placement.top,
-        bottom: placement.bottom,
-        width: placement.width,
-        height: placement.height,
+        minHeight: isTallGarment ? 190 : 154,
         display: "grid",
-        placeItems: "center",
+        gridTemplateRows: "minmax(0, 1fr) auto",
+        gap: 8,
+        padding: 10,
+        border: "1px solid rgba(36,38,34,.12)",
+        background: "linear-gradient(180deg, #f3eee6, #fffdf8)",
+        boxShadow: "inset 0 0 0 1px rgba(255,255,255,.7)",
         overflow: "hidden",
-        opacity: placement.opacity ?? 1,
-        zIndex: placement.zIndex,
       }}
     >
       <div
         style={{
-          width: "100%",
-          height: "100%",
-          transform: `scale(${placement.scale})`,
-          filter: "brightness(1.055) contrast(1.07) saturate(0.98)",
-          WebkitMaskImage: shouldSoftenEdges
-            ? "radial-gradient(ellipse 72% 76% at 50% 50%, #000 56%, rgba(0,0,0,.82) 70%, transparent 88%)"
-            : undefined,
-          maskImage: shouldSoftenEdges
-            ? "radial-gradient(ellipse 72% 76% at 50% 50%, #000 56%, rgba(0,0,0,.82) 70%, transparent 88%)"
-            : undefined,
+          minHeight: 0,
+          display: "grid",
+          placeItems: "center",
+          filter: "drop-shadow(0 10px 14px rgba(36,38,34,.12)) brightness(1.02) contrast(1.04)",
         }}
       >
         <ClosetAssetArtwork asset={item.asset} />
+      </div>
+      <div
+        style={{
+          minWidth: 0,
+          display: "flex",
+          justifyContent: "space-between",
+          gap: 6,
+          color: "var(--muted)",
+          fontSize: 11,
+          fontWeight: 820,
+          textTransform: "uppercase",
+          letterSpacing: ".04em",
+        }}
+      >
+        <span>{boardSlotLabels[slot]}</span>
+        <span
+          style={{
+            minWidth: 0,
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap",
+            textAlign: "right",
+            textTransform: "none",
+            letterSpacing: 0,
+          }}
+        >
+          {item.name}
+        </span>
       </div>
     </div>
   );
 }
 
 export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#fff" }: MixerBodyStageProps) {
+  const visibleSlots = boardSlotOrder.filter((slot) => selectedItems[slot]);
+
   return (
     <section
       aria-label={demoBodyPreview.label}
@@ -84,15 +94,17 @@ export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#
         minHeight,
         borderRadius: 0,
         background,
-        position: "relative",
+        display: "grid",
+        gridTemplateColumns: visibleSlots.length === 1 ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))",
+        gap: 10,
+        alignContent: "center",
+        padding: 14,
         overflow: "hidden",
       }}
     >
-      <BoardItem item={selectedItems.layer} slot="layer" />
-      <BoardItem item={selectedItems.top} slot="top" />
-      <BoardItem item={selectedItems.bottom} slot="bottom" />
-      <BoardItem item={selectedItems.shoes} slot="shoes" />
-      <BoardItem item={selectedItems.accessory} slot="accessory" />
+      {visibleSlots.map((slot) => (
+        <BoardItem key={slot} item={selectedItems[slot]} slot={slot} />
+      ))}
     </section>
   );
 }
