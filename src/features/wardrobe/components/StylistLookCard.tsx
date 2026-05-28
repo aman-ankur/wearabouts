@@ -31,6 +31,10 @@ function selectedItemNames(look: StylistLook, closetItems: WardrobeItem[]): stri
     .filter((name): name is string => Boolean(name));
 }
 
+function isInteractiveTarget(target: EventTarget | null): boolean {
+  return target instanceof HTMLElement && Boolean(target.closest("button, a, input, textarea, select"));
+}
+
 export function StylistLookCard({ look, closetItems, onSave, onRefine, onReject }: StylistLookCardProps) {
   const selectedItems = selectedItemsForLook(look, closetItems);
   const itemNames = selectedItemNames(look, closetItems);
@@ -53,6 +57,7 @@ export function StylistLookCard({ look, closetItems, onSave, onRefine, onReject 
     <article
       className="card"
       onPointerDown={(event) => {
+        if (isInteractiveTarget(event.target)) return;
         setDragStartX(event.clientX);
         event.currentTarget.setPointerCapture(event.pointerId);
       }}
@@ -83,7 +88,7 @@ export function StylistLookCard({ look, closetItems, onSave, onRefine, onReject 
         </span>
       </div>
 
-      <MixerBodyStage selectedItems={selectedItems} minHeight={304} background="#fffdf8" />
+      <MixerBodyStage selectedItems={selectedItems} minHeight={276} background="#fffdf8" />
 
       <div style={{ display: "grid", gap: 8 }}>
         {look.caveats.length > 0 ? <span className="pill">{look.caveats[0]}</span> : null}
@@ -125,7 +130,10 @@ export function StylistLookCard({ look, closetItems, onSave, onRefine, onReject 
       ) : null}
 
       {onReject ? (
-        <div style={{ display: "grid", gridTemplateColumns: "52px minmax(0, 1fr) 52px", gap: 8, alignItems: "center" }}>
+        <div
+          onPointerDown={(event) => event.stopPropagation()}
+          style={{ display: "grid", gridTemplateColumns: "52px minmax(0, 1fr) 52px", gap: 8, alignItems: "center" }}
+        >
           <button type="button" className="button secondary" aria-label="Pass on this look" onClick={() => onReject(look)} style={{ padding: 0 }}>
             ×
           </button>

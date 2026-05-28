@@ -101,12 +101,14 @@ export default function StylistPage() {
       rationale: `${look.weatherRationale} ${look.styleRationale}`,
     });
     setSavedLook(look);
-    setActiveLookIndex((index) => Math.min(index + 1, Math.max(visibleLooks.length - 1, 0)));
+    setRejectedLookIds((ids) => (ids.includes(look.id) ? ids : [...ids, look.id]));
+    setActiveLookIndex((index) => Math.min(index, Math.max(visibleLooks.length - 2, 0)));
   }
 
   function rejectLook(look: StylistLook) {
     setRejectedLookIds((ids) => (ids.includes(look.id) ? ids : [...ids, look.id]));
     setSavedLook(null);
+    setActiveLookIndex((index) => Math.min(index, Math.max(visibleLooks.length - 2, 0)));
   }
 
   if (readyItems.length === 0) {
@@ -149,24 +151,13 @@ export default function StylistPage() {
       <div className="stack">
         {looks.length > 0 ? (
           <>
-            <section className="card" style={{ display: "grid", gap: 10 }}>
+            <div style={{ display: "grid", gap: 10 }}>
               <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center" }}>
-                <div>
-                  <strong>{includeIdeas ? "Closet looks + ideas" : "Closet-only results"}</strong>
-                  <p className="subtle" style={{ margin: "3px 0 0" }}>
-                    {weatherLine(stylistWeather)}
-                  </p>
-                </div>
                 <span className="pill dark" style={{ background: "#242622", borderColor: "#242622" }}>
+                  {includeIdeas ? "Closet looks + ideas" : "Closet-only"}
+                </span>
+                <span className="pill" style={{ flex: "0 0 auto" }}>
                   {activeLook ? `${Math.min(activeLookIndex + 1, visibleLooks.length)} of ${visibleLooks.length}` : "Reviewed"}
-                </span>
-              </div>
-              <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
-                <span className="pill" style={{ justifyContent: "center" }}>
-                  Swipe left: pass
-                </span>
-                <span className="pill dark" style={{ justifyContent: "center", background: "#242622", borderColor: "#242622" }}>
-                  Swipe right: save
                 </span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
@@ -192,7 +183,7 @@ export default function StylistPage() {
                   Edit request
                 </button>
               </div>
-            </section>
+            </div>
 
             {activeLook ? (
               <StylistLookCard look={activeLook} closetItems={state.closetItems} onSave={saveLook} onRefine={setRefineLook} onReject={rejectLook} />
