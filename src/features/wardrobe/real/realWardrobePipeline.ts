@@ -85,6 +85,7 @@ export interface GarmentAnalysisResult {
 export interface GeneratedImageResult {
   bytes: Uint8Array;
   contentType: "image/png";
+  qualityNotes: string[];
 }
 
 export interface ValidationResult {
@@ -136,6 +137,7 @@ export interface RealWardrobeRepository {
   listDetectedGarmentsForBatch: (batchId: string) => Promise<DetectedGarment[]>;
   deleteDetectedGarment: (garmentId: string) => Promise<void>;
   createWardrobeItem: (input: { garment: DetectedGarment; addedAtIso: string }) => Promise<WardrobeItem>;
+  deleteWardrobeItem: (wardrobeItemId: string) => Promise<void>;
   listWardrobeItems: () => Promise<WardrobeItem[]>;
 }
 
@@ -261,6 +263,10 @@ export class RealWardrobePipeline {
     return wardrobeItem;
   }
 
+  async deleteWardrobeItem(wardrobeItemId: string): Promise<void> {
+    await this.repository.deleteWardrobeItem(wardrobeItemId);
+  }
+
   async generateOutfitCandidates(parentJobId: string, candidateIds: string[]) {
     const timer = createTimer();
     const parentJob = await this.requireJob(parentJobId);
@@ -371,6 +377,7 @@ export class RealWardrobePipeline {
 
       await this.repository.updatePrettifyJob(job.id, { status: "prettifying" });
       const generated = await this.ai.prettifyGarment({ sourceImage, bytes: source.bytes, analysis });
+      this.logGeneratedAssetQuality(job, analysis.proposedName, generated.qualityNotes);
 
       await this.repository.updatePrettifyJob(job.id, { status: "validating" });
       const validation = await this.ai.validatePrettifiedAsset({
@@ -569,7 +576,9 @@ export class RealWardrobePipeline {
         visibilityState: candidate.visibilityState,
       });
       const timer = createTimer();
-      const cropBytes = await cropGarmentCandidateImage(sourceBytes, candidate.boundingBox);
+      const cropBytes = await cropGarmentCandidateImage(sourceBytes, candidate.boundingBox, {
+        category: candidate.category,
+      });
       const analysis: GarmentAnalysisResult = {
         accepted: true,
         proposedName: candidate.proposedName,
@@ -579,6 +588,7 @@ export class RealWardrobePipeline {
         cropPrompt: candidate.cropPrompt,
       };
       const generated = await this.ai.prettifyGarment({ sourceImage, bytes: cropBytes, analysis });
+      this.logGeneratedAssetQuality(job, candidate.proposedName, generated.qualityNotes);
 
       await this.repository.updatePrettifyJob(job.id, { status: "validating" });
       const shouldValidate = this.shouldValidateOutfitCandidate(candidate);
@@ -686,6 +696,21 @@ export class RealWardrobePipeline {
       candidate.visibilityState === "visible" &&
       (candidate.category === "tops" || candidate.category === "outerwear" || candidate.category === "bottoms")
     );
+  }
+
+  private logGeneratedAssetQuality(job: PrettifyJobRecord, proposedName: string, qualityNotes: string[]) {
+    if (qualityNotes.length === 0) {
+      return;
+    }
+
+    logWearaboutsTelemetry("pipeline.generated_asset.quality_note", {
+      jobId: job.id,
+      batchId: job.uploadBatchId,
+      jobKind: job.jobKind,
+      garmentCandidateId: job.garmentCandidateId,
+      proposedName,
+      qualityNotes,
+    });
   }
 
   private async getExistingClosetItemsForDuplicateCheck(job: PrettifyJobRecord): Promise<WardrobeItem[]> {

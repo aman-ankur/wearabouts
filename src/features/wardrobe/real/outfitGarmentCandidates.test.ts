@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  createCandidateCropRegion,
   createPaddedCropRegion,
   isOutfitCandidatePrettifyEligible,
   planOutfitExtraction,
@@ -126,6 +127,21 @@ describe("outfitGarmentCandidates", () => {
       top: 1199,
       width: 369,
       height: 383,
+    });
+  });
+
+  it("uses more generous crop padding for bottoms so waistbands and hems survive generation", () => {
+    const region = createCandidateCropRegion(
+      { imageWidth: 1000, imageHeight: 1600 },
+      { x: 0.32, y: 0.42, width: 0.28, height: 0.45 },
+      "bottoms",
+    );
+
+    expect(region).toEqual({
+      left: 222,
+      top: 420,
+      width: 476,
+      height: 1180,
     });
   });
 

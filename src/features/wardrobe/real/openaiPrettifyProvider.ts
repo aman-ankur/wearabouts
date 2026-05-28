@@ -10,15 +10,33 @@ import type {
 } from "./realWardrobePipeline";
 import { normalizeImageForOpenAI, type OpenAIImageNormalizationOptions } from "./openaiImageNormalizer";
 import type { GarmentVisibilityState } from "@/src/domain/wardrobe";
+import { prepareGeneratedWardrobeAsset } from "./generatedAssetPostProcessing";
 import {
   createTimer,
   estimateImageOutputCostUsd,
   logWearaboutsTelemetry,
+  type ImageQuality,
 } from "./prettifyTelemetry";
 
 const garmentCategories: GarmentCategory[] = ["tops", "bottoms", "outerwear", "footwear", "accessories", "combo"];
 const confidenceLevels: ConfidenceLevel[] = ["high", "medium", "low"];
 const visibilityStates: GarmentVisibilityState[] = ["visible", "occluded", "needs_review"];
+
+export function buildOpenAIPrettifyPrompt(analysis: GarmentAnalysisResult): string {
+  return [
+    `Create one canonical transparent-background PNG cutout of this exact real garment: ${analysis.proposedName}.`,
+    analysis.cropPrompt ? `Target garment guidance: ${analysis.cropPrompt}.` : "",
+    "Output an isolated garment only with a transparent alpha channel.",
+    "Use real alpha transparency; do not draw a checkerboard transparency grid, checker pattern, matte rectangle, or fake transparent backdrop.",
+    "No floor, hanger, mannequin, hands, person, body, shadow box, studio backdrop, square card, border, or background.",
+    "Keep the full garment centered with natural padding for a wardrobe styling board; include the whole item, including waistband, cuffs, collars, sleeves, hems, soles, and toes when present.",
+    "Preserve the original color, pattern, silhouette, logos, hems, sleeves, stitching, fabric texture, wear marks, and distinctive details.",
+    "Do not over-brighten white, cream, beige, or reflective garments; preserve visible seams, shadows, weave, wrinkles, edge definition, and material depth so the item still looks like real clothing on a white board.",
+    "Do not invent a different garment, change the design, remove meaningful markings, or convert it into a body try-on.",
+  ]
+    .filter(Boolean)
+    .join(" ");
+}
 
 interface OpenAIResponseWithText {
   output_text?: string;
@@ -46,6 +64,13 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       quality: 82,
       filenamePrefix: "wearabouts-openai-detection",
     },
+    private readonly prettifyImageOptions: OpenAIImageNormalizationOptions = {
+      maxDimension: 1024,
+      format: "jpeg",
+      quality: 88,
+      filenamePrefix: "wearabouts-openai-prettify",
+    },
+    private readonly imageQuality: ImageQuality = "medium",
   ) {
     this.client = new OpenAI({ apiKey });
   }
@@ -213,7 +238,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     analysis: GarmentAnalysisResult;
   }): Promise<GeneratedImageResult> {
     const timer = createTimer();
-    const normalized = await normalizeImageForOpenAI(input.bytes);
+    const normalized = await normalizeImageForOpenAI(input.bytes, this.prettifyImageOptions);
     const image = await toFile(Buffer.from(normalized.bytes), normalized.filename, {
       type: normalized.contentType,
     });
@@ -221,13 +246,18 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       model: this.imageModel,
       image,
       size: "1024x1024",
-      quality: "high",
-      prompt: `Create a clean neutral studio catalog image of this exact real garment: ${input.analysis.proposedName}. ${input.analysis.cropPrompt ? `Target garment guidance: ${input.analysis.cropPrompt}. ` : ""}Preserve color, pattern, silhouette, logos, hems, sleeves, and distinctive details. Center it on a light neutral background with even lighting. Do not invent a different garment.`,
+      quality: this.imageQuality,
+      background: "transparent",
+      output_format: "png",
+      input_fidelity: "high",
+      prompt: buildOpenAIPrettifyPrompt(input.analysis),
     })) as OpenAIImageResponse;
     const base64 = response.data?.[0]?.b64_json;
     if (!base64) {
       throw new Error("OpenAI image edit did not return an image.");
     }
+    const generatedBytes = new Uint8Array(Buffer.from(base64, "base64"));
+    const processed = await prepareGeneratedWardrobeAsset(generatedBytes);
 
     logWearaboutsTelemetry("openai.image_edit.completed", {
       sourceImageId: input.sourceImage.id,
@@ -235,16 +265,28 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       durationMs: timer.elapsedMs(),
       proposedName: input.analysis.proposedName,
       category: input.analysis.category,
-      quality: "high",
+      quality: this.imageQuality,
       size: "1024x1024",
+      background: "transparent",
+      outputFormat: "png",
+      inputFidelity: "high",
+      inputImage: {
+        contentType: normalized.contentType,
+        width: normalized.width,
+        height: normalized.height,
+        sizeBytes: normalized.bytes.byteLength,
+      },
+      backgroundCleanup: processed.backgroundCleanup,
       estimatedOutputCostUsd: estimateImageOutputCostUsd({
         model: this.imageModel,
-        quality: "high",
+        quality: this.imageQuality,
         size: "1024x1024",
       }),
+      transparency: processed.transparency,
+      qualityNotes: processed.qualityNotes,
       usage: response.usage ?? null,
     });
-    return { bytes: new Uint8Array(Buffer.from(base64, "base64")), contentType: "image/png" };
+    return { bytes: processed.bytes, contentType: "image/png", qualityNotes: processed.qualityNotes };
   }
 
   async validatePrettifiedAsset(input: {

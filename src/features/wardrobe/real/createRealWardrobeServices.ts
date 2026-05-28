@@ -15,6 +15,8 @@ export function createRealWardrobeServices() {
     config.openaiMetadataModel,
     config.openaiImageModel,
     config.openaiDetectionImage,
+    config.openaiPrettifyImage,
+    config.openaiPrettifyImageQuality,
   );
   const pipeline = new RealWardrobePipeline({ repository, storage, ai });
 

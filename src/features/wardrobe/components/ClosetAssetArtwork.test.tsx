@@ -30,7 +30,8 @@ describe("ClosetAssetArtwork", () => {
 
     expect(html).toContain('src="https://signed.example/asset.png"');
     expect(html).toContain('alt="Generated studio asset"');
-    expect(html).toContain('data-closet-asset-frame="real"');
+    expect(html).toContain('data-closet-asset-artwork="real"');
     expect(html).toContain("position:relative");
+    expect(html).not.toContain("scale(1.18)");
   });
 });

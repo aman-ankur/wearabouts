@@ -19,65 +19,62 @@ const boardSlotLabels: Record<OutfitSlot, string> = {
   accessory: "Accessory",
 };
 
+const slotOrderForLabels: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
+
+function getSlotStyle(slot: OutfitSlot, selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>): React.CSSProperties {
+  const hasLayer = Boolean(selectedItems.layer);
+  const hasTop = Boolean(selectedItems.top);
+  const base: React.CSSProperties = { position: "absolute" };
+
+  if (slot === "layer") {
+    return hasTop
+      ? { ...base, left: "0%", top: "1%", width: "48%", height: "33%" }
+      : { ...base, left: "22%", top: "1%", width: "56%", height: "33%" };
+  }
+
+  if (slot === "top") {
+    return hasLayer
+      ? { ...base, left: "52%", top: "1%", width: "48%", height: "33%" }
+      : { ...base, left: "22%", top: "1%", width: "56%", height: "33%" };
+  }
+
+  if (slot === "bottom") {
+    return { ...base, left: "23%", top: "42%", width: "54%", height: "34%" };
+  }
+
+  if (slot === "shoes") {
+    return { ...base, left: "30%", top: "84%", width: "40%", height: "12%" };
+  }
+
+  return { ...base, right: "6%", top: "36%", width: "22%", height: "18%" };
+}
+
 function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
   if (!item) {
     return null;
   }
 
-  const isTallGarment = slot === "bottom" || slot === "layer";
-
   return (
     <div
-      data-mixer-board-item-frame={slot}
+      data-mixer-board-item={slot}
       style={{
-        minHeight: isTallGarment ? 190 : 154,
+        position: "absolute",
+        inset: 0,
         display: "grid",
-        gridTemplateRows: "minmax(0, 1fr) auto",
-        gap: 8,
-        padding: 10,
-        border: "1px solid rgba(36,38,34,.12)",
-        background: "linear-gradient(180deg, #f3eee6, #fffdf8)",
-        boxShadow: "inset 0 0 0 1px rgba(255,255,255,.7)",
+        placeItems: "center",
         overflow: "hidden",
+        filter: "drop-shadow(0 16px 18px rgba(36,38,34,.10))",
       }}
     >
       <div
         style={{
-          minHeight: 0,
+          width: "100%",
+          height: "100%",
           display: "grid",
           placeItems: "center",
-          filter: "drop-shadow(0 10px 14px rgba(36,38,34,.12)) brightness(1.02) contrast(1.04)",
         }}
       >
         <ClosetAssetArtwork asset={item.asset} />
-      </div>
-      <div
-        style={{
-          minWidth: 0,
-          display: "flex",
-          justifyContent: "space-between",
-          gap: 6,
-          color: "var(--muted)",
-          fontSize: 11,
-          fontWeight: 820,
-          textTransform: "uppercase",
-          letterSpacing: ".04em",
-        }}
-      >
-        <span>{boardSlotLabels[slot]}</span>
-        <span
-          style={{
-            minWidth: 0,
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap",
-            textAlign: "right",
-            textTransform: "none",
-            letterSpacing: 0,
-          }}
-        >
-          {item.name}
-        </span>
       </div>
     </div>
   );
@@ -85,6 +82,9 @@ function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
 
 export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#fff" }: MixerBodyStageProps) {
   const visibleSlots = boardSlotOrder.filter((slot) => selectedItems[slot]);
+  const labels = slotOrderForLabels
+    .map((slot) => ({ slot, item: selectedItems[slot] }))
+    .filter((entry): entry is { slot: OutfitSlot; item: WardrobeItem } => Boolean(entry.item));
 
   return (
     <section
@@ -95,16 +95,55 @@ export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#
         borderRadius: 0,
         background,
         display: "grid",
-        gridTemplateColumns: visibleSlots.length === 1 ? "minmax(0, 1fr)" : "repeat(2, minmax(0, 1fr))",
-        gap: 10,
-        alignContent: "center",
-        padding: 14,
+        gridTemplateRows: "minmax(0, 1fr) auto",
+        gap: 8,
+        padding: 10,
         overflow: "hidden",
       }}
     >
-      {visibleSlots.map((slot) => (
-        <BoardItem key={slot} item={selectedItems[slot]} slot={slot} />
-      ))}
+      <div
+        data-mixer-board-surface="white"
+        style={{
+          position: "relative",
+          minHeight: Math.max(minHeight - 58, 270),
+          background,
+          overflow: "hidden",
+        }}
+      >
+        {visibleSlots.map((slot) => (
+          <div key={slot} style={getSlotStyle(slot, selectedItems)}>
+            <BoardItem item={selectedItems[slot]} slot={slot} />
+          </div>
+        ))}
+      </div>
+      {labels.length > 0 ? (
+        <div
+          data-mixer-board-labels="subtle"
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
+            paddingTop: 2,
+          }}
+        >
+          {labels.map(({ slot, item }) => (
+            <span
+              key={slot}
+              className="subtle"
+              style={{
+                flex: "0 0 auto",
+                maxWidth: 150,
+                overflow: "hidden",
+                textOverflow: "ellipsis",
+                whiteSpace: "nowrap",
+                fontSize: 11,
+              }}
+            >
+              {boardSlotLabels[slot]}: {item.name}
+            </span>
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }

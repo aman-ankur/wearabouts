@@ -208,6 +208,12 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
       wardrobeItems.push(item);
       return item;
     },
+    async deleteWardrobeItem(wardrobeItemId) {
+      const index = wardrobeItems.findIndex((item) => item.id === wardrobeItemId);
+      if (index >= 0) {
+        wardrobeItems.splice(index, 1);
+      }
+    },
     async listWardrobeItems() {
       if (options.failWardrobeItemLookup) {
         throw new Error("TypeError: fetch failed");
@@ -255,7 +261,7 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
     },
     async prettifyGarment() {
       prettifyCallCount += 1;
-      return { bytes: new Uint8Array([4, 5, 6]), contentType: "image/png" };
+      return { bytes: new Uint8Array([4, 5, 6]), contentType: "image/png", qualityNotes: [] };
     },
     async validatePrettifiedAsset() {
       validationCallCount += 1;

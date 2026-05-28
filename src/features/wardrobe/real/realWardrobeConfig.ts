@@ -1,4 +1,5 @@
 import type { OpenAIImageNormalizationOptions } from "./openaiImageNormalizer";
+import type { ImageQuality } from "./prettifyTelemetry";
 
 export const REAL_HOUSEHOLD_ID = "demo-household";
 export const REAL_PROFILE_ID = "profile-aankur";
@@ -10,6 +11,8 @@ export interface RealWardrobeConfig {
   openaiMetadataModel: string;
   openaiImageModel: string;
   openaiDetectionImage: Required<OpenAIImageNormalizationOptions>;
+  openaiPrettifyImage: Required<OpenAIImageNormalizationOptions>;
+  openaiPrettifyImageQuality: ImageQuality;
 }
 
 export interface RealAvatarRenderConfig {
@@ -41,6 +44,13 @@ export function getRealWardrobeConfig(): RealWardrobeConfig {
       quality: parsePositiveInteger(process.env.OPENAI_DETECTION_IMAGE_QUALITY, 82),
       filenamePrefix: "wearabouts-openai-detection",
     },
+    openaiPrettifyImage: {
+      maxDimension: parsePositiveInteger(process.env.OPENAI_PRETTIFY_IMAGE_MAX_DIMENSION, 1024),
+      format: parseImageInputFormat(process.env.OPENAI_PRETTIFY_IMAGE_FORMAT),
+      quality: parsePositiveInteger(process.env.OPENAI_PRETTIFY_IMAGE_INPUT_QUALITY, 88),
+      filenamePrefix: "wearabouts-openai-prettify",
+    },
+    openaiPrettifyImageQuality: parseImageQuality(process.env.OPENAI_PRETTIFY_IMAGE_QUALITY),
   };
 }
 
@@ -75,4 +85,20 @@ function parseDetectionFormat(value: string | undefined): Required<OpenAIImageNo
   }
 
   return "jpeg";
+}
+
+function parseImageInputFormat(value: string | undefined): Required<OpenAIImageNormalizationOptions>["format"] {
+  if (value === "png" || value === "jpeg" || value === "webp") {
+    return value;
+  }
+
+  return "jpeg";
+}
+
+function parseImageQuality(value: string | undefined): ImageQuality {
+  if (value === "low" || value === "medium" || value === "high") {
+    return value;
+  }
+
+  return "medium";
 }
