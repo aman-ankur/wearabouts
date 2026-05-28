@@ -9,6 +9,54 @@ interface AvatarRenderGalleryProps {
   onDelete?: (renderId: string) => void;
 }
 
+interface AvatarRenderPreviewDialogProps {
+  render: AvatarRender;
+  onClose: () => void;
+  onDelete?: (renderId: string) => void;
+}
+
+export function AvatarRenderPreviewDialog({ render, onClose, onDelete }: AvatarRenderPreviewDialogProps) {
+  if (!render.imageUrl) {
+    return null;
+  }
+
+  return (
+    <div role="dialog" aria-modal="true" aria-label="Avatar render preview" className="avatar-preview-overlay">
+      <div className="avatar-preview-sheet">
+        <div className="avatar-preview-bar">
+          <div>
+            <strong>Avatar render</strong>
+            <p>{new Date(render.createdAtIso).toLocaleDateString()}</p>
+          </div>
+          <button type="button" className="button secondary avatar-preview-close" onClick={onClose}>
+            <X size={16} aria-hidden="true" />
+            Close
+          </button>
+        </div>
+        <div className="avatar-preview-image-wrap">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={render.imageUrl} alt="Full-size avatar render" className="avatar-preview-image" />
+        </div>
+        <div className="avatar-preview-actions">
+          <span className={render.status === "deleted" ? "pill" : "pill dark"}>{render.status === "deleted" ? "Deleted" : "Saved"}</span>
+          {render.status !== "deleted" && onDelete ? (
+            <button
+              type="button"
+              className="button secondary avatar-preview-delete"
+              onClick={() => {
+                onDelete(render.id);
+                onClose();
+              }}
+            >
+              Delete render
+            </button>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function AvatarRenderGallery({ renders, onDelete }: AvatarRenderGalleryProps) {
   const [activeRender, setActiveRender] = useState<AvatarRender | null>(null);
 
@@ -118,62 +166,7 @@ export function AvatarRenderGallery({ renders, onDelete }: AvatarRenderGalleryPr
       </section>
 
       {activeRender?.imageUrl ? (
-        <div
-          role="dialog"
-          aria-modal="true"
-          aria-label="Avatar render preview"
-          style={{
-            position: "fixed",
-            inset: 0,
-            zIndex: 50,
-            display: "grid",
-            gridTemplateRows: "auto minmax(0, 1fr)",
-            gap: 12,
-            padding: 14,
-            background: "rgba(18,18,16,.88)",
-          }}
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "center", color: "var(--white)" }}>
-            <div>
-              <strong>Avatar render</strong>
-              <p style={{ margin: "3px 0 0", color: "rgba(255,255,255,.72)", fontSize: 13 }}>
-                {new Date(activeRender.createdAtIso).toLocaleDateString()}
-              </p>
-            </div>
-            <button
-              type="button"
-              className="button secondary"
-              onClick={() => setActiveRender(null)}
-              style={{ width: "auto", minHeight: 36, padding: "8px 12px", background: "rgba(255,255,255,.94)" }}
-            >
-              <X size={16} aria-hidden="true" />
-              Close
-            </button>
-          </div>
-          <div style={{ minHeight: 0, display: "grid", placeItems: "center" }}>
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src={activeRender.imageUrl}
-              alt="Full-size avatar render"
-              style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", background: "#eeeeec" }}
-            />
-          </div>
-          {activeRender.status !== "deleted" && onDelete ? (
-            <div style={{ display: "flex", justifyContent: "center" }}>
-                <button
-                  type="button"
-                  className="button secondary"
-                  onClick={() => {
-                    onDelete(activeRender.id);
-                    setActiveRender(null);
-                  }}
-                  style={{ width: "auto", minHeight: 38, padding: "8px 14px", background: "rgba(255,255,255,.94)" }}
-                >
-                  Delete
-                </button>
-            </div>
-          ) : null}
-        </div>
+        <AvatarRenderPreviewDialog render={activeRender} onClose={() => setActiveRender(null)} onDelete={onDelete} />
       ) : null}
     </>
   );

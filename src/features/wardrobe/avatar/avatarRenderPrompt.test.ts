@@ -37,4 +37,19 @@ describe("buildAvatarRenderPrompt", () => {
     expect(prompt).toContain("Do not add extra core garments");
     expect(prompt).toContain("Do not crop the head or feet");
   });
+
+  it("asks for a confident casual pose with upright posture", () => {
+    const prompt = buildAvatarRenderPrompt({
+      savedOutfitName: "Casual look",
+      items: [item("shirt", "Oxford Shirt", "tops")],
+      poseId: "studio-front",
+      quality: "final",
+    });
+
+    expect(prompt).toContain("good-looking, confident");
+    expect(prompt).toContain("relaxed casual fashion pose");
+    expect(prompt).toContain("upright posture");
+    expect(prompt).toContain("no hunching");
+    expect(prompt).toContain("natural shoulders");
+  });
 });

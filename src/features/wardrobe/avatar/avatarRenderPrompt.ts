@@ -31,6 +31,7 @@ export function buildAvatarRenderPrompt(input: AvatarRenderPromptInput): string 
   return [
     `Create one polished full-body Wearabouts Avatar Studio render for the saved outfit "${input.savedOutfitName}".`,
     `Pose: ${pose}. Head, hands, legs, and shoes must be visible.`,
+    "Make the person look good-looking, confident, with a relaxed casual fashion pose, upright posture, natural shoulders, and no hunching.",
     "Use the face reference for recognizable likeness and the body reference for realistic body proportions, height/width relationship, and broad silhouette.",
     "Prioritize outfit quality: make the selected wardrobe items look naturally worn, well styled, properly fitted, and faithful to their category, colors, patterns, and silhouettes.",
     `Selected wardrobe items: ${itemList}.`,
