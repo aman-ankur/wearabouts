@@ -2,6 +2,7 @@ import sharp from "sharp";
 import { describe, expect, it } from "vitest";
 import { analyzeImageTransparency } from "./imageTransparencyValidation";
 import { removeGeneratedAssetBackground } from "./imageBackgroundRemoval";
+import { prepareGeneratedWardrobeAsset } from "./generatedAssetPostProcessing";
 
 describe("removeGeneratedAssetBackground", () => {
   it("turns connected checkerboard-style background into alpha while preserving the garment", async () => {
@@ -65,5 +66,66 @@ describe("removeGeneratedAssetBackground", () => {
     const lightDetailOffset = (5 * info.width + 5) * 4;
 
     expect(data[lightDetailOffset + 3]).toBe(255);
+  });
+
+  it("does not remove a flat near-white background because that can erase light garments", async () => {
+    const source = await sharp({
+      create: {
+        width: 12,
+        height: 12,
+        channels: 4,
+        background: { r: 248, g: 248, b: 248, alpha: 1 },
+      },
+    })
+      .composite([
+        {
+          input: Buffer.from(
+            `<svg width="12" height="12" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 2 H10 V10 H2 Z" fill="#f5f1e9"/>
+              <path d="M3 7 H9" stroke="#bbb6ad" stroke-width="1"/>
+            </svg>`,
+          ),
+        },
+      ])
+      .png()
+      .toBuffer();
+
+    const result = await removeGeneratedAssetBackground(new Uint8Array(source));
+    const { data, info } = await sharp(Buffer.from(result.bytes)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const garmentCenterOffset = (6 * info.width + 6) * 4;
+
+    expect(result.analysis.removedPixelRatio).toBe(0);
+    expect(data[garmentCenterOffset + 3]).toBe(255);
+  });
+
+  it("trusts existing alpha so white garments are not damaged by cleanup", async () => {
+    const source = await sharp({
+      create: {
+        width: 12,
+        height: 12,
+        channels: 4,
+        background: { r: 255, g: 255, b: 255, alpha: 0 },
+      },
+    })
+      .composite([
+        {
+          input: Buffer.from(
+            `<svg width="12" height="12" xmlns="http://www.w3.org/2000/svg">
+              <path d="M2 1 H10 V11 H2 Z" fill="#fbfaf4"/>
+              <path d="M3 6 H9" stroke="#c9c3b9" stroke-width="1"/>
+            </svg>`,
+          ),
+        },
+      ])
+      .png()
+      .toBuffer();
+
+    const result = await prepareGeneratedWardrobeAsset(new Uint8Array(source));
+    const { data, info } = await sharp(Buffer.from(result.bytes)).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+    const garmentCenterOffset = (6 * info.width + 6) * 4;
+
+    expect(result.backgroundCleanup).toEqual({ applied: false, reason: "alpha_present" });
+    expect(result.transparency.hasTransparentPixels).toBe(true);
+    expect(data[garmentCenterOffset + 3]).toBe(255);
   });
 });

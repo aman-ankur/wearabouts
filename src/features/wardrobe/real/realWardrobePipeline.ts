@@ -576,7 +576,9 @@ export class RealWardrobePipeline {
         visibilityState: candidate.visibilityState,
       });
       const timer = createTimer();
-      const cropBytes = await cropGarmentCandidateImage(sourceBytes, candidate.boundingBox);
+      const cropBytes = await cropGarmentCandidateImage(sourceBytes, candidate.boundingBox, {
+        category: candidate.category,
+      });
       const analysis: GarmentAnalysisResult = {
         accepted: true,
         proposedName: candidate.proposedName,

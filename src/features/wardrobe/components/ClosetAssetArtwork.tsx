@@ -20,7 +20,7 @@ export function ClosetAssetArtwork({ asset }: ClosetAssetArtworkProps) {
           fill
           sizes="360px"
           unoptimized
-          style={{ objectFit: "contain", transform: "scale(1.18)" }}
+          style={{ objectFit: "contain" }}
         />
       </span>
     );

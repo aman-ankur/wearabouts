@@ -18,6 +18,8 @@ describe("buildOpenAIPrettifyPrompt", () => {
     expect(prompt).toContain("isolated garment only");
     expect(prompt).toContain("No floor, hanger, mannequin, hands, person");
     expect(prompt).toContain("Preserve the original color, pattern, silhouette, logos");
+    expect(prompt).toContain("Do not over-brighten white, cream, beige, or reflective garments");
+    expect(prompt).toContain("include the whole item");
     expect(prompt).toContain("Do not invent a different garment");
     expect(prompt).toContain("front of the red shirt with chest logo");
   });

@@ -32,5 +32,6 @@ describe("ClosetAssetArtwork", () => {
     expect(html).toContain('alt="Generated studio asset"');
     expect(html).toContain('data-closet-asset-artwork="real"');
     expect(html).toContain("position:relative");
+    expect(html).not.toContain("scale(1.18)");
   });
 });

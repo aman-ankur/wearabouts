@@ -218,7 +218,25 @@ Implemented default:
 - `OPENAI_DETECTION_IMAGE_FORMAT=jpeg`
 - `OPENAI_DETECTION_IMAGE_QUALITY=82`
 
-This optimization applies only to metadata detection. Final generated closet assets still use the selected crop and image-generation path.
+Transparent asset quality update:
+
+- Final closet asset generation now uses the selected crop path with a configurable prettify input profile:
+  - `OPENAI_PRETTIFY_IMAGE_MAX_DIMENSION=1024`
+  - `OPENAI_PRETTIFY_IMAGE_FORMAT=jpeg`
+  - `OPENAI_PRETTIFY_IMAGE_INPUT_QUALITY=88`
+  - `OPENAI_PRETTIFY_IMAGE_QUALITY=medium`
+- The output is still explicitly requested as transparent PNG with `background=transparent`, `output_format=png`, and high input fidelity.
+- Post-processing trusts real alpha when the image model returns a transparent PNG. It no longer runs broad white-pixel cleanup on already-transparent assets, because that can erase white, beige, and reflective garments.
+- Local background cleanup is now reserved for safe generated-background cases, such as a connected checkerboard-style fake transparency background.
+- Outfit candidate crops use category-aware padding so bottoms, shoes, tops, and layers have more room for full waistbands, hems, soles, and sleeves.
+
+Live notes from the transparent cutout fix:
+
+- A real outfit scan reached the picker in about 10-12 seconds.
+- Two selected pieces generated in about 41 seconds total with concurrency 2.
+- Three selected pieces generated in about 74 seconds total, with the third starting after one of the first two completed.
+- The image generation calls returned transparent PNGs with real alpha and skipped local cleanup because alpha was already present.
+- Estimated image output cost for `gpt-image-1.5`, `1024x1024`, `medium` was about `$0.034` per generated asset, down from the prior `high` estimate of about `$0.133`.
 
 ## Open Decisions
 

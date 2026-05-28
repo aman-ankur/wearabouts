@@ -241,9 +241,18 @@ export function createPaddedCropRegion(
   };
 }
 
+export function createCandidateCropRegion(
+  dimensions: { imageWidth: number; imageHeight: number },
+  boundingBox: NormalizedBoundingBox,
+  category: GarmentCategory,
+): CropRegion {
+  return createPaddedCropRegion(dimensions, boundingBox, getCandidateCropPaddingRatio(category));
+}
+
 export async function cropGarmentCandidateImage(
   bytes: Uint8Array,
   boundingBox: NormalizedBoundingBox,
+  options: { category?: GarmentCategory } = {},
 ): Promise<Uint8Array> {
   const buffer = await sharp(Buffer.from(bytes)).rotate().png().toBuffer();
   const metadata = await sharp(buffer).metadata();
@@ -251,10 +260,32 @@ export async function cropGarmentCandidateImage(
     throw new Error("Could not read outfit image dimensions.");
   }
 
-  const region = createPaddedCropRegion(
-    { imageWidth: metadata.width, imageHeight: metadata.height },
-    boundingBox,
-  );
+  const region = options.category
+    ? createCandidateCropRegion(
+        { imageWidth: metadata.width, imageHeight: metadata.height },
+        boundingBox,
+        options.category,
+      )
+    : createPaddedCropRegion(
+        { imageWidth: metadata.width, imageHeight: metadata.height },
+        boundingBox,
+      );
   const cropped = await sharp(buffer).extract(region).png().toBuffer();
   return new Uint8Array(cropped);
+}
+
+function getCandidateCropPaddingRatio(category: GarmentCategory): number {
+  if (category === "bottoms") {
+    return 0.35;
+  }
+
+  if (category === "footwear") {
+    return 0.42;
+  }
+
+  if (category === "tops" || category === "outerwear") {
+    return 0.28;
+  }
+
+  return 0.3;
 }

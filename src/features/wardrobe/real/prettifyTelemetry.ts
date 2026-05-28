@@ -1,4 +1,4 @@
-type ImageQuality = "low" | "medium" | "high";
+export type ImageQuality = "low" | "medium" | "high";
 type ImageSize = "1024x1024" | "1024x1536" | "1536x1024";
 
 interface CostInput {

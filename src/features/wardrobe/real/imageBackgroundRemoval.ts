@@ -24,10 +24,17 @@ export async function removeGeneratedAssetBackground(bytes: Uint8Array): Promise
   const queue = new Int32Array(pixelCount);
   let queueStart = 0;
   let queueEnd = 0;
+  const hasGeneratedCheckerboard = detectGeneratedCheckerboard(data, info.width, info.height);
 
   for (let pixelIndex = 0; pixelIndex < pixelCount; pixelIndex += 1) {
     const offset = pixelIndex * 4;
-    removable[pixelIndex] = isLikelyGeneratedBackground(data[offset], data[offset + 1], data[offset + 2], data[offset + 3])
+    removable[pixelIndex] = isLikelyGeneratedBackground(
+      data[offset],
+      data[offset + 1],
+      data[offset + 2],
+      data[offset + 3],
+      hasGeneratedCheckerboard,
+    )
       ? 1
       : 0;
   }
@@ -96,9 +103,19 @@ export async function removeGeneratedAssetBackground(bytes: Uint8Array): Promise
   };
 }
 
-function isLikelyGeneratedBackground(red: number, green: number, blue: number, alpha: number) {
+function isLikelyGeneratedBackground(
+  red: number,
+  green: number,
+  blue: number,
+  alpha: number,
+  hasGeneratedCheckerboard: boolean,
+) {
   if (alpha < alphaTransparentThreshold) {
     return true;
+  }
+
+  if (!hasGeneratedCheckerboard) {
+    return false;
   }
 
   const max = Math.max(red, green, blue);
@@ -107,4 +124,56 @@ function isLikelyGeneratedBackground(red: number, green: number, blue: number, a
   const average = (red + green + blue) / 3;
 
   return average >= 190 && chroma <= 42;
+}
+
+function detectGeneratedCheckerboard(data: Buffer, width: number, height: number): boolean {
+  const buckets = new Map<number, number>();
+  let sampled = 0;
+
+  const sample = (x: number, y: number) => {
+    const offset = (y * width + x) * 4;
+    const alpha = data[offset + 3];
+    if (alpha < alphaTransparentThreshold) {
+      return;
+    }
+
+    const red = data[offset];
+    const green = data[offset + 1];
+    const blue = data[offset + 2];
+    const max = Math.max(red, green, blue);
+    const min = Math.min(red, green, blue);
+    const chroma = max - min;
+    const average = (red + green + blue) / 3;
+    if (average < 170 || chroma > 48) {
+      return;
+    }
+
+    const bucket = Math.round(average / 8) * 8;
+    buckets.set(bucket, (buckets.get(bucket) ?? 0) + 1);
+    sampled += 1;
+  };
+
+  for (let x = 0; x < width; x += 1) {
+    sample(x, 0);
+    sample(x, height - 1);
+  }
+
+  for (let y = 1; y < height - 1; y += 1) {
+    sample(0, y);
+    sample(width - 1, y);
+  }
+
+  if (sampled < 8 || buckets.size < 2) {
+    return false;
+  }
+
+  const rankedBuckets = [...buckets.entries()].sort((left, right) => right[1] - left[1]);
+  const [firstBucket, firstCount] = rankedBuckets[0];
+  const second = rankedBuckets.find(([bucket]) => Math.abs(bucket - firstBucket) >= 8);
+  if (!second) {
+    return false;
+  }
+
+  const [, secondCount] = second;
+  return firstCount / sampled >= 0.08 && secondCount / sampled >= 0.08;
 }

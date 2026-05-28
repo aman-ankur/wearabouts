@@ -10,12 +10,12 @@ import type {
 } from "./realWardrobePipeline";
 import { normalizeImageForOpenAI, type OpenAIImageNormalizationOptions } from "./openaiImageNormalizer";
 import type { GarmentVisibilityState } from "@/src/domain/wardrobe";
-import { removeGeneratedAssetBackground } from "./imageBackgroundRemoval";
-import { analyzeImageTransparency, getTransparencyQualityNotes } from "./imageTransparencyValidation";
+import { prepareGeneratedWardrobeAsset } from "./generatedAssetPostProcessing";
 import {
   createTimer,
   estimateImageOutputCostUsd,
   logWearaboutsTelemetry,
+  type ImageQuality,
 } from "./prettifyTelemetry";
 
 const garmentCategories: GarmentCategory[] = ["tops", "bottoms", "outerwear", "footwear", "accessories", "combo"];
@@ -29,8 +29,9 @@ export function buildOpenAIPrettifyPrompt(analysis: GarmentAnalysisResult): stri
     "Output an isolated garment only with a transparent alpha channel.",
     "Use real alpha transparency; do not draw a checkerboard transparency grid, checker pattern, matte rectangle, or fake transparent backdrop.",
     "No floor, hanger, mannequin, hands, person, body, shadow box, studio backdrop, square card, border, or background.",
-    "Keep the full garment centered with natural padding for a wardrobe styling board.",
+    "Keep the full garment centered with natural padding for a wardrobe styling board; include the whole item, including waistband, cuffs, collars, sleeves, hems, soles, and toes when present.",
     "Preserve the original color, pattern, silhouette, logos, hems, sleeves, stitching, fabric texture, wear marks, and distinctive details.",
+    "Do not over-brighten white, cream, beige, or reflective garments; preserve visible seams, shadows, weave, wrinkles, edge definition, and material depth so the item still looks like real clothing on a white board.",
     "Do not invent a different garment, change the design, remove meaningful markings, or convert it into a body try-on.",
   ]
     .filter(Boolean)
@@ -63,6 +64,13 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       quality: 82,
       filenamePrefix: "wearabouts-openai-detection",
     },
+    private readonly prettifyImageOptions: OpenAIImageNormalizationOptions = {
+      maxDimension: 1024,
+      format: "jpeg",
+      quality: 88,
+      filenamePrefix: "wearabouts-openai-prettify",
+    },
+    private readonly imageQuality: ImageQuality = "medium",
   ) {
     this.client = new OpenAI({ apiKey });
   }
@@ -230,7 +238,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     analysis: GarmentAnalysisResult;
   }): Promise<GeneratedImageResult> {
     const timer = createTimer();
-    const normalized = await normalizeImageForOpenAI(input.bytes);
+    const normalized = await normalizeImageForOpenAI(input.bytes, this.prettifyImageOptions);
     const image = await toFile(Buffer.from(normalized.bytes), normalized.filename, {
       type: normalized.contentType,
     });
@@ -238,7 +246,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       model: this.imageModel,
       image,
       size: "1024x1024",
-      quality: "high",
+      quality: this.imageQuality,
       background: "transparent",
       output_format: "png",
       input_fidelity: "high",
@@ -249,9 +257,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       throw new Error("OpenAI image edit did not return an image.");
     }
     const generatedBytes = new Uint8Array(Buffer.from(base64, "base64"));
-    const cleaned = await removeGeneratedAssetBackground(generatedBytes);
-    const transparency = await analyzeImageTransparency(cleaned.bytes);
-    const qualityNotes = [...cleaned.qualityNotes, ...getTransparencyQualityNotes(transparency)];
+    const processed = await prepareGeneratedWardrobeAsset(generatedBytes);
 
     logWearaboutsTelemetry("openai.image_edit.completed", {
       sourceImageId: input.sourceImage.id,
@@ -259,22 +265,28 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       durationMs: timer.elapsedMs(),
       proposedName: input.analysis.proposedName,
       category: input.analysis.category,
-      quality: "high",
+      quality: this.imageQuality,
       size: "1024x1024",
       background: "transparent",
       outputFormat: "png",
       inputFidelity: "high",
-      backgroundCleanup: cleaned.analysis,
+      inputImage: {
+        contentType: normalized.contentType,
+        width: normalized.width,
+        height: normalized.height,
+        sizeBytes: normalized.bytes.byteLength,
+      },
+      backgroundCleanup: processed.backgroundCleanup,
       estimatedOutputCostUsd: estimateImageOutputCostUsd({
         model: this.imageModel,
-        quality: "high",
+        quality: this.imageQuality,
         size: "1024x1024",
       }),
-      transparency,
-      qualityNotes,
+      transparency: processed.transparency,
+      qualityNotes: processed.qualityNotes,
       usage: response.usage ?? null,
     });
-    return { bytes: cleaned.bytes, contentType: "image/png", qualityNotes };
+    return { bytes: processed.bytes, contentType: "image/png", qualityNotes: processed.qualityNotes };
   }
 
   async validatePrettifiedAsset(input: {
