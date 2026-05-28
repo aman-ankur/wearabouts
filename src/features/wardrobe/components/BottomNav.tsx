@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { CalendarDays, Home, Plus, Shirt, Shuffle } from "lucide-react";
+import { Home, Plus, Shirt, Shuffle, Sparkles } from "lucide-react";
 
 const navLinkStyle = {
   display: "grid",
@@ -41,9 +41,9 @@ export function BottomNav() {
         <Shuffle size={18} />
         Mixer
       </Link>
-      <Link href="/trips" style={navLinkStyle}>
-        <CalendarDays size={18} />
-        Trips
+      <Link href="/stylist" style={navLinkStyle}>
+        <Sparkles size={18} />
+        Stylist
       </Link>
     </nav>
   );

@@ -1,0 +1,1062 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wearabouts Stylist Journey Mockup</title>
+  <style>
+    :root {
+      --bg: #f7f4ef;
+      --paper: #fffefa;
+      --ink: #111111;
+      --muted: #706b64;
+      --line: #e4ddd2;
+      --soft: #eee8de;
+      --white: #ffffff;
+      --green: #5f7468;
+      --blue: #315a7d;
+      --clay: #a46946;
+      --wine: #762d3b;
+      --gold: #b28a42;
+      --charcoal: #2b2b2c;
+      --shadow: 0 18px 45px rgba(20, 20, 20, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .page {
+      max-width: 1260px;
+      margin: 0 auto;
+      padding: 30px 18px 58px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 26px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 840;
+      font-size: 18px;
+    }
+
+    .mark {
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.75);
+      color: #403c37;
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .pill.dark {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--white);
+    }
+
+    .pill.green {
+      background: #e7eee7;
+      border-color: #cad9cb;
+      color: #2d4538;
+    }
+
+    .hero {
+      display: grid;
+      gap: 10px;
+      max-width: 870px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 840px;
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-note {
+      margin: 0;
+      color: #4e4a45;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(5, minmax(320px, 1fr));
+      gap: 22px;
+      overflow-x: auto;
+      padding: 2px 0 22px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .frame {
+      display: grid;
+      gap: 12px;
+      scroll-snap-align: start;
+    }
+
+    .frame h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .frame p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .phone {
+      width: min(100%, 390px);
+      margin: 0 auto;
+      border-radius: 36px;
+      background: #111;
+      padding: 10px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .screen {
+      min-height: 760px;
+      border-radius: 28px;
+      background: var(--bg);
+      overflow: hidden;
+      position: relative;
+      padding: 18px 16px 84px;
+    }
+
+    .appbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+      margin-bottom: 14px;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 850;
+    }
+
+    .subtle {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.78);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-size: 15px;
+      font-weight: 850;
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 254, 250, 0.92);
+      padding: 14px;
+      display: grid;
+      gap: 10px;
+    }
+
+    .hero-panel {
+      background: var(--ink);
+      color: var(--white);
+      border-radius: 8px;
+      padding: 18px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .hero-panel .subtle {
+      color: rgba(255, 255, 255, 0.68);
+    }
+
+    .prompt-title {
+      font-size: 30px;
+      line-height: 1.04;
+      font-weight: 880;
+      letter-spacing: 0;
+      margin: 0;
+    }
+
+    .context-row,
+    .chip-row,
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .chip {
+      min-height: 36px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      padding: 8px 12px;
+      font-size: 13px;
+      font-weight: 760;
+      color: #2d2925;
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      white-space: nowrap;
+    }
+
+    .chip.selected {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--white);
+    }
+
+    .chip.soft {
+      background: #f0ebe3;
+    }
+
+    .field {
+      min-height: 68px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: var(--white);
+      padding: 12px;
+      color: #4a453f;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+
+    .button {
+      min-height: 42px;
+      border-radius: 999px;
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--white);
+      padding: 10px 15px;
+      font-weight: 820;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .button.secondary {
+      background: var(--white);
+      color: var(--ink);
+      border-color: var(--line);
+    }
+
+    .button.green {
+      background: var(--green);
+      border-color: var(--green);
+    }
+
+    .weather-strip {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 10px;
+      align-items: center;
+      padding: 12px;
+      border-radius: 8px;
+      background: #edf2ef;
+      border: 1px solid #d5e2d8;
+    }
+
+    .weather-main {
+      display: flex;
+      gap: 9px;
+      align-items: center;
+      font-size: 13px;
+      font-weight: 780;
+    }
+
+    .mini-sun {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      background:
+        radial-gradient(circle at 50% 50%, #f6d471 0 35%, transparent 36%),
+        conic-gradient(from 0deg, transparent 0 8%, #f6d471 8% 13%, transparent 13% 24%, #f6d471 24% 29%, transparent 29% 41%, #f6d471 41% 46%, transparent 46% 58%, #f6d471 58% 63%, transparent 63% 74%, #f6d471 74% 79%, transparent 79% 91%, #f6d471 91% 96%, transparent 96%);
+    }
+
+    .look {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--paper);
+      overflow: hidden;
+      display: grid;
+      gap: 0;
+    }
+
+    .look-header {
+      padding: 13px 13px 0;
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: start;
+    }
+
+    .look-title {
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.12;
+      font-weight: 850;
+      letter-spacing: 0;
+    }
+
+    .score {
+      border-radius: 999px;
+      padding: 6px 8px;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 11px;
+      font-weight: 820;
+      white-space: nowrap;
+    }
+
+    .board {
+      height: 224px;
+      margin: 12px 13px;
+      border-radius: 8px;
+      background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(249, 246, 239, 0.96)),
+        repeating-linear-gradient(90deg, rgba(30, 30, 30, 0.03) 0 1px, transparent 1px 42px);
+      border: 1px solid #eee6da;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .garment {
+      position: absolute;
+      filter: drop-shadow(0 10px 18px rgba(20, 20, 20, 0.12));
+    }
+
+    .shirt {
+      width: 88px;
+      height: 112px;
+      left: 28px;
+      top: 26px;
+      border-radius: 24px 24px 18px 18px;
+      background:
+        linear-gradient(90deg, transparent 0 14%, rgba(255, 255, 255, 0.28) 15% 18%, transparent 19% 100%),
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.22) 0 8px, transparent 8px 17px),
+        linear-gradient(145deg, #e8dfcd, #d2c2a2);
+      clip-path: polygon(23% 0, 39% 9%, 61% 9%, 77% 0, 100% 28%, 82% 43%, 82% 100%, 18% 100%, 18% 43%, 0 28%);
+    }
+
+    .overshirt {
+      width: 96px;
+      height: 120px;
+      left: 22px;
+      top: 22px;
+      border-radius: 24px 24px 18px 18px;
+      background:
+        linear-gradient(90deg, transparent 0 45%, rgba(255, 255, 255, 0.22) 46% 49%, transparent 50%),
+        linear-gradient(145deg, #49584f, #2c3833);
+      clip-path: polygon(21% 0, 38% 9%, 62% 9%, 79% 0, 100% 30%, 82% 45%, 82% 100%, 18% 100%, 18% 45%, 0 30%);
+    }
+
+    .tee {
+      width: 88px;
+      height: 108px;
+      left: 28px;
+      top: 28px;
+      border-radius: 24px 24px 18px 18px;
+      background:
+        radial-gradient(circle at 50% 16%, rgba(255, 255, 255, 0.5) 0 13%, transparent 14%),
+        linear-gradient(145deg, #faf8f0, #e9e1d1);
+      clip-path: polygon(21% 0, 39% 11%, 61% 11%, 79% 0, 100% 28%, 80% 42%, 80% 100%, 20% 100%, 20% 42%, 0 28%);
+    }
+
+    .trouser {
+      width: 78px;
+      height: 148px;
+      left: 146px;
+      top: 36px;
+      background:
+        linear-gradient(90deg, transparent 0 46%, rgba(255,255,255,.14) 47% 50%, transparent 51%),
+        linear-gradient(145deg, #3a3b3f, #1f2023);
+      clip-path: polygon(18% 0, 82% 0, 88% 100%, 58% 100%, 51% 24%, 43% 100%, 12% 100%);
+      border-radius: 8px 8px 18px 18px;
+    }
+
+    .denim {
+      width: 80px;
+      height: 146px;
+      left: 146px;
+      top: 36px;
+      background:
+        linear-gradient(90deg, transparent 0 46%, rgba(255,255,255,.15) 47% 50%, transparent 51%),
+        linear-gradient(145deg, #405c70, #213746);
+      clip-path: polygon(17% 0, 83% 0, 89% 100%, 58% 100%, 51% 25%, 43% 100%, 12% 100%);
+      border-radius: 8px 8px 18px 18px;
+    }
+
+    .shoe {
+      width: 68px;
+      height: 30px;
+      left: 58px;
+      top: 170px;
+      border-radius: 30px 18px 10px 10px;
+      background: linear-gradient(145deg, #eee9df, #cfc7bb);
+      transform: rotate(-5deg);
+    }
+
+    .shoe.second {
+      left: 90px;
+      top: 178px;
+      transform: rotate(8deg);
+    }
+
+    .loafer {
+      width: 68px;
+      height: 30px;
+      left: 58px;
+      top: 170px;
+      border-radius: 30px 18px 10px 10px;
+      background: linear-gradient(145deg, #704c35, #342016);
+      transform: rotate(-5deg);
+    }
+
+    .loafer.second {
+      left: 90px;
+      top: 178px;
+      transform: rotate(8deg);
+    }
+
+    .watch {
+      width: 32px;
+      height: 46px;
+      right: 42px;
+      bottom: 34px;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 50% 50%, #222 0 29%, #d8c7a1 30% 46%, transparent 47%),
+        linear-gradient(180deg, #2b2520, #1a1714);
+    }
+
+    .bag {
+      width: 76px;
+      height: 70px;
+      right: 28px;
+      top: 40px;
+      border-radius: 18px 18px 14px 14px;
+      background:
+        radial-gradient(ellipse at 50% 0, transparent 0 33%, #6b5548 34% 38%, transparent 39%),
+        linear-gradient(145deg, #9b795d, #614535);
+    }
+
+    .look-copy {
+      padding: 0 13px 13px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .look-copy p {
+      margin: 0;
+      color: #4c4740;
+      font-size: 13px;
+      line-height: 1.38;
+    }
+
+    .item-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .item-tag {
+      border-radius: 999px;
+      background: #f0ebe3;
+      padding: 6px 8px;
+      font-size: 11px;
+      font-weight: 760;
+      color: #4b463f;
+    }
+
+    .mini-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .mini-row {
+      display: grid;
+      grid-template-columns: 28px 1fr auto;
+      gap: 9px;
+      align-items: center;
+      font-size: 13px;
+      color: #403b35;
+    }
+
+    .mini-thumb {
+      width: 28px;
+      height: 28px;
+      border-radius: 999px;
+      background: var(--soft);
+      border: 1px solid var(--line);
+    }
+
+    .mini-thumb.green {
+      background: #5d7066;
+    }
+
+    .mini-thumb.cream {
+      background: #e8dfcd;
+    }
+
+    .mini-thumb.dark {
+      background: #28282a;
+    }
+
+    .mini-thumb.blue {
+      background: #304d64;
+    }
+
+    .idea {
+      display: grid;
+      gap: 9px;
+      border-left: 3px solid var(--gold);
+      padding: 10px 10px 10px 12px;
+      background: #fff8e8;
+      border-radius: 0 8px 8px 0;
+    }
+
+    .idea strong {
+      font-size: 13px;
+    }
+
+    .idea span {
+      color: #61523a;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .selected-banner {
+      border-radius: 8px;
+      padding: 13px;
+      color: var(--white);
+      background:
+        linear-gradient(135deg, rgba(95, 116, 104, 0.96), rgba(49, 90, 125, 0.96));
+      display: grid;
+      gap: 6px;
+    }
+
+    .avatar-handoff {
+      display: grid;
+      grid-template-columns: 74px 1fr;
+      gap: 12px;
+      align-items: center;
+      border-radius: 8px;
+      background: var(--paper);
+      border: 1px solid var(--line);
+      padding: 12px;
+    }
+
+    .avatar-token {
+      width: 74px;
+      height: 112px;
+      border-radius: 999px 999px 24px 24px;
+      background:
+        radial-gradient(circle at 50% 18%, #b99578 0 15%, transparent 16%),
+        linear-gradient(90deg, transparent 0 32%, #e8dfcd 33% 67%, transparent 68%),
+        linear-gradient(90deg, transparent 0 37%, #2c2c2e 38% 62%, transparent 63%),
+        linear-gradient(180deg, transparent 0 18%, #f4eee2 19% 42%, #2e3033 43% 77%, #d6cec2 78% 100%);
+      border: 1px solid var(--line);
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 68px;
+      background: rgba(255, 254, 250, 0.95);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      padding: 0 10px 6px;
+    }
+
+    .nav-item {
+      display: grid;
+      justify-items: center;
+      gap: 4px;
+      color: var(--muted);
+      font-size: 10px;
+      font-weight: 800;
+    }
+
+    .nav-item.active {
+      color: var(--ink);
+    }
+
+    .glyph {
+      width: 20px;
+      height: 20px;
+      border-radius: 6px;
+      border: 2px solid currentColor;
+    }
+
+    .glyph.round {
+      border-radius: 999px;
+    }
+
+    .glyph.add {
+      position: relative;
+    }
+
+    .glyph.add::before,
+    .glyph.add::after {
+      content: "";
+      position: absolute;
+      background: currentColor;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      border-radius: 999px;
+    }
+
+    .glyph.add::before {
+      width: 10px;
+      height: 2px;
+    }
+
+    .glyph.add::after {
+      width: 2px;
+      height: 10px;
+    }
+
+    .flow-notes {
+      margin-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
+    .note {
+      border-top: 1px solid var(--line);
+      padding-top: 12px;
+    }
+
+    .note strong {
+      display: block;
+      margin-bottom: 5px;
+      font-size: 14px;
+    }
+
+    .note span {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.45;
+    }
+
+    @media (max-width: 760px) {
+      .page {
+        padding: 22px 12px 44px;
+      }
+
+      .topbar {
+        align-items: flex-start;
+      }
+
+      .journey {
+        grid-template-columns: repeat(5, minmax(310px, 1fr));
+      }
+
+      .flow-notes {
+        grid-template-columns: 1fr;
+      }
+
+      .screen {
+        min-height: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand"><span class="mark">W</span> Wearabouts</div>
+      <span class="pill dark">Stylist replaces Trips for now</span>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Daily Stylist Journey</div>
+      <h1>Fast contextual outfit advice from your real wardrobe.</h1>
+      <p>
+        The Stylist tab answers what to wear now, tomorrow, or for a specific occasion. It uses time, location,
+        weather, wardrobe, and quick intent chips before offering any outside-wardrobe ideas.
+      </p>
+    </section>
+
+    <section class="journey" aria-label="Stylist journey mockups">
+      <article class="frame">
+        <div>
+          <h2>1. Context opens quietly</h2>
+          <p>Location and weather are automatic when possible; city fallback is one short prompt.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Stylist</h3>
+                <div class="subtle">Thursday · 7:20 PM</div>
+              </div>
+              <button class="icon-button" aria-label="Settings">◎</button>
+            </div>
+
+            <div class="stack">
+              <div class="hero-panel">
+                <span class="pill">Location needed</span>
+                <h3 class="prompt-title">What are you dressing for?</h3>
+                <div class="subtle">Wearabouts can check local weather and time so you do not have to enter it.</div>
+                <div class="actions">
+                  <button class="button green">Use my location</button>
+                  <button class="button secondary">Enter city</button>
+                </div>
+              </div>
+
+              <div class="panel">
+                <strong>Why this helps</strong>
+                <div class="mini-list">
+                  <div class="mini-row"><span class="mini-thumb green"></span><span>Humidity changes fabric and layering picks.</span><span class="subtle">auto</span></div>
+                  <div class="mini-row"><span class="mini-thumb blue"></span><span>Rain chance brings shell and footwear checks.</span><span class="subtle">auto</span></div>
+                  <div class="mini-row"><span class="mini-thumb dark"></span><span>Time of day raises office, dinner, or going-out options.</span><span class="subtle">auto</span></div>
+                </div>
+              </div>
+            </div>
+
+            <nav class="bottom-nav" aria-label="Main navigation">
+              <span class="nav-item"><span class="glyph"></span>Home</span>
+              <span class="nav-item"><span class="glyph round"></span>Closet</span>
+              <span class="nav-item"><span class="glyph add"></span>Add</span>
+              <span class="nav-item"><span class="glyph"></span>Mixer</span>
+              <span class="nav-item active"><span class="glyph round"></span>Stylist</span>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>2. Contextual chips, not a long form</h2>
+          <p>Chips adapt to time, weather, and closet state; a note handles anything unusual.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Stylist</h3>
+                <div class="subtle">Mumbai · 29 C · humid</div>
+              </div>
+              <span class="pill green">Weather ready</span>
+            </div>
+
+            <div class="stack">
+              <div class="weather-strip">
+                <div class="weather-main">
+                  <span class="mini-sun"></span>
+                  <span>Tonight is warm and humid. Low rain risk.</span>
+                </div>
+                <span class="subtle">Open-Meteo</span>
+              </div>
+
+              <div class="panel">
+                <h3 class="prompt-title">What are you dressing for?</h3>
+                <div class="chip-row">
+                  <button class="chip selected">Tonight dinner</button>
+                  <button class="chip">Tomorrow office</button>
+                  <button class="chip">Dinner date</button>
+                  <button class="chip">Smart casual</button>
+                  <button class="chip selected">Sharper</button>
+                  <button class="chip">Lots of walking</button>
+                  <button class="chip soft">Use new shirt</button>
+                  <button class="chip selected">Closet only</button>
+                </div>
+              </div>
+
+              <div class="field">Optional note: stylish but not too loud, no black jeans tonight</div>
+
+              <button class="button">Get outfits</button>
+            </div>
+
+            <nav class="bottom-nav" aria-label="Main navigation">
+              <span class="nav-item"><span class="glyph"></span>Home</span>
+              <span class="nav-item"><span class="glyph round"></span>Closet</span>
+              <span class="nav-item"><span class="glyph add"></span>Add</span>
+              <span class="nav-item"><span class="glyph"></span>Mixer</span>
+              <span class="nav-item active"><span class="glyph round"></span>Stylist</span>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>3. Closet-only results first</h2>
+          <p>The first result set never includes imaginary owned items. Three looks give clear tradeoffs.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Tonight dinner</h3>
+                <div class="subtle">Closet only · warm evening</div>
+              </div>
+              <span class="pill">3 looks</span>
+            </div>
+
+            <div class="stack">
+              <article class="look">
+                <div class="look-header">
+                  <div>
+                    <h3 class="look-title">Best choice</h3>
+                    <div class="subtle">Sharp without overheating</div>
+                  </div>
+                  <span class="score">91</span>
+                </div>
+                <div class="board">
+                  <span class="garment shirt"></span>
+                  <span class="garment trouser"></span>
+                  <span class="garment loafer"></span>
+                  <span class="garment loafer second"></span>
+                  <span class="garment watch"></span>
+                </div>
+                <div class="look-copy">
+                  <div class="item-list">
+                    <span class="item-tag">striped shirt</span>
+                    <span class="item-tag">charcoal trouser</span>
+                    <span class="item-tag">brown loafers</span>
+                  </div>
+                  <p>Light top, smarter trouser, and warm leather accents. Good for dinner without feeling overdressed.</p>
+                  <div class="actions">
+                    <button class="button">Save</button>
+                    <button class="button secondary">Refine</button>
+                  </div>
+                </div>
+              </article>
+
+              <div class="context-row">
+                <span class="pill">Sharper option</span>
+                <span class="pill">Wildcard closet look</span>
+              </div>
+            </div>
+
+            <nav class="bottom-nav" aria-label="Main navigation">
+              <span class="nav-item"><span class="glyph"></span>Home</span>
+              <span class="nav-item"><span class="glyph round"></span>Closet</span>
+              <span class="nav-item"><span class="glyph add"></span>Add</span>
+              <span class="nav-item"><span class="glyph"></span>Mixer</span>
+              <span class="nav-item active"><span class="glyph round"></span>Stylist</span>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>4. Outside ideas are opt-in</h2>
+          <p>Missing pieces appear only after the user asks, and they stay visually separate from owned looks.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Improve this look</h3>
+                <div class="subtle">Ideas are not in your closet</div>
+              </div>
+              <span class="pill dark">Include ideas</span>
+            </div>
+
+            <div class="stack">
+              <article class="look">
+                <div class="look-header">
+                  <div>
+                    <h3 class="look-title">Sharper version</h3>
+                    <div class="subtle">Mostly your wardrobe</div>
+                  </div>
+                  <span class="score">+ style</span>
+                </div>
+                <div class="board">
+                  <span class="garment tee"></span>
+                  <span class="garment denim"></span>
+                  <span class="garment shoe"></span>
+                  <span class="garment shoe second"></span>
+                  <span class="garment bag"></span>
+                </div>
+                <div class="look-copy">
+                  <p>Your white tee and denim work. The look becomes more current with one structured outer layer.</p>
+                </div>
+              </article>
+
+              <div class="idea">
+                <strong>Missing piece idea</strong>
+                <span>Cropped charcoal overshirt. It would sharpen dinner looks and still work for travel days.</span>
+                <button class="button secondary">Save to wish list</button>
+              </div>
+
+              <div class="idea">
+                <strong>Optional footwear upgrade</strong>
+                <span>Sleek waterproof city sneaker in off-white or taupe. Useful for rain, walking, and casual dinners.</span>
+                <button class="button secondary">Save to wish list</button>
+              </div>
+            </div>
+
+            <nav class="bottom-nav" aria-label="Main navigation">
+              <span class="nav-item"><span class="glyph"></span>Home</span>
+              <span class="nav-item"><span class="glyph round"></span>Closet</span>
+              <span class="nav-item"><span class="glyph add"></span>Add</span>
+              <span class="nav-item"><span class="glyph"></span>Mixer</span>
+              <span class="nav-item active"><span class="glyph round"></span>Stylist</span>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>5. Save first, render avatar second</h2>
+          <p>Avatar preview is an explicit next action after the outfit is chosen and cached as a saved look.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div>
+                <h3 class="app-title">Saved look</h3>
+                <div class="subtle">Tonight dinner · Aankur</div>
+              </div>
+              <button class="icon-button" aria-label="More">⋯</button>
+            </div>
+
+            <div class="stack">
+              <div class="selected-banner">
+                <strong>Dinner-ready striped shirt</strong>
+                <span class="subtle">Saved from Stylist. Closet-only recommendation.</span>
+              </div>
+
+              <article class="look">
+                <div class="board">
+                  <span class="garment shirt"></span>
+                  <span class="garment trouser"></span>
+                  <span class="garment loafer"></span>
+                  <span class="garment loafer second"></span>
+                  <span class="garment watch"></span>
+                </div>
+                <div class="look-copy">
+                  <div class="item-list">
+                    <span class="item-tag">striped shirt</span>
+                    <span class="item-tag">charcoal trouser</span>
+                    <span class="item-tag">brown loafers</span>
+                  </div>
+                </div>
+              </article>
+
+              <div class="avatar-handoff">
+                <span class="avatar-token" aria-hidden="true"></span>
+                <div class="stack">
+                  <strong>Preview this on me</strong>
+                  <span class="subtle">Generate one high-quality avatar render for this saved outfit.</span>
+                  <button class="button">Render avatar preview</button>
+                </div>
+              </div>
+
+              <div class="actions">
+                <button class="button secondary">Wear log</button>
+                <button class="button secondary">Plan another</button>
+              </div>
+            </div>
+
+            <nav class="bottom-nav" aria-label="Main navigation">
+              <span class="nav-item"><span class="glyph"></span>Home</span>
+              <span class="nav-item"><span class="glyph round"></span>Closet</span>
+              <span class="nav-item"><span class="glyph add"></span>Add</span>
+              <span class="nav-item"><span class="glyph"></span>Mixer</span>
+              <span class="nav-item active"><span class="glyph round"></span>Stylist</span>
+            </nav>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="flow-notes" aria-label="Design notes">
+      <div class="note">
+        <strong>Default stance</strong>
+        <span>Results start closet-only. Outside-wardrobe recommendations require an explicit Include ideas action.</span>
+      </div>
+      <div class="note">
+        <strong>Context strategy</strong>
+        <span>Use time and weather automatically, then ask only for location when the browser cannot provide it.</span>
+      </div>
+      <div class="note">
+        <strong>Future path</strong>
+        <span>The same Stylist tab can later add multi-day trip planning without bringing the Trips tab back immediately.</span>
+      </div>
+    </section>
+  </main>
+</body>
+</html>
