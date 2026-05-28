@@ -34,7 +34,7 @@ describe("createAvatarRenderRequest", () => {
       wardrobeItemIds: ["shirt", "trousers"],
       poseId: "studio-three-quarter",
       quality: "final",
-      promptVersion: "avatar-studio-v1.3",
+      promptVersion: "avatar-studio-v1.4",
     });
   });
 

@@ -9,7 +9,7 @@ const request = {
     wardrobeItemIds: ["item-1"],
     poseId: "studio-front",
     quality: "final",
-    promptVersion: "avatar-studio-v1.3",
+    promptVersion: "avatar-studio-v1.4",
   },
   avatarProfile: {
     id: "avatar-profile-aankur",

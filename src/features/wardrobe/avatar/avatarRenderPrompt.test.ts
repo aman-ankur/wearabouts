@@ -27,7 +27,7 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.3");
+    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.4");
     expect(prompt).toContain("full-body");
     expect(prompt).toContain("neutral light gray or white studio background");
     expect(prompt).toContain("recognizable likeness");
@@ -48,20 +48,27 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
+    expect(prompt).toContain("subtle fashion-catalog lift");
     expect(prompt).toContain("Apply restrained studio-photo polish");
     expect(prompt).toContain("natural skin texture");
     expect(prompt).toContain("clearer eyes");
     expect(prompt).toContain("natural facial detail");
+    expect(prompt).toContain("cleaner neck-to-jaw separation from lighting and posture");
     expect(prompt).toContain("Avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw");
-    expect(prompt).toContain("natural studio catalog pose");
+    expect(prompt).toContain("thinner cheeks");
+    expect(prompt).toContain("natural fashion-studio pose");
     expect(prompt).toContain("one hand casually in a pocket");
-    expect(prompt).toContain("subtle weight through one leg");
+    expect(prompt).toContain("one foot subtly forward");
     expect(prompt).toContain("not passport photo");
     expect(prompt).toContain("not corporate headshot");
     expect(prompt).toContain("not a model makeover");
     expect(prompt).toContain("70-85mm studio catalog perspective");
-    expect(prompt).toContain("Improve posture and garment drape");
+    expect(prompt).toContain("Improve neck posture, shoulder set, and garment drape");
     expect(prompt).toContain("without making the body taller, slimmer, more muscular");
+    expect(prompt).toContain("avoid a basic stiff ID-photo stance");
+    expect(prompt).toContain("compressed neck");
+    expect(prompt).toContain("rounded shoulders");
+    expect(prompt).toContain("subtle natural asymmetry");
   });
 
   it("allows a modest inferred inner layer when outerwear has no top", () => {

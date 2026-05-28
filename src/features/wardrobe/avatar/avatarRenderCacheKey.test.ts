@@ -8,7 +8,7 @@ describe("createAvatarRenderCacheKey", () => {
     wardrobeItemIds: ["trousers", "shirt"],
     poseId: "studio-three-quarter" as const,
     quality: "final" as const,
-    promptVersion: "avatar-studio-v1.3",
+    promptVersion: "avatar-studio-v1.4",
   };
 
   it("sorts wardrobe item ids for stable cache hits", () => {

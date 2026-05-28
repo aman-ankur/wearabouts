@@ -1,7 +1,7 @@
 import type { WardrobeItem } from "@/src/domain/wardrobe";
 import type { AvatarPoseId, AvatarRenderQuality } from "./avatarTypes";
 
-export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.3";
+export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.4";
 
 interface AvatarRenderPromptInput {
   savedOutfitName: string;
@@ -40,19 +40,20 @@ function baseLayerInstruction(items: WardrobeItem[]): string {
 export function buildAvatarRenderPrompt(input: AvatarRenderPromptInput): string {
   const pose =
     input.poseId === "studio-front"
-      ? "front-facing natural studio catalog pose with relaxed confidence, even shoulders, one hand casually in a pocket when compatible with the outfit, and subtle weight through one leg"
-      : "slight three-quarter natural studio catalog pose with relaxed confidence, torso angled a little from camera, head naturally turned, one hand casually in a pocket when compatible with the outfit, and subtle weight through one leg";
+      ? "front-facing natural fashion-studio pose with relaxed confidence, visible relaxed neck, open chest, shoulders level and gently squared, one hand casually in a pocket when compatible with the outfit, and one foot subtly forward"
+      : "slight three-quarter natural fashion-studio pose with relaxed confidence, torso angled a little from camera, one shoulder subtly back, head naturally turned toward camera, visible relaxed neck, shoulders level and not rounded, one hand casually in a pocket when compatible with the outfit, and one foot subtly forward or lightly crossed";
   const itemList = input.items.length > 0 ? input.items.map(itemDescription).join("; ") : "the provided saved outfit references";
 
   return [
     `Create one polished full-body Wearabouts Avatar Studio render for the saved outfit "${input.savedOutfitName}".`,
     `Pose: ${pose}. Head, hands, legs, and shoes must be visible.`,
-    "Style direction: realistic accurate studio person with light fashion-catalog polish, not passport photo, not corporate headshot, not casual snapshot, not a model makeover.",
+    "Style direction: realistic accurate studio person with a subtle fashion-catalog lift, not passport photo, not corporate headshot, not casual snapshot, not a model makeover.",
     "Camera and framing: full-body 70-85mm studio catalog perspective, camera at upper-torso height, natural vertical proportions, generous neutral background around the person, feet grounded, no wide-angle distortion.",
-    "Face direction: use the face reference for recognizable likeness and keep the same person. Preserve facial structure, face shape, age, skin tone, hairstyle, facial hair, and natural facial fullness; allow only a calmer composed expression if the source smile or blink looks awkward.",
-    "Apply restrained studio-photo polish through lighting and focus: smoother even lighting, natural skin texture, clearer eyes, natural facial detail, groomed hair definition, and reduced harsh shadows.",
-    "Avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw, symmetry changes, younger-looking face, airbrushed skin, plastic skin, or making the person look like someone else.",
-    "Use the body reference for realistic body proportions, height/width relationship, broad silhouette, and natural head-to-body scale. Improve posture and garment drape without making the body taller, slimmer, more muscular, enlarged, or reshaped.",
+    "Face direction: use the face reference for recognizable likeness and keep the same person. Preserve facial structure, face shape, age, skin tone, hairstyle, facial hair, and natural facial fullness; allow only a calmer, more alert composed expression if the source smile or blink looks awkward.",
+    "Apply restrained studio-photo polish through lighting, focus, and grooming: smoother even lighting, natural skin texture, clearer eyes, natural facial detail, tidier hair definition, cleaner neck-to-jaw separation from lighting and posture, and reduced harsh shadows.",
+    "Avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw, thinner cheeks, symmetry changes, younger-looking face, airbrushed skin, plastic skin, or making the person look like someone else.",
+    "Use the body reference for realistic body proportions, height/width relationship, broad silhouette, shoulder width, and natural head-to-body scale. Improve neck posture, shoulder set, and garment drape without making the body taller, slimmer, more muscular, enlarged, or reshaped.",
+    "Pose quality: avoid a basic stiff ID-photo stance, hunched neck, compressed neck, dropped shoulders, rounded shoulders, awkward head tilt, limp arms, or both arms hanging straight down. Prefer subtle natural asymmetry and a calm catalogue presence.",
     "Prioritize outfit quality: make the selected wardrobe items look naturally worn, contemporary, neatly styled, properly fitted to the person's real body, and faithful to their category, colors, patterns, and silhouettes.",
     "Render crisp garment construction details such as collars, seams, waistbands, hems, cuffs, shoe shape, texture, and pattern alignment when present in the references.",
     `Selected wardrobe items: ${itemList}.`,
