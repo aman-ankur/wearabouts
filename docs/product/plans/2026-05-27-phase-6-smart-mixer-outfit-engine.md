@@ -1,6 +1,6 @@
 # Phase 6 Smart Mixer + Outfit Engine Implementation Handoff
 
-**Status:** Implemented as the first end-to-end Phase 6 slice on `codex/phase6-smart-mixer`.
+**Status:** Implemented as the first end-to-end Phase 6 slice on `codex/phase6-smart-mixer`; updated on `codex/progressive-results-cache` with purpose-aware suggestions, manual canvas swiping, and progressive candidate-generation cache work.
 
 **Goal:** Mixer should open with complete outfit suggestions from real/demo wardrobe items, show honest outfit-board previews, let the user save or refine a look, and keep the outfit logic reusable for Trip Planner and daily recommendations.
 
@@ -18,27 +18,29 @@
 
 1. User adds mixer-ready wardrobe items from Upload/Review.
 2. User opens `/mixer`.
-3. If enough items exist, Mixer shows `Look X of N`, dots, Previous/Next, and a single focused outfit card.
+3. Mixer asks what the user is mixing for and defaults to Casual on first visit.
+4. If enough items exist, Mixer shows `Look X of N`, dots, Previous/Next, Shuffle, and a single focused outfit card.
 4. Each outfit card includes:
    - board preview
    - title
    - intent
-   - confidence label
-   - score
    - rationale
-   - item names
+   - full piece list
    - `Save look`
    - `Refine`
    - `Not this`
    - `More like this`
-5. `Save look` stores the suggestion as a saved outfit.
-6. `Refine` opens the smart board view.
-7. In Refine, the user can:
+5. The Canvas tab offers a separate manual mixer for fast, no-AI outfit assembly.
+6. In Canvas, the user swipes independent top/layer, bottom, and shoe rows; the centered piece becomes the selected piece in the preview.
+7. `Create look` stores the manual canvas mix as a saved outfit, and Avatar can be opened after the mix is saved.
+8. `Save look` stores the suggestion as a saved outfit.
+9. `Refine` opens the smart board view.
+10. In Refine, the user can:
    - switch active slot
    - lock/unlock slots
    - choose ranked alternatives for unlocked slots
    - save the refined look
-8. Saved looks appear in the existing Closet saved-look section.
+11. Saved looks appear in the existing Closet saved-look section.
 
 ## Button Behavior
 
@@ -98,6 +100,8 @@ Current deterministic rules:
 - Returns up to 5 ranked suggestions.
 - Newer equivalent items win tie-breaks so recently added/replaced closet assets appear first.
 - Missing shoes produce a warning instead of blocking suggestions.
+- Warm-weather intents avoid unnecessary layers unless the user locks one in.
+- Rain intent prefers rain-suitable layers and avoids rain-avoidant pieces.
 
 ## Visual Direction
 
@@ -108,6 +112,9 @@ The current board is intentionally an honest flat-lay, not body try-on.
 - Asset backgrounds are visually minimized with scale/placement/soft masking where safe.
 - Pants and shoes are not edge-masked because masking cropped important corners.
 - The board accepts imperfect non-transparent assets for now.
+- Manual Canvas separates the outfit preview from the swipe controls so the selected pieces and the horizontal rows are visually distinct.
+- Swipe rows expose a short `Swipe` affordance and edge fades; no visible center guide is shown.
+- Canvas preview hides item-name labels to avoid clipped text and keeps a compact outfit stack.
 
 Important limitation:
 
@@ -122,6 +129,8 @@ Phase 6 testing exposed upload/review issues that were fixed in the same branch:
 - Candidate generation is idempotent when a candidate is already ready.
 - Outfit parent jobs can return existing review garments/candidates without duplicating work.
 - `Add all` / individual add behavior is covered by reducer and pipeline tests.
+- Upload supports both choosing a library photo and taking a camera photo on the fly.
+- Real upload copy now presents the flow as Wardrobe Prep / Process photo rather than Auto-Prettify / Scan photo.
 
 ## Cache And Cost Behavior
 
@@ -130,17 +139,17 @@ Current behavior is partially cache-aware, but not a full same-image cache.
 - Dev cached upload can create review garments from existing wardrobe items without AI spend.
 - Re-running an already-ready job returns existing detected garments/candidates instead of regenerating.
 - Generating selected candidates skips candidates that are already `ready`.
+- Generated garment candidates are cached by source-image/crop/prompt/model inputs for progressive candidate generation reuse.
 - Duplicate detection can mark existing closet-like candidates during outfit detection when closet lookup succeeds.
 
 Not implemented yet:
 
-- Content-hash or perceptual-hash cache for a newly uploaded identical image.
-- Cross-batch reuse of previous AI detection/prettify results for the exact same photo.
+- Perceptual duplicate matching for visually similar but not identical images.
 - Persistent feedback-aware reranking.
 
 Product implication:
 
-- Uploading the same photo again may still create a new batch and can still spend AI tokens in real mode unless it hits an already-ready job/candidate path inside the same batch. A future cache phase should add source-image hashing before AI detection/prettify.
+- Candidate generation for the same source crop can reuse cached generated garment assets when the cache key matches. A future cache phase should add broader perceptual matching and detection-level reuse before AI analysis.
 
 ## Tests Added Or Updated
 
@@ -148,8 +157,10 @@ Product implication:
 - Outfit refinement alternatives and slot swapping.
 - Newer equivalent item tie-break behavior.
 - Mixer board rendering without placeholder accessory slot.
+- Manual canvas row centering and swipe affordances.
 - Mixer reducer saved-outfit metadata.
 - Real wardrobe pipeline candidate generation/idempotency/add-to-closet behavior.
+- Generated garment cache key and repository/storage integration.
 
 ## Verification
 
@@ -178,6 +189,6 @@ All four commands passed before creating the PR.
    - warmth
    - rain suitability
 4. Promote the outfit engine into Trip Planner day-look generation.
-5. Add named intents beyond the current fixed dinner default in Mixer.
+5. Expand named intents and persist richer intent preferences beyond the current local selection.
 6. Improve asset transparency/segmentation so the board can become cleaner without masking tricks.
-7. Add true horizontal swipe gestures or a more native carousel once the explicit pager behavior is stable.
+7. Add persistent feedback learning for the purpose chips and canvas-created looks.

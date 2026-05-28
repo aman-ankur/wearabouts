@@ -12,6 +12,7 @@ import type {
 } from "@/src/domain/wardrobe";
 import { summarizeOutfitCandidates, type GarmentCandidateStatus } from "./outfitGarmentCandidates";
 import type {
+  GeneratedGarmentCacheRecord,
   GarmentCandidateRecord,
   PrettifyJobKind,
   PrettifyJobRecord,
@@ -33,6 +34,7 @@ interface SourceImageRow {
   upload_batch_id: string;
   bucket: "source-images";
   storage_path: string;
+  content_hash?: string | null;
   content_type: string;
   original_filename: string;
 }
@@ -69,6 +71,16 @@ interface GarmentCandidateRow {
   detected_garment_id: string | null;
 }
 
+interface GeneratedGarmentCacheRow {
+  id: string;
+  cache_key: string;
+  asset_id: string;
+  asset_label: string;
+  asset_bucket: "closet-assets";
+  asset_storage_path: string;
+  quality_notes: string[] | null;
+}
+
 export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   constructor(private readonly supabase: SupabaseClient) {}
 
@@ -96,15 +108,16 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   }
 
   async createSourceImage(input: Omit<RealSourceImageRecord, "id">): Promise<RealSourceImageRecord> {
-    const row = await this.insertSingle<SourceImageRow>("source_images", {
+    const row = await this.insertSingleWithSchemaFallback<SourceImageRow>("source_images", {
       household_id: REAL_HOUSEHOLD_ID,
       profile_id: REAL_PROFILE_ID,
       upload_batch_id: input.uploadBatchId,
       bucket: input.bucket,
       storage_path: input.storagePath,
+      content_hash: input.contentHash,
       content_type: input.contentType,
       original_filename: input.originalFilename,
-    });
+    }, ["content_hash"]);
 
     return {
       id: row.id,
@@ -112,6 +125,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       bucket: row.bucket,
       storagePath: row.storage_path,
       signedUrl: input.signedUrl,
+      contentHash: row.content_hash ?? input.contentHash,
       contentType: row.content_type,
       originalFilename: row.original_filename,
     };
@@ -225,6 +239,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       bucket: row.bucket,
       storagePath: row.storage_path,
       signedUrl: await this.createSignedUrl(row.bucket, row.storage_path),
+      contentHash: row.content_hash ?? row.storage_path,
       contentType: row.content_type,
       originalFilename: row.original_filename,
     };
@@ -334,6 +349,66 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     return this.mapCandidate(data as GarmentCandidateRow);
+  }
+
+  async getGeneratedGarmentCache(cacheKey: string): Promise<GeneratedGarmentCacheRecord | null> {
+    const { data, error } = await this.supabase
+      .from("generated_garment_cache")
+      .select("*")
+      .eq("household_id", REAL_HOUSEHOLD_ID)
+      .eq("profile_id", REAL_PROFILE_ID)
+      .eq("cache_key", cacheKey)
+      .maybeSingle();
+    if (error) {
+      if (isMissingSchemaRelationError(error.message)) {
+        return null;
+      }
+      throw new Error(error.message);
+    }
+    if (!data) {
+      return null;
+    }
+
+    return this.mapGeneratedGarmentCache(data as GeneratedGarmentCacheRow);
+  }
+
+  async createGeneratedGarmentCache(input: {
+    cacheKey: string;
+    asset: ClosetAsset;
+    qualityNotes: string[];
+  }): Promise<GeneratedGarmentCacheRecord> {
+    if (!("imageUrl" in input.asset)) {
+      throw new Error("Generated garment cache requires a real closet asset.");
+    }
+
+    const values = {
+      household_id: REAL_HOUSEHOLD_ID,
+      profile_id: REAL_PROFILE_ID,
+      cache_key: input.cacheKey,
+      asset_id: input.asset.id,
+      asset_label: input.asset.label,
+      asset_bucket: input.asset.bucket,
+      asset_storage_path: input.asset.storagePath,
+      quality_notes: input.qualityNotes,
+    };
+    const { data, error } = await this.supabase
+      .from("generated_garment_cache")
+      .upsert(values, { onConflict: "household_id,profile_id,cache_key" })
+      .select()
+      .single();
+    if (error) {
+      if (isMissingSchemaRelationError(error.message)) {
+        return {
+          id: `cache-${input.cacheKey}`,
+          cacheKey: input.cacheKey,
+          asset: input.asset,
+          qualityNotes: input.qualityNotes,
+        };
+      }
+      throw new Error(error.message);
+    }
+
+    return this.mapGeneratedGarmentCache(data as GeneratedGarmentCacheRow);
   }
 
   async createDetectedGarment(input: {
@@ -578,6 +653,22 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return data.signedUrl;
   }
 
+  private async mapGeneratedGarmentCache(row: GeneratedGarmentCacheRow): Promise<GeneratedGarmentCacheRecord> {
+    return {
+      id: row.id,
+      cacheKey: row.cache_key,
+      asset: {
+        id: row.asset_id,
+        kind: "prettified",
+        label: row.asset_label,
+        bucket: row.asset_bucket,
+        storagePath: row.asset_storage_path,
+        imageUrl: await this.createSignedUrl(row.asset_bucket, row.asset_storage_path),
+      },
+      qualityNotes: row.quality_notes ?? [],
+    };
+  }
+
   private async getBatchSourceImageReference(batchId: string) {
     const { data, error } = await this.supabase
       .from("source_images")
@@ -647,6 +738,12 @@ function withoutKeys(values: Record<string, unknown>, keys: string[]): Record<st
 
 function isMissingSchemaColumnError(message: string): boolean {
   return message.includes("Could not find the") && message.includes("column") && message.includes("schema cache");
+}
+
+function isMissingSchemaRelationError(message: string): boolean {
+  return (
+    message.includes("Could not find the") && message.includes("table") && message.includes("schema cache")
+  ) || message.includes("relation") && message.includes("does not exist");
 }
 
 function getFallbackSelectionStatus(row: GarmentCandidateRow): CandidateSelectionStatus {

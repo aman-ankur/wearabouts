@@ -22,6 +22,8 @@ describe("SavedOutfitList", () => {
 
     expect(html).toContain("Dinner look");
     expect(html).toContain("2 items");
+    expect(html).toContain("You");
+    expect(html).not.toContain(["Aan", "kur"].join(""));
     expect(html).toContain("Render avatar preview");
     expect(html).toContain("/avatar?savedOutfitId=outfit-1");
   });

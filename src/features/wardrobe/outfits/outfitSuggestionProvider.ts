@@ -1,8 +1,9 @@
 import type { OutfitSlot, OutfitSlotSelection, WardrobeItem } from "@/src/domain/wardrobe";
 import { scoreItemForIntent } from "./outfitCompatibilityScorer";
-import type { OutfitSuggestion, OutfitSuggestionContext } from "./outfitTypes";
+import type { OutfitIntent, OutfitSuggestion, OutfitSuggestionContext } from "./outfitTypes";
 
 const slots: OutfitSlot[] = ["top", "bottom", "shoes", "layer", "accessory"];
+const rainLayerWords = ["rain", "shell", "waterproof", "water-resistant", "technical"];
 
 function itemsForProfile(items: WardrobeItem[], profileId: OutfitSuggestionContext["profileId"]): WardrobeItem[] {
   return items
@@ -35,6 +36,25 @@ function optionsForSlot(items: WardrobeItem[], lockedItem: WardrobeItem | null |
   }
 
   return items.length > 0 ? items : [null];
+}
+
+function itemText(item: WardrobeItem): string {
+  return [item.name, item.brand, item.category, item.material, ...(item.styleTags ?? []), ...(item.occasionTags ?? [])]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+}
+
+function layerOptionsForIntent(layers: WardrobeItem[], intent: OutfitIntent): WardrobeItem[] {
+  if (intent === "warm_weather") {
+    return [];
+  }
+
+  if (intent === "rain_ready") {
+    return layers.filter((layer) => layer.rainSuitability === "good" || rainLayerWords.some((word) => itemText(layer).includes(word)));
+  }
+
+  return layers;
 }
 
 function makeSelections(input: Partial<Record<OutfitSlot, WardrobeItem | null>>, locked: OutfitSlotSelection[] = []) {
@@ -117,7 +137,11 @@ export function buildOutfitSuggestions(context: OutfitSuggestionContext): Outfit
   const topOptions = optionsForSlot(tops, lockedItemForSlot(items, locked, "top"), false);
   const bottomOptions = optionsForSlot(bottoms, lockedItemForSlot(items, locked, "bottom"), false).filter(Boolean);
   const shoeOptions = optionsForSlot(shoes.slice(0, 3), lockedItemForSlot(items, locked, "shoes"), true);
-  const layerOptions = optionsForSlot(layers.slice(0, 3), lockedItemForSlot(items, locked, "layer"), true);
+  const layerOptions = optionsForSlot(
+    layerOptionsForIntent(layers, context.intent).slice(0, 3),
+    lockedItemForSlot(items, locked, "layer"),
+    true,
+  );
   const accessoryOptions = optionsForSlot(accessories.slice(0, 2), lockedItemForSlot(items, locked, "accessory"), true);
 
   for (const top of topOptions) {

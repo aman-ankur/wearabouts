@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ClosetAsset } from "@/src/domain/wardrobe";
 import type { RealAssetStorage, RealSourceImageRecord, RealUploadFile } from "./realWardrobePipeline";
@@ -16,6 +16,7 @@ export class SupabaseRealAssetStorage implements RealAssetStorage {
       input.file.name,
     )}`;
     const bytes = Buffer.from(await input.file.arrayBuffer());
+    const contentHash = createHash("sha256").update(bytes).digest("hex");
     const { error } = await this.supabase.storage.from("source-images").upload(storagePath, bytes, {
       contentType: input.file.type,
       upsert: false,
@@ -28,6 +29,7 @@ export class SupabaseRealAssetStorage implements RealAssetStorage {
       bucket: "source-images" as const,
       storagePath,
       signedUrl: await this.createSignedUrl("source-images", storagePath),
+      contentHash,
     };
   }
 

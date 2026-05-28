@@ -135,6 +135,47 @@ describe("buildOutfitSuggestions", () => {
     );
   });
 
+  it("does not add a generic layer for warm-weather mixes", () => {
+    const suggestions = buildOutfitSuggestions({
+      profileId: "profile-aankur",
+      intent: "warm_weather",
+      maxSuggestions: 1,
+      closetItems: [
+        item({ id: "tee", name: "White Cotton Tee", category: "tops", occasionTags: ["warm_weather"] }),
+        item({ id: "cargo", name: "Light Sage Gray Cargo Pants", category: "bottoms" }),
+        item({ id: "sneakers", name: "White Chunky Sneakers", category: "footwear" }),
+        item({ id: "overshirt", name: "Light Beige Overshirt Jacket", category: "outerwear", warmth: "medium" }),
+      ],
+      savedOutfits: [],
+      feedbackSignals: [],
+    });
+
+    expect(suggestions[0]?.selections).toEqual(
+      expect.arrayContaining([{ slot: "layer", wardrobeItemId: null, locked: false }]),
+    );
+  });
+
+  it("only adds rain layers when the layer is actually rain-suitable", () => {
+    const suggestions = buildOutfitSuggestions({
+      profileId: "profile-aankur",
+      intent: "rain_ready",
+      maxSuggestions: 1,
+      closetItems: [
+        item({ id: "tee", name: "White Graphic T-Shirt", category: "tops" }),
+        item({ id: "cargo", name: "Light Sage Gray Cargo Pants", category: "bottoms" }),
+        item({ id: "sneakers", name: "White Chunky Sneakers", category: "footwear" }),
+        item({ id: "overshirt", name: "Light Beige Overshirt Jacket", category: "outerwear", warmth: "medium" }),
+        item({ id: "shell", name: "Navy Rain Shell", category: "outerwear", rainSuitability: "good" }),
+      ],
+      savedOutfits: [],
+      feedbackSignals: [],
+    });
+
+    expect(suggestions[0]?.selections).toEqual(
+      expect.arrayContaining([{ slot: "layer", wardrobeItemId: "shell", locked: false }]),
+    );
+  });
+
   it("returns no suggestions when required closet coverage is missing", () => {
     const suggestions = buildOutfitSuggestions({
       profileId: "profile-aankur",

@@ -73,4 +73,37 @@ describe("MixerBodyStage", () => {
     expect(html).toContain("Layer:");
     expect(html).toContain("Beige overshirt jacket");
   });
+
+  it("gives shoes enough board space to read at mobile size", () => {
+    const html = renderToStaticMarkup(
+      <MixerBodyStage
+        selectedItems={{
+          top: realItem({ id: "top", name: "White t-shirt", category: "tops" }),
+          bottom: realItem({ id: "bottom", name: "Dark trousers", category: "bottoms" }),
+          shoes: realItem({ id: "shoes", name: "White running sneakers", category: "footwear" }),
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-mixer-board-item="shoes"');
+    expect(html).toContain("left:26%;top:80%;width:48%;height:16%");
+  });
+
+  it("can tighten the vertical outfit stack for canvas previews", () => {
+    const html = renderToStaticMarkup(
+      <MixerBodyStage
+        layout="compact"
+        showLabels={false}
+        selectedItems={{
+          top: realItem({ id: "top", name: "White t-shirt", category: "tops" }),
+          bottom: realItem({ id: "bottom", name: "Dark trousers", category: "bottoms" }),
+          shoes: realItem({ id: "shoes", name: "White running sneakers", category: "footwear" }),
+        }}
+      />,
+    );
+
+    expect(html).toContain("left:23%;top:39%;width:54%;height:34%");
+    expect(html).toContain("left:26%;top:76%;width:48%;height:19%");
+    expect(html).not.toContain("data-mixer-board-labels");
+  });
 });

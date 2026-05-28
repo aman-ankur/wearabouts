@@ -11,6 +11,7 @@ import {
   CandidateNumber,
   DetectedCandidatePhotoReference,
 } from "@/src/features/wardrobe/components/DetectedCandidatePhotoReference";
+import { CandidateGenerationProgress } from "@/src/features/wardrobe/components/CandidateGenerationProgress";
 import { DetectedGarmentCard } from "@/src/features/wardrobe/components/DetectedGarmentCard";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
@@ -34,6 +35,7 @@ export default function ReviewPage() {
   const isPersistentMode = runtimeMode === "real" || runtimeMode === "dev";
   const [isLoadingBatch, setIsLoadingBatch] = useState(isPersistentMode);
   const [isUpdating, setIsUpdating] = useState(false);
+  const [isGeneratingCandidates, setIsGeneratingCandidates] = useState(false);
   const [reviewError, setReviewError] = useState<string | null>(null);
   const garments = state.activeBatch?.detectedGarments ?? [];
   const isOutfitBatch = state.activeBatch?.sourceType === "outfit_photo";
@@ -65,6 +67,10 @@ export default function ReviewPage() {
     () => new Map(candidateChoices.map((candidate, index) => [candidate.id, index])),
     [candidateChoices],
   );
+  const selectedCandidateChoices = useMemo(
+    () => candidateChoices.filter((candidate) => selectedCandidateIds.includes(candidate.id)),
+    [candidateChoices, selectedCandidateIds],
+  );
   const generateSelectedLabel =
     selectedCandidateIds.length === 0
       ? "Choose items to generate"
@@ -90,14 +96,27 @@ export default function ReviewPage() {
   }, [isPersistentMode, loadRealBatch, params.batchId]);
 
   useEffect(() => {
-    if (!hasCandidatePicker) {
+    if (!hasCandidatePicker || isGeneratingCandidates) {
       return;
     }
 
     setSelectedCandidateIds(
       primaryCandidates.map((candidate) => candidate.id),
     );
-  }, [hasCandidatePicker, primaryCandidates]);
+  }, [hasCandidatePicker, isGeneratingCandidates, primaryCandidates]);
+
+  useEffect(() => {
+    if (!isPersistentMode || !isGeneratingCandidates) {
+      return;
+    }
+
+    void loadRealBatch(params.batchId).catch(() => undefined);
+    const intervalId = window.setInterval(() => {
+      void loadRealBatch(params.batchId).catch(() => undefined);
+    }, 1500);
+
+    return () => window.clearInterval(intervalId);
+  }, [isGeneratingCandidates, isPersistentMode, loadRealBatch, params.batchId]);
 
   async function handleAdd(garmentId: string) {
     if (isPersistentMode) {
@@ -166,6 +185,7 @@ export default function ReviewPage() {
     }
 
     setIsUpdating(true);
+    setIsGeneratingCandidates(true);
     setReviewError(null);
     try {
       await generateRealCandidates(jobId, selectedCandidateIds);
@@ -173,6 +193,7 @@ export default function ReviewPage() {
     } catch (error) {
       setReviewError(error instanceof Error ? error.message : "Could not generate selected items.");
     } finally {
+      setIsGeneratingCandidates(false);
       setIsUpdating(false);
     }
   }
@@ -206,6 +227,11 @@ export default function ReviewPage() {
             <p className="subtle" style={{ margin: 0 }}>
               Review each item Wearabouts generated from the source outfit.
             </p>
+            <CandidateGenerationProgress
+              isGenerating={isGeneratingCandidates}
+              generatedCount={garments.length}
+              candidates={selectedCandidateChoices}
+            />
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 4 }}>
               <button type="button" className="button" disabled={isUpdating} onClick={() => void handleAddAll()}>
                 {isUpdating ? "Adding..." : "Add all"}
@@ -303,6 +329,12 @@ export default function ReviewPage() {
                 onToggle={toggleCandidate}
               />
             ) : null}
+
+            <CandidateGenerationProgress
+              isGenerating={isGeneratingCandidates}
+              generatedCount={garments.length}
+              candidates={selectedCandidateChoices}
+            />
 
             <button
               type="button"

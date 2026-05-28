@@ -7,6 +7,8 @@ interface MixerBodyStageProps {
   selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>;
   minHeight?: number;
   background?: string;
+  showLabels?: boolean;
+  layout?: "standard" | "compact";
 }
 
 const boardSlotOrder: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
@@ -21,29 +23,38 @@ const boardSlotLabels: Record<OutfitSlot, string> = {
 
 const slotOrderForLabels: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
 
-function getSlotStyle(slot: OutfitSlot, selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>): React.CSSProperties {
+function getSlotStyle(
+  slot: OutfitSlot,
+  selectedItems: Partial<Record<OutfitSlot, WardrobeItem>>,
+  layout: MixerBodyStageProps["layout"],
+): React.CSSProperties {
   const hasLayer = Boolean(selectedItems.layer);
   const hasTop = Boolean(selectedItems.top);
   const base: React.CSSProperties = { position: "absolute" };
+  const isCompact = layout === "compact";
 
   if (slot === "layer") {
     return hasTop
-      ? { ...base, left: "0%", top: "1%", width: "48%", height: "33%" }
-      : { ...base, left: "22%", top: "1%", width: "56%", height: "33%" };
+      ? { ...base, left: "0%", top: isCompact ? "0%" : "1%", width: "48%", height: isCompact ? "34%" : "33%" }
+      : { ...base, left: "22%", top: isCompact ? "0%" : "1%", width: "56%", height: isCompact ? "34%" : "33%" };
   }
 
   if (slot === "top") {
     return hasLayer
-      ? { ...base, left: "52%", top: "1%", width: "48%", height: "33%" }
-      : { ...base, left: "22%", top: "1%", width: "56%", height: "33%" };
+      ? { ...base, left: "52%", top: isCompact ? "0%" : "1%", width: "48%", height: isCompact ? "34%" : "33%" }
+      : { ...base, left: "22%", top: isCompact ? "0%" : "1%", width: "56%", height: isCompact ? "34%" : "33%" };
   }
 
   if (slot === "bottom") {
-    return { ...base, left: "23%", top: "42%", width: "54%", height: "34%" };
+    return isCompact
+      ? { ...base, left: "23%", top: "39%", width: "54%", height: "34%" }
+      : { ...base, left: "23%", top: "42%", width: "54%", height: "34%" };
   }
 
   if (slot === "shoes") {
-    return { ...base, left: "30%", top: "84%", width: "40%", height: "12%" };
+    return isCompact
+      ? { ...base, left: "26%", top: "76%", width: "48%", height: "19%" }
+      : { ...base, left: "26%", top: "80%", width: "48%", height: "16%" };
   }
 
   return { ...base, right: "6%", top: "36%", width: "22%", height: "18%" };
@@ -80,7 +91,13 @@ function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
   );
 }
 
-export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#fff" }: MixerBodyStageProps) {
+export function MixerBodyStage({
+  selectedItems,
+  minHeight = 390,
+  background = "#fff",
+  showLabels = true,
+  layout = "standard",
+}: MixerBodyStageProps) {
   const visibleSlots = boardSlotOrder.filter((slot) => selectedItems[slot]);
   const labels = slotOrderForLabels
     .map((slot) => ({ slot, item: selectedItems[slot] }))
@@ -111,12 +128,12 @@ export function MixerBodyStage({ selectedItems, minHeight = 390, background = "#
         }}
       >
         {visibleSlots.map((slot) => (
-          <div key={slot} style={getSlotStyle(slot, selectedItems)}>
+          <div key={slot} style={getSlotStyle(slot, selectedItems, layout)}>
             <BoardItem item={selectedItems[slot]} slot={slot} />
           </div>
         ))}
       </div>
-      {labels.length > 0 ? (
+      {showLabels && labels.length > 0 ? (
         <div
           data-mixer-board-labels="subtle"
           style={{
