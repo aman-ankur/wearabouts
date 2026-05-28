@@ -25,6 +25,12 @@ export interface AvatarProfile {
   updatedAtIso: string;
 }
 
+export interface AvatarStoredInput {
+  assetId: string;
+  storagePath: string;
+  contentType: "image/png" | "image/jpeg" | "image/webp";
+}
+
 export type AvatarPoseId = "studio-front" | "studio-three-quarter";
 export type AvatarRenderQuality = "draft" | "final";
 export type AvatarRenderStatus = "queued" | "rendering" | "ready" | "failed" | "deleted";

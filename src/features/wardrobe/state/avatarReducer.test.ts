@@ -29,6 +29,7 @@ describe("avatarReducer", () => {
       assetId: "face-asset",
       previewUrl: "data:image/png;base64,face",
       quality: passedQuality,
+      storedInput: { assetId: "face-asset", storagePath: "avatars/face.jpg", contentType: "image/jpeg" },
     });
     const withBody = avatarReducer(withFace, {
       type: "avatarInputSaved",
@@ -39,6 +40,8 @@ describe("avatarReducer", () => {
     });
 
     expect(withBody.pendingFaceAssetId).toBe("face-asset");
+    expect(withBody.pendingFaceStoragePath).toBe("avatars/face.jpg");
+    expect(withBody.pendingFaceContentType).toBe("image/jpeg");
     expect(withBody.pendingBodyQuality?.status).toBe("warning");
   });
 

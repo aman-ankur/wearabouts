@@ -202,6 +202,14 @@ Avatar setup asks for:
 - Face photo.
 - Full-body photo.
 
+In real mode, avatar reference photos are media assets, not API JSON:
+
+- The browser requests a signed upload slot from Wearabouts.
+- The original face/body file uploads directly to the private Supabase `avatar-assets` bucket.
+- The avatar profile API stores only asset IDs, storage paths, content types, and quality checks.
+- Profile responses must stay metadata-only; do not return base64 image data or signed reference URLs to the browser.
+- Avatar rendering resolves short-lived signed reference URLs server-side before calling the image provider.
+
 Validate:
 
 - Face clear.
@@ -303,6 +311,8 @@ Recommended MVP stack:
 - Server routes or server actions for backend logic.
 - Provider interfaces for AI and demo mode.
 
+Large user media should not be tunneled through serverless JSON payloads. Use direct storage uploads for original photos, then send small asset references through API routes. This avoids Vercel function payload limits and preserves source image quality for downstream normalization.
+
 Alternative if more backend control is desired:
 
 - Vite React frontend.
@@ -381,7 +391,7 @@ Do not rely on cheap models alone for precise visual extraction. They may be use
 ## Phase 8 Avatar Studio Notes
 
 - Avatar Studio belongs after saved looks, not inside Mixer or Stylist browsing.
-- Face and body avatar references are saved once in real mode and reused until the user chooses to update photos.
+- Face and body avatar references are saved once in real mode via signed direct upload to private Supabase Storage and reused until the user chooses to update photos.
 - Successful real avatar renders are saved automatically to Supabase and keyed by avatar profile, saved outfit, sorted wardrobe items, pose, quality, and prompt version.
 - Reopening the same saved look checks the avatar render cache before calling OpenAI.
 - Regenerate is explicit, limited, and intentionally bypasses cache.

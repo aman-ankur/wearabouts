@@ -23,3 +23,14 @@ export interface AvatarRenderProviderResult {
 export interface AvatarRenderProvider {
   renderAvatar(request: AvatarRenderProviderRequest): Promise<AvatarRenderProviderResult>;
 }
+
+export function withAvatarProfileReferenceImages(
+  request: AvatarRenderProviderRequest,
+  references: Pick<AvatarRenderProviderRequest, "faceImageUrl" | "bodyImageUrl">,
+): AvatarRenderProviderRequest {
+  return {
+    ...request,
+    faceImageUrl: references.faceImageUrl ?? request.faceImageUrl,
+    bodyImageUrl: references.bodyImageUrl ?? request.bodyImageUrl,
+  };
+}

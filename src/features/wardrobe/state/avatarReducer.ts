@@ -4,6 +4,7 @@ import type {
   AvatarProfile,
   AvatarRender,
   AvatarRenderRequest,
+  AvatarStoredInput,
 } from "@/src/features/wardrobe/avatar/avatarTypes";
 import type { WardrobeProfileId } from "@/src/domain/wardrobe";
 
@@ -13,6 +14,10 @@ export interface AvatarState {
   profile: AvatarProfile | null;
   pendingFaceAssetId: string | null;
   pendingBodyAssetId: string | null;
+  pendingFaceStoragePath: string | null;
+  pendingBodyStoragePath: string | null;
+  pendingFaceContentType: AvatarStoredInput["contentType"] | null;
+  pendingBodyContentType: AvatarStoredInput["contentType"] | null;
   pendingFacePreviewUrl: string | null;
   pendingBodyPreviewUrl: string | null;
   pendingFaceQuality: AvatarInputQualityCheck | null;
@@ -30,6 +35,7 @@ export type AvatarAction =
       assetId: string;
       previewUrl: string;
       quality: AvatarInputQualityCheck;
+      storedInput?: AvatarStoredInput;
     }
   | {
       type: "avatarProfileCompleted";
@@ -61,6 +67,10 @@ export const initialAvatarState: AvatarState = {
   profile: null,
   pendingFaceAssetId: null,
   pendingBodyAssetId: null,
+  pendingFaceStoragePath: null,
+  pendingBodyStoragePath: null,
+  pendingFaceContentType: null,
+  pendingBodyContentType: null,
   pendingFacePreviewUrl: null,
   pendingBodyPreviewUrl: null,
   pendingFaceQuality: null,
@@ -98,6 +108,8 @@ export function avatarReducer(state: AvatarState, action: AvatarAction): AvatarS
         return {
           ...state,
           pendingFaceAssetId: action.assetId,
+          pendingFaceStoragePath: action.storedInput?.storagePath ?? null,
+          pendingFaceContentType: action.storedInput?.contentType ?? null,
           pendingFacePreviewUrl: action.previewUrl,
           pendingFaceQuality: action.quality,
         };
@@ -106,6 +118,8 @@ export function avatarReducer(state: AvatarState, action: AvatarAction): AvatarS
       return {
         ...state,
         pendingBodyAssetId: action.assetId,
+        pendingBodyStoragePath: action.storedInput?.storagePath ?? null,
+        pendingBodyContentType: action.storedInput?.contentType ?? null,
         pendingBodyPreviewUrl: action.previewUrl,
         pendingBodyQuality: action.quality,
       };
