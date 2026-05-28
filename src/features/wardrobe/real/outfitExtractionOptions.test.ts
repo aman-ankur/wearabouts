@@ -4,13 +4,13 @@ import { getOutfitExtractionOption, outfitExtractionOptions } from "./outfitExtr
 describe("outfitExtractionOptions", () => {
   it("uses neutral compact labels for upload mode selection", () => {
     expect(outfitExtractionOptions.map((option) => option.title)).toEqual([
-      "Pick after scan",
+      "Choose pieces",
       "Topwear",
       "Bottomwear",
       "Core outfit",
     ]);
     expect(outfitExtractionOptions.map((option) => option.shortLabel)).toEqual([
-      "Scan first",
+      "Choose pieces",
       "Topwear",
       "Bottomwear",
       "Core",

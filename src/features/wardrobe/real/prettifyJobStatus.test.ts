@@ -6,7 +6,7 @@ describe("prettifyJobStatus", () => {
     expect(getPrettifyJobSteps("prettifying")).toEqual([
       { id: "queued", label: "Upload", state: "complete" },
       { id: "analyzing", label: "Analyze", state: "complete" },
-      { id: "prettifying", label: "Prettify", state: "active" },
+      { id: "prettifying", label: "Prepare", state: "active" },
       { id: "validating", label: "Validate", state: "pending" },
       { id: "ready", label: "Review", state: "pending" },
     ]);
@@ -16,7 +16,7 @@ describe("prettifyJobStatus", () => {
     expect(getPrettifyJobSteps("prettifying", "outfit_parent")).toEqual([
       { id: "queued", label: "Upload", state: "complete" },
       { id: "analyzing", label: "Detect garments", state: "complete" },
-      { id: "prettifying", label: "Prettify garments", state: "active" },
+      { id: "prettifying", label: "Prepare garments", state: "active" },
       { id: "validating", label: "Validate assets", state: "pending" },
       { id: "ready", label: "Review", state: "pending" },
     ]);
@@ -25,7 +25,7 @@ describe("prettifyJobStatus", () => {
   it("provides compact captions for animated processing milestones", () => {
     expect(getPrettifyStepCaption("queued", "complete")).toBe("Uploaded");
     expect(getPrettifyStepCaption("analyzing", "active", "outfit_parent")).toBe("Finding visible pieces");
-    expect(getPrettifyStepCaption("prettifying", "pending", "outfit_parent")).toBe("Prettify waiting");
+    expect(getPrettifyStepCaption("prettifying", "pending", "outfit_parent")).toBe("Preparation waiting");
     expect(getPrettifyStepCaption("ready", "active")).toBe("Ready for review");
   });
 

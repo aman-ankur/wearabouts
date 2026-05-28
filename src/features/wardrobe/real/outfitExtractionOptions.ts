@@ -10,9 +10,9 @@ export interface OutfitExtractionOption {
 export const outfitExtractionOptions: OutfitExtractionOption[] = [
   {
     id: "pick_after_scan",
-    title: "Pick after scan",
-    shortLabel: "Scan first",
-    description: "Wearabouts scans the photo first, then you choose the pieces worth preparing.",
+    title: "Choose pieces",
+    shortLabel: "Choose pieces",
+    description: "Wearabouts reads the photo first, then you choose the pieces worth preparing.",
   },
   {
     id: "new_tops",

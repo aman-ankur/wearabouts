@@ -11,6 +11,8 @@ The visual quality target is similar to the provided Alta Daily references:
 - Full-body fashion-catalog render.
 - Clean light gray or white studio background.
 - Realistic body proportions and recognizable likeness.
+- Very subtle studio-photo polish while preserving the same facial structure, age, skin tone, hairstyle, facial hair, and expression.
+- Natural head-to-body scale without an oversized head or enlarged face.
 - Styled outfit that looks naturally worn, not pasted on.
 - Simple regenerate/delete controls.
 
@@ -331,7 +333,7 @@ Prompts should be versioned and conservative.
 First prompt family:
 
 ```text
-Create a realistic full-body studio fashion render of the person from the face and body references wearing the selected outfit items. Preserve recognizable facial likeness and body proportions. Prioritize making the outfit look naturally worn, clean, stylish, and faithful to the wardrobe item colors, patterns, silhouettes, and materials. Use a neutral light gray studio background. Show the entire body from head to shoes. Do not add extra clothing items. Do not crop the head or feet.
+Create a realistic full-body studio fashion render of the person from the face and body references wearing the selected outfit items. Preserve recognizable facial likeness, facial structure, age, skin tone, hairstyle, facial hair, expression, body proportions, and natural head-to-body scale. Apply only very subtle studio-photo polish with natural skin texture and cleaner lighting/detail; avoid beauty filters, face slimming, symmetry changes, younger-looking face, airbrushed skin, oversized head, or identity drift. Prioritize making the outfit look naturally worn, clean, stylish, and faithful to the wardrobe item colors, patterns, silhouettes, and materials. Use a neutral light gray studio background. Show the entire body from head to shoes. Do not add extra clothing items. Do not crop the head or feet.
 ```
 
 Wardrobe item metadata should be included in structured text:

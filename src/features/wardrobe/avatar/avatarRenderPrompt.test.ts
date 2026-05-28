@@ -27,18 +27,20 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1");
+    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.1");
     expect(prompt).toContain("full-body");
     expect(prompt).toContain("neutral light gray or white studio background");
     expect(prompt).toContain("recognizable likeness");
+    expect(prompt).toContain("Preserve the same facial structure, face shape, age, skin tone, hairstyle, facial hair, and expression");
     expect(prompt).toContain("body proportions");
+    expect(prompt).toContain("natural head-to-body scale");
     expect(prompt).toContain("Prioritize outfit quality");
     expect(prompt).toContain("Striped Shirt");
     expect(prompt).toContain("Do not add extra core garments");
     expect(prompt).toContain("Do not crop the head or feet");
   });
 
-  it("asks for a confident casual pose with upright posture", () => {
+  it("asks for subtle realistic studio polish without changing identity", () => {
     const prompt = buildAvatarRenderPrompt({
       savedOutfitName: "Casual look",
       items: [item("shirt", "Oxford Shirt", "tops")],
@@ -46,7 +48,10 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(prompt).toContain("good-looking, confident");
+    expect(prompt).toContain("Apply only very subtle studio-photo polish");
+    expect(prompt).toContain("natural skin texture");
+    expect(prompt).toContain("cleaner eye and jaw detail");
+    expect(prompt).toContain("Avoid beauty filters, face slimming, symmetry changes, younger-looking face, airbrushed skin");
     expect(prompt).toContain("relaxed casual fashion pose");
     expect(prompt).toContain("upright posture");
     expect(prompt).toContain("no hunching");

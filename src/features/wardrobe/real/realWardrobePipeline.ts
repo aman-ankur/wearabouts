@@ -412,7 +412,7 @@ export class RealWardrobePipeline {
     } catch (error) {
       const failedJob = await this.repository.updatePrettifyJob(job.id, {
         status: "failed",
-        errorMessage: error instanceof Error ? error.message : "Prettify job failed",
+        errorMessage: error instanceof Error ? error.message : "Wardrobe Prep failed",
       });
 
       return { job: failedJob, garment: null, garments: [] };
@@ -650,7 +650,7 @@ export class RealWardrobePipeline {
 
       return { job: readyJob, garment, garments: [garment] };
     } catch (error) {
-      const message = error instanceof Error ? error.message : "Garment candidate prettify failed";
+      const message = error instanceof Error ? error.message : "Garment preparation failed";
       await this.repository.updateGarmentCandidate(candidate.id, { status: "failed", errorMessage: message });
       const failedJob = await this.repository.updatePrettifyJob(job.id, {
         status: "failed",
@@ -675,7 +675,7 @@ export class RealWardrobePipeline {
   private async requireJob(jobId: string) {
     const job = await this.repository.getPrettifyJob(jobId);
     if (!job) {
-      throw new Error("Prettify job not found");
+      throw new Error("Processing job not found");
     }
 
     return job;

@@ -1,3 +1,4 @@
+import React from "react";
 import { Sparkles } from "lucide-react";
 import { GarmentArtwork } from "./GarmentArtwork";
 
@@ -15,10 +16,10 @@ export function PrettifyExplainer() {
       </div>
       <h2 style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 18 }}>
         <Sparkles size={18} />
-        Auto-Prettify is on
+        Wardrobe Prep is on
       </h2>
       <p style={{ margin: 0, color: "#c7c7c7", fontSize: 13, lineHeight: 1.45 }}>
-        Wearabouts turns messy clothing photos into clean, standardized wardrobe items for review, mixing, and trip
+        Wearabouts prepares clothing photos into clean, standardized wardrobe items for review, mixing, and trip
         planning.
       </p>
     </section>

@@ -1,6 +1,5 @@
 "use client";
 
-import { FileImage } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import type { OutfitExtractionMode, UploadSourceType } from "@/src/domain/wardrobe";
@@ -9,6 +8,7 @@ import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { PrettifyExplainer } from "@/src/features/wardrobe/components/PrettifyExplainer";
 import { UploadChoiceCard } from "@/src/features/wardrobe/components/UploadChoiceCard";
+import { UploadPhotoInput } from "@/src/features/wardrobe/components/UploadPhotoInput";
 import { getOutfitExtractionOption, outfitExtractionOptions } from "@/src/features/wardrobe/real/outfitExtractionOptions";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
@@ -37,7 +37,7 @@ export default function UploadPage() {
   async function handleRealUpload(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (!selectedFile) {
-      setUploadError("Choose one clothing photo first.");
+      setUploadError("Choose or take one clothing photo first.");
       return;
     }
 
@@ -104,38 +104,12 @@ export default function UploadPage() {
                   textTransform: "uppercase",
                 }}
               >
-                Auto-Prettify
+                Wardrobe Prep
               </span>
               <span className="pill">{getRuntimeModeLabel(runtimeMode)}</span>
             </div>
 
-            <label
-              htmlFor="item_photo"
-              style={{
-                display: "grid",
-                placeItems: "center",
-                minHeight: 136,
-                border: "1px dashed var(--line)",
-                borderRadius: 8,
-                background: "var(--paper)",
-                textAlign: "center",
-                padding: 18,
-              }}
-            >
-              <FileImage size={30} />
-              <strong style={{ marginTop: 8, fontSize: 17 }}>Choose photo</strong>
-              <span className="subtle" style={{ fontSize: 14 }}>
-                {selectedFile ? selectedFile.name : "JPG, PNG, or WebP under 10MB"}
-              </span>
-              <input
-                id="item_photo"
-                name="item_photo"
-                type="file"
-                accept="image/png,image/jpeg,image/webp"
-                onChange={handleFileChange}
-                style={{ position: "absolute", opacity: 0, pointerEvents: "none" }}
-              />
-            </label>
+            <UploadPhotoInput selectedFileName={selectedFile?.name ?? null} onFileChange={handleFileChange} />
 
             {uploadError ? (
               <p className="subtle" role="alert" style={{ color: "var(--wine)", margin: 0 }}>
@@ -186,7 +160,7 @@ export default function UploadPage() {
             </section>
 
             <button type="submit" className="full-button" disabled={isUploading} style={{ minHeight: 50, fontSize: 15 }}>
-              {isUploading ? "Starting..." : isDevMode ? "Use cached result" : "Scan photo"}
+              {isUploading ? "Starting..." : isDevMode ? "Use cached result" : "Process photo"}
             </button>
           </form>
 
@@ -202,7 +176,7 @@ export default function UploadPage() {
       <div className="appbar">
         <div>
           <h1 className="app-title">Add To Wardrobe</h1>
-          <p className="subtle">Choose a demo upload type. Auto-Prettify runs before review.</p>
+          <p className="subtle">Choose a demo upload type. Wardrobe Prep runs before review.</p>
         </div>
       </div>
 
