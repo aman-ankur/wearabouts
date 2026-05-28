@@ -13,6 +13,7 @@
 Implemented on `codex/phase8-avatar-studio`:
 
 - Avatar domain types, reducer state, validation, render request, prompt, and cache-key services.
+- Avatar render prompt upgraded to `avatar-studio-v1.3` for balanced studio realism plus light fashion-catalog pose, camera, grooming, and garment-fit direction while explicitly avoiding jaw sculpting, body reshaping, and model-makeover drift. When a saved look includes outerwear but no top, the prompt now allows one modest neutral inner layer so jackets and suits are never rendered over a bare torso.
 - Demo/dev deterministic avatar render provider with no AI spend.
 - Real OpenAI avatar render provider behind `NEXT_PUBLIC_TRAVOGUE_MODE=real`, `WEARABOUTS_AVATAR_REAL_RENDER_ENABLED=true`, and OpenAI avatar model config.
 - `/avatar?savedOutfitId=...` setup and render flow launched only from saved looks.
@@ -408,7 +409,7 @@ Cover that the prompt:
 Use a versioned constant:
 
 ```ts
-export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.1";
+export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.3";
 ```
 
 Keep prompts deterministic. Do not concatenate raw user notes into the prompt in Phase 8.

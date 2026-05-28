@@ -12,7 +12,7 @@ const request: AvatarRenderProviderRequest = {
     wardrobeItemIds: ["shirt"],
     poseId: "studio-three-quarter",
     quality: "final",
-    promptVersion: "avatar-studio-v1.1",
+    promptVersion: "avatar-studio-v1.3",
   },
   avatarProfile: {
     id: "avatar-profile-aankur",

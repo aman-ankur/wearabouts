@@ -340,12 +340,12 @@ Use high quality for final user-facing renders. Draft quality can exist later fo
 
 ### Prompt Strategy
 
-Prompts should be versioned and conservative.
+Prompts should be versioned and conservative, but lightly fashion-directed enough to avoid passport-photo or corporate-headshot outputs.
 
-First prompt family:
+Current prompt family:
 
 ```text
-Create a realistic full-body studio fashion render of the person from the face and body references wearing the selected outfit items. Preserve recognizable facial likeness, facial structure, age, skin tone, hairstyle, facial hair, expression, body proportions, and natural head-to-body scale. Apply only very subtle studio-photo polish with natural skin texture and cleaner lighting/detail; avoid beauty filters, face slimming, symmetry changes, younger-looking face, airbrushed skin, oversized head, or identity drift. Prioritize making the outfit look naturally worn, clean, stylish, and faithful to the wardrobe item colors, patterns, silhouettes, and materials. Use a neutral light gray studio background. Show the entire body from head to shoes. Do not add extra clothing items. Do not crop the head or feet.
+avatar-studio-v1.3: Create a realistic accurate studio person with light fashion-catalog polish from the face and body references wearing the selected outfit items. Preserve recognizable likeness, facial structure, face shape, age, skin tone, hairstyle, facial hair, natural facial fullness, realistic body proportions, broad silhouette, and natural head-to-body scale while allowing a calmer composed expression if the source smile or blink looks awkward. Use a full-body 70-85mm studio catalog perspective with relaxed confident posture, slight pose asymmetry, optional hand-in-pocket styling when compatible with the outfit, generous neutral background, soft studio lighting, and a subtle floor contact shadow. Apply restrained studio polish through lighting and focus with natural skin texture, clearer eyes, natural facial detail, and groomed hair definition; avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw, symmetry changes, younger-looking face, airbrushed/plastic skin, oversized head, wide-angle distortion, body slimming, body elongation, muscular reshaping, model makeover, or identity drift. Prioritize making the outfit look contemporary, naturally worn, neatly styled, properly fitted to the person's real body, and faithful to the wardrobe item colors, patterns, silhouettes, materials, and construction details. If the selected outfit includes outerwear but no top, add one simple modest neutral inner layer under the outerwear so the person is not bare-chested; keep it secondary and do not replace or hide the selected outerwear. Show the entire body from head to shoes. Do not add extra clothing items except this necessary inner layer. Do not crop the head or feet.
 ```
 
 Wardrobe item metadata should be included in structured text:

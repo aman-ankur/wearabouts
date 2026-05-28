@@ -27,11 +27,11 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.1");
+    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.3");
     expect(prompt).toContain("full-body");
     expect(prompt).toContain("neutral light gray or white studio background");
     expect(prompt).toContain("recognizable likeness");
-    expect(prompt).toContain("Preserve the same facial structure, face shape, age, skin tone, hairstyle, facial hair, and expression");
+    expect(prompt).toContain("Preserve facial structure, face shape, age, skin tone, hairstyle, facial hair, and natural facial fullness");
     expect(prompt).toContain("body proportions");
     expect(prompt).toContain("natural head-to-body scale");
     expect(prompt).toContain("Prioritize outfit quality");
@@ -48,13 +48,53 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(prompt).toContain("Apply only very subtle studio-photo polish");
+    expect(prompt).toContain("Apply restrained studio-photo polish");
     expect(prompt).toContain("natural skin texture");
-    expect(prompt).toContain("cleaner eye and jaw detail");
-    expect(prompt).toContain("Avoid beauty filters, face slimming, symmetry changes, younger-looking face, airbrushed skin");
-    expect(prompt).toContain("relaxed casual fashion pose");
-    expect(prompt).toContain("upright posture");
-    expect(prompt).toContain("no hunching");
-    expect(prompt).toContain("natural shoulders");
+    expect(prompt).toContain("clearer eyes");
+    expect(prompt).toContain("natural facial detail");
+    expect(prompt).toContain("Avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw");
+    expect(prompt).toContain("natural studio catalog pose");
+    expect(prompt).toContain("one hand casually in a pocket");
+    expect(prompt).toContain("subtle weight through one leg");
+    expect(prompt).toContain("not passport photo");
+    expect(prompt).toContain("not corporate headshot");
+    expect(prompt).toContain("not a model makeover");
+    expect(prompt).toContain("70-85mm studio catalog perspective");
+    expect(prompt).toContain("Improve posture and garment drape");
+    expect(prompt).toContain("without making the body taller, slimmer, more muscular");
+  });
+
+  it("allows a modest inferred inner layer when outerwear has no top", () => {
+    const prompt = buildAvatarRenderPrompt({
+      savedOutfitName: "Jacket look",
+      items: [
+        item("jacket", "Navy Wool Jacket", "outerwear", { colors: ["navy"] }),
+        item("trousers", "Charcoal Trousers", "bottoms", { colors: ["charcoal"] }),
+      ],
+      poseId: "studio-three-quarter",
+      quality: "final",
+    });
+
+    expect(prompt).toContain("Base layer exception");
+    expect(prompt).toContain("outerwear but no top");
+    expect(prompt).toContain("Add one simple, modest inner layer");
+    expect(prompt).toContain("plain neutral T-shirt, crewneck, polo, or button-down");
+    expect(prompt).toContain("do not replace or hide the selected outerwear");
+  });
+
+  it("does not infer an inner layer when a top is already selected", () => {
+    const prompt = buildAvatarRenderPrompt({
+      savedOutfitName: "Layered look",
+      items: [
+        item("jacket", "Navy Wool Jacket", "outerwear", { colors: ["navy"] }),
+        item("shirt", "White Oxford Shirt", "tops", { colors: ["white"] }),
+        item("trousers", "Charcoal Trousers", "bottoms", { colors: ["charcoal"] }),
+      ],
+      poseId: "studio-three-quarter",
+      quality: "final",
+    });
+
+    expect(prompt).not.toContain("Base layer exception");
+    expect(prompt).toContain("Do not add extra core garments");
   });
 });
