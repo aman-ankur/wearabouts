@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Transparent Canvas Mixer</title>
+    <style>
+      :root {
+        --ink: #111;
+        --muted: #756f68;
+        --line: #e7ded3;
+        --paper: #fffefa;
+        --soft: #f2ece2;
+        --lime: #d7ff34;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: #f6f3ee;
+        color: var(--ink);
+        font-family:
+          Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+        letter-spacing: 0;
+      }
+
+      main {
+        width: min(100%, 430px);
+        min-height: 100vh;
+        margin: 0 auto;
+        background: var(--paper);
+        border-left: 1px solid var(--line);
+        border-right: 1px solid var(--line);
+      }
+
+      header {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        background: rgba(255, 254, 250, 0.94);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid var(--line);
+        padding: 18px 16px 0;
+      }
+
+      .topbar {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      h1,
+      h2,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: 25px;
+        line-height: 1;
+      }
+
+      .signin,
+      button {
+        border: 0;
+        font: inherit;
+        font-weight: 820;
+      }
+
+      .signin {
+        min-height: 45px;
+        border-radius: 8px;
+        padding: 0 18px;
+        background: #050505;
+        color: #fff;
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+        margin-top: 18px;
+      }
+
+      .tab {
+        min-height: 46px;
+        border-bottom: 4px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        font-size: 18px;
+      }
+
+      .tab.active {
+        border-color: var(--ink);
+        color: var(--ink);
+      }
+
+      .screen {
+        display: grid;
+        gap: 18px;
+        padding: 18px 16px 104px;
+      }
+
+      .hero-note {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        align-items: center;
+        gap: 12px;
+        border-radius: 8px;
+        background: var(--lime);
+        padding: 14px;
+      }
+
+      .hero-note strong {
+        display: block;
+        font-size: 15px;
+      }
+
+      .hero-note span {
+        display: block;
+        color: #38400b;
+        font-size: 12px;
+        margin-top: 2px;
+      }
+
+      .hero-note button,
+      .primary {
+        min-height: 48px;
+        border-radius: 8px;
+        background: #050505;
+        color: #fff;
+        padding: 0 15px;
+      }
+
+      .mode-card {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: #fff;
+        padding: 14px;
+      }
+
+      .smart-card {
+        display: grid;
+        gap: 12px;
+      }
+
+      .smart-head {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .pill {
+        min-height: 31px;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--ink);
+        padding: 6px 10px;
+        font-size: 12px;
+        font-weight: 780;
+        white-space: nowrap;
+      }
+
+      .canvas {
+        position: relative;
+        min-height: 455px;
+        background: #fff;
+        overflow: hidden;
+      }
+
+      .garment {
+        position: absolute;
+        display: block;
+        object-fit: contain;
+        background: transparent;
+        filter: drop-shadow(0 16px 18px rgba(20, 20, 20, 0.1));
+      }
+
+      .shirt {
+        left: 20%;
+        top: 10px;
+        width: 60%;
+      }
+
+      .pants {
+        left: 24%;
+        top: 168px;
+        width: 52%;
+      }
+
+      .shoes {
+        left: 29%;
+        top: 355px;
+        width: 43%;
+      }
+
+      .meta {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.42;
+      }
+
+      .actions {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 8px;
+      }
+
+      .secondary {
+        min-height: 48px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: #fff;
+        color: var(--ink);
+      }
+
+      .manual-board {
+        display: grid;
+        gap: 8px;
+        background: #fff;
+        padding: 22px 0;
+        overflow: hidden;
+      }
+
+      .row-label {
+        padding: 0 4px;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 820;
+        text-transform: uppercase;
+      }
+
+      .rail {
+        display: grid;
+        grid-auto-flow: column;
+        grid-auto-columns: 58%;
+        gap: 34px;
+        overflow-x: auto;
+        padding: 0 21% 8px;
+        scroll-snap-type: x mandatory;
+        scrollbar-width: none;
+      }
+
+      .rail::-webkit-scrollbar {
+        display: none;
+      }
+
+      .rail button {
+        min-height: 132px;
+        scroll-snap-align: center;
+        border: 0;
+        background: transparent;
+        padding: 0;
+        display: grid;
+        place-items: center;
+      }
+
+      .rail img {
+        width: 100%;
+        max-height: 150px;
+        object-fit: contain;
+        filter: drop-shadow(0 14px 16px rgba(20, 20, 20, 0.1));
+      }
+
+      .rail.bottom button {
+        min-height: 170px;
+      }
+
+      .rail.bottom img {
+        max-height: 188px;
+      }
+
+      .rail.shoes button {
+        min-height: 94px;
+      }
+
+      .rail.shoes img {
+        max-height: 86px;
+      }
+
+      .manual-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+      }
+
+      .bottom-nav {
+        position: fixed;
+        left: 50%;
+        bottom: 0;
+        width: min(100%, 430px);
+        transform: translateX(-50%);
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        border-top: 1px solid var(--line);
+        background: rgba(255, 254, 250, 0.96);
+        padding: 10px 12px 18px;
+      }
+
+      .bottom-nav span {
+        text-align: center;
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 760;
+      }
+
+      .bottom-nav .active {
+        color: var(--ink);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <div class="topbar">
+          <h1>Styling</h1>
+          <button class="signin">Join / sign in</button>
+        </div>
+        <nav class="tabs" aria-label="Styling modes">
+          <button class="tab active">Smart Mixer</button>
+          <button class="tab">Canvas</button>
+        </nav>
+      </header>
+
+      <section class="screen">
+        <section class="hero-note">
+          <p><strong>This is an example look.</strong><span>Upload your clothes for real cutouts.</span></p>
+          <button>Upload</button>
+        </section>
+
+        <article class="mode-card smart-card">
+          <div class="smart-head">
+            <div>
+              <p class="meta">Look 1 of 5 · suggestions</p>
+              <h2>Dinner-ready white graphic t-shirt</h2>
+            </div>
+            <span class="pill">Strong match</span>
+          </div>
+          <div class="canvas" aria-label="Smart outfit board">
+            <img
+              class="garment shirt"
+              alt="White graphic t-shirt"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-e831bd2a-025a-4eca-929a-dc705e102bcd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWU4MzFiZDJhLTAyNWEtNGVjYS05MjlhLWRjNzA1ZTEwMmJjZC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tNzTjZyKrsR2y-PDFtm128gYWFASuGxcE-lz-Vy10fs"
+            />
+            <img
+              class="garment pants"
+              alt="Dark trousers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-35b2e398-090f-42e8-ace7-59e157ea5f86.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LTM1YjJlMzk4LTA5MGYtNDJlOC1hY2U3LTU5ZTE1N2VhNWY4Ni5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tofDBB9DaUCjmyG3obiXnTCUpt4YZ1c43fImtggztQ8"
+            />
+            <img
+              class="garment shoes"
+              alt="White sneakers"
+              src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b051b4c0-f532-4406-8e27-2e7d34623770.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWIwNTFiNGMwLWY1MzItNDQwNi04ZTI3LTJlN2QzNDYyMzc3MC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.WKskMnRFUnuv9clLBiSyeS0tlRl1SFCgB-9tf9tmoOc"
+            />
+          </div>
+          <p class="meta">Smart mixer keeps ranked outfit suggestions and can always restart the deck.</p>
+          <div class="actions">
+            <button class="primary">Save look</button>
+            <button class="secondary">New mix</button>
+          </div>
+        </article>
+
+        <article class="mode-card">
+          <div class="smart-head">
+            <div>
+              <p class="meta">Manual canvas</p>
+              <h2>Swipe each row into place</h2>
+            </div>
+            <span class="pill">No AI</span>
+          </div>
+
+          <div class="manual-board" aria-label="Manual swipe mixer board">
+            <span class="row-label">Tops + layers</span>
+            <div class="rail">
+              <button><img alt="White graphic t-shirt" src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-e831bd2a-025a-4eca-929a-dc705e102bcd.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWU4MzFiZDJhLTAyNWEtNGVjYS05MjlhLWRjNzA1ZTEwMmJjZC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tNzTjZyKrsR2y-PDFtm128gYWFASuGxcE-lz-Vy10fs" /></button>
+              <button><img alt="Beige overshirt" src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b68153bb-e0c4-4216-88ff-1156fe834319.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWI2ODE1M2JiLWUwYzQtNDIxNi04OGZmLTExNTZmZTgzNDMxOS5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.R398VcHyoFz_NhOaxZTYfRrT06AtutGhp86__cq0LKs" /></button>
+            </div>
+            <span class="row-label">Bottoms</span>
+            <div class="rail bottom">
+              <button><img alt="Dark trousers" src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-35b2e398-090f-42e8-ace7-59e157ea5f86.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LTM1YjJlMzk4LTA5MGYtNDJlOC1hY2U3LTU5ZTE1N2VhNWY4Ni5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.tofDBB9DaUCjmyG3obiXnTCUpt4YZ1c43fImtggztQ8" /></button>
+            </div>
+            <span class="row-label">Shoes</span>
+            <div class="rail shoes">
+              <button><img alt="White sneakers" src="https://scujzuckediiazaycpya.supabase.co/storage/v1/object/sign/closet-assets/demo-household/profile-aankur/asset-b051b4c0-f532-4406-8e27-2e7d34623770.png?token=eyJraWQiOiJzdG9yYWdlLXVybC1zaWduaW5nLWtleV9mMmI1MzczNi1lNDBiLTRjNTQtYjA1Yi04ZDE3Nzc0OGY2MWYiLCJhbGciOiJIUzI1NiJ9.eyJ1cmwiOiJjbG9zZXQtYXNzZXRzL2RlbW8taG91c2Vob2xkL3Byb2ZpbGUtYWFua3VyL2Fzc2V0LWIwNTFiNGMwLWY1MzItNDQwNi04ZTI3LTJlN2QzNDYyMzc3MC5wbmciLCJpYXQiOjE3Nzk4OTY2NjEsImV4cCI6MTc3OTkwMDI2MX0.WKskMnRFUnuv9clLBiSyeS0tlRl1SFCgB-9tf9tmoOc" /></button>
+            </div>
+          </div>
+
+          <div class="manual-actions">
+            <button class="primary">Create look</button>
+            <button class="secondary">Avatar</button>
+          </div>
+        </article>
+      </section>
+    </main>
+    <nav class="bottom-nav" aria-label="Primary">
+      <span>Closet</span>
+      <span>Trips</span>
+      <span class="active">Styling</span>
+      <span>Avatar</span>
+    </nav>
+  </body>
+</html>

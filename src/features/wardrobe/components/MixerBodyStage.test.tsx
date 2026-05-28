@@ -42,10 +42,13 @@ describe("MixerBodyStage", () => {
     );
 
     expect(html).toContain('data-mixer-board-canvas="clean"');
-    expect(html).toContain('data-mixer-board-item-frame="top"');
-    expect(html).toContain('data-mixer-board-item-frame="bottom"');
-    expect(html).not.toContain('data-mixer-board-item-frame="accessory"');
-    expect(html).toContain("grid-template-columns:repeat(2, minmax(0, 1fr))");
+    expect(html).toContain('data-mixer-board-surface="white"');
+    expect(html).toContain('data-mixer-board-item="top"');
+    expect(html).toContain('data-mixer-board-item="bottom"');
+    expect(html).not.toContain('data-mixer-board-item="accessory"');
+    expect(html).not.toContain("data-mixer-board-item-frame");
+    expect(html).not.toContain("border:1px solid rgba(36,38,34,.12)");
+    expect(html).not.toContain("grid-template-columns:repeat(2, minmax(0, 1fr))");
     expect(html).toContain("overflow:hidden");
     expect(html).toContain('src="https://signed.example/top.png"');
     expect(html).toContain('src="https://signed.example/bottom.png"');
@@ -63,10 +66,11 @@ describe("MixerBodyStage", () => {
       />,
     );
 
-    expect(html).toContain('data-mixer-board-item-frame="layer"');
+    expect(html).toContain('data-mixer-board-item="layer"');
     expect(html).toContain('src="https://signed.example/layer.png"');
     expect(html).not.toContain("opacity:0.15");
-    expect(html).toContain("Layer");
+    expect(html).toContain('data-mixer-board-labels="subtle"');
+    expect(html).toContain("Layer:");
     expect(html).toContain("Beige overshirt jacket");
   });
 });

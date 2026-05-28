@@ -59,8 +59,7 @@ export function MixerRail({ slot, label, items, selectedItemId, locked, onSelect
                     minHeight: 108,
                     display: "grid",
                     placeItems: "center",
-                    background: "#f8f5ef",
-                    borderRadius: 8,
+                    background: "transparent",
                   }}
                 >
                   <ClosetAssetArtwork asset={item.asset} />

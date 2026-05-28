@@ -255,7 +255,7 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
     },
     async prettifyGarment() {
       prettifyCallCount += 1;
-      return { bytes: new Uint8Array([4, 5, 6]), contentType: "image/png" };
+      return { bytes: new Uint8Array([4, 5, 6]), contentType: "image/png", qualityNotes: [] };
     },
     async validatePrettifiedAsset() {
       validationCallCount += 1;

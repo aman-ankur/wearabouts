@@ -1,7 +1,21 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowLeft, ChevronLeft, ChevronRight, Heart, Lock, Save, SlidersHorizontal, Sparkles, Unlock, X } from "lucide-react";
+import {
+  ArrowLeft,
+  ChevronLeft,
+  ChevronRight,
+  Heart,
+  Lock,
+  RefreshCcw,
+  Save,
+  Shirt,
+  SlidersHorizontal,
+  Sparkles,
+  Unlock,
+  UserRound,
+  X,
+} from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
@@ -23,6 +37,15 @@ const slotLabels: Record<OutfitSlot, string> = {
 };
 
 const promptLabels = ["More casual", "Dinner-ready", "Better for travel", "Less black", "Keep these pants"];
+
+type MixerMode = "smart" | "canvas";
+type ManualSlot = "top" | "bottom" | "shoes";
+
+const manualSlots: Array<{ slot: ManualSlot; label: string; emptyLabel: string }> = [
+  { slot: "top", label: "Tops + layers", emptyLabel: "No tops or layers yet" },
+  { slot: "bottom", label: "Bottoms", emptyLabel: "No bottoms yet" },
+  { slot: "shoes", label: "Shoes", emptyLabel: "No shoes yet" },
+];
 
 function getSelectedItems(items: WardrobeItem[], suggestion: OutfitSuggestion): Partial<Record<OutfitSlot, WardrobeItem>> {
   return suggestion.selections.reduce<Partial<Record<OutfitSlot, WardrobeItem>>>((selected, selection) => {
@@ -56,15 +79,164 @@ function similarityScore(anchor: OutfitSuggestion, suggestion: OutfitSuggestion)
   return Array.from(suggestionIds).reduce((score, itemId) => score + (anchorIds.has(itemId) ? 1 : 0), 0);
 }
 
+function getManualSlotForItem(item: WardrobeItem): OutfitSlot | null {
+  if (item.category === "tops" || item.category === "outerwear") {
+    return "top";
+  }
+
+  if (item.category === "bottoms") {
+    return "bottom";
+  }
+
+  if (item.category === "footwear") {
+    return "shoes";
+  }
+
+  return null;
+}
+
+function getManualItemsBySlot(items: WardrobeItem[]): Record<ManualSlot, WardrobeItem[]> {
+  return items.reduce<Record<ManualSlot, WardrobeItem[]>>(
+    (grouped, item) => {
+      const slot = getManualSlotForItem(item);
+      if (slot === "top" || slot === "bottom" || slot === "shoes") {
+        grouped[slot].push(item);
+      }
+
+      return grouped;
+    },
+    { top: [], bottom: [], shoes: [] },
+  );
+}
+
+function getInitialManualSelections(itemsBySlot: Record<ManualSlot, WardrobeItem[]>) {
+  return {
+    top: itemsBySlot.top[0]?.id ?? null,
+    bottom: itemsBySlot.bottom[0]?.id ?? null,
+    shoes: itemsBySlot.shoes[0]?.id ?? null,
+  };
+}
+
+function getManualSelectedItems(
+  items: WardrobeItem[],
+  selections: Record<ManualSlot, string | null>,
+): Partial<Record<OutfitSlot, WardrobeItem>> {
+  return manualSlots.reduce<Partial<Record<OutfitSlot, WardrobeItem>>>((selected, { slot }) => {
+    const item = items.find((closetItem) => closetItem.id === selections[slot]);
+    if (item) {
+      selected[slot] = item;
+    }
+
+    return selected;
+  }, {});
+}
+
+function ManualMixerRow({
+  label,
+  emptyLabel,
+  items,
+  selectedItemId,
+  onSelect,
+}: {
+  label: string;
+  emptyLabel: string;
+  items: WardrobeItem[];
+  selectedItemId: string | null;
+  onSelect: (itemId: string) => void;
+}) {
+  return (
+    <section aria-label={`${label} manual mixer row`} style={{ display: "grid", gap: 5, minWidth: 0 }}>
+      <span
+        style={{
+          color: "var(--muted)",
+          fontSize: 11,
+          fontWeight: 820,
+          textTransform: "uppercase",
+        }}
+      >
+        {label}
+      </span>
+      {items.length === 0 ? (
+        <div className="subtle" style={{ minHeight: 78, display: "grid", placeItems: "center" }}>
+          {emptyLabel}
+        </div>
+      ) : (
+        <div
+          style={{
+            display: "grid",
+            gridAutoFlow: "column",
+            gridAutoColumns: "58%",
+            gap: 26,
+            overflowX: "auto",
+            overscrollBehaviorX: "contain",
+            scrollSnapType: "x mandatory",
+            padding: "0 21% 8px",
+            scrollbarWidth: "none",
+          }}
+        >
+          {items.map((item) => {
+            const selected = item.id === selectedItemId;
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onSelect(item.id)}
+                aria-pressed={selected}
+                title={item.name}
+                style={{
+                  minHeight: item.category === "bottoms" ? 158 : item.category === "footwear" ? 82 : 124,
+                  scrollSnapAlign: "center",
+                  border: 0,
+                  borderRadius: 8,
+                  background: "transparent",
+                  padding: 0,
+                  display: "grid",
+                  placeItems: "center",
+                  opacity: selected ? 1 : 0.86,
+                }}
+              >
+                <span
+                  style={{
+                    width: "100%",
+                    height: item.category === "bottoms" ? 154 : item.category === "footwear" ? 78 : 120,
+                    display: "grid",
+                    placeItems: "center",
+                    filter: "drop-shadow(0 14px 16px rgba(20,20,20,.10))",
+                  }}
+                >
+                  <ClosetAssetArtwork asset={item.asset} />
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
+    </section>
+  );
+}
+
 export default function MixerPage() {
   const { state, mixerState, saveCurrentOutfit } = useWardrobe();
+  const [mixerMode, setMixerMode] = useState<MixerMode>("smart");
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [dismissedSuggestionIds, setDismissedSuggestionIds] = useState<string[]>([]);
   const [similarityAnchorId, setSimilarityAnchorId] = useState<string | null>(null);
   const [activeSuggestionIndex, setActiveSuggestionIndex] = useState(0);
   const [refiningSuggestion, setRefiningSuggestion] = useState<OutfitSuggestion | null>(null);
   const [activeSlot, setActiveSlot] = useState<OutfitSlot>("top");
+  const [manualSelections, setManualSelections] = useState<Record<ManualSlot, string | null>>({
+    top: null,
+    bottom: null,
+    shoes: null,
+  });
+  const [manualSavedOutfitId, setManualSavedOutfitId] = useState<string | null>(null);
   const readyItems = useMemo(() => state.closetItems.filter((item) => item.readyForMixer), [state.closetItems]);
+  const manualItemsBySlot = useMemo(() => getManualItemsBySlot(readyItems), [readyItems]);
+  const manualSelectedItems = useMemo(
+    () => getManualSelectedItems(readyItems, manualSelections),
+    [manualSelections, readyItems],
+  );
   const suggestions = useMemo(
     () => {
       const recommended = getOutfitRecommendations({
@@ -102,6 +274,21 @@ export default function MixerPage() {
   useEffect(() => {
     setActiveSuggestionIndex((index) => Math.min(index, Math.max(suggestions.length - 1, 0)));
   }, [suggestions.length]);
+
+  useEffect(() => {
+    setManualSelections((current) => {
+      const initial = getInitialManualSelections(manualItemsBySlot);
+      return {
+        top: current.top && manualItemsBySlot.top.some((item) => item.id === current.top) ? current.top : initial.top,
+        bottom:
+          current.bottom && manualItemsBySlot.bottom.some((item) => item.id === current.bottom)
+            ? current.bottom
+            : initial.bottom,
+        shoes:
+          current.shoes && manualItemsBySlot.shoes.some((item) => item.id === current.shoes) ? current.shoes : initial.shoes,
+      };
+    });
+  }, [manualItemsBySlot]);
 
   function saveSuggestion(suggestion: OutfitSuggestion, source: "suggestion" | "refined") {
     saveCurrentOutfit(suggestion.title, suggestion.profileId, suggestion.selections, {
@@ -143,6 +330,41 @@ export default function MixerPage() {
     setSimilarityAnchorId(suggestion.id);
     setActiveSuggestionIndex(Math.min(1, suggestions.length - 1));
     setSaveMessage("Showing closest matches");
+  }
+
+  function resetSmartMixer() {
+    setDismissedSuggestionIds([]);
+    setSimilarityAnchorId(null);
+    setActiveSuggestionIndex(0);
+    setRefiningSuggestion(null);
+    setSaveMessage("Ready for a new mix");
+  }
+
+  function saveManualLook() {
+    const selections = manualSlots
+      .map(({ slot }) => ({
+        slot,
+        wardrobeItemId: manualSelections[slot],
+        locked: false,
+      }))
+      .filter((selection) => Boolean(selection.wardrobeItemId));
+
+    if (selections.length === 0) {
+      setSaveMessage("Pick at least one item");
+      return null;
+    }
+
+    const nameParts = selections
+      .map((selection) => readyItems.find((item) => item.id === selection.wardrobeItemId)?.name)
+      .filter(Boolean);
+    const outfitId = saveCurrentOutfit(nameParts.slice(0, 2).join(" + ") || "Canvas mix", "profile-aankur", selections, {
+      source: "manual",
+      intent: "canvas_mix",
+      rationale: "Built manually on the transparent mixer canvas.",
+    });
+    setManualSavedOutfitId(outfitId);
+    setSaveMessage("Saved canvas mix");
+    return outfitId;
   }
 
   if (readyItems.length === 0) {
@@ -356,6 +578,115 @@ export default function MixerPage() {
         </span>
       </div>
 
+      <div
+        role="tablist"
+        aria-label="Mixer mode"
+        style={{
+          display: "grid",
+          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+          gap: 6,
+          padding: 4,
+          border: "1px solid var(--line)",
+          borderRadius: 999,
+          background: "var(--soft)",
+          marginBottom: 12,
+        }}
+      >
+        {(["smart", "canvas"] as MixerMode[]).map((mode) => (
+          <button
+            key={mode}
+            type="button"
+            role="tab"
+            aria-selected={mixerMode === mode}
+            onClick={() => setMixerMode(mode)}
+            style={{
+              minHeight: 38,
+              border: 0,
+              borderRadius: 999,
+              background: mixerMode === mode ? "var(--ink)" : "transparent",
+              color: mixerMode === mode ? "var(--white)" : "var(--muted)",
+              fontSize: 13,
+              fontWeight: 820,
+            }}
+          >
+            {mode === "smart" ? "Suggestions" : "Canvas"}
+          </button>
+        ))}
+      </div>
+
+      {mixerMode === "canvas" ? (
+        <div className="stack">
+          {saveMessage ? (
+            <div className="pill dark" role="status" style={{ justifySelf: "start" }}>
+              {saveMessage}
+            </div>
+          ) : null}
+
+          <section
+            aria-label="Manual transparent mixer canvas"
+            style={{
+              display: "grid",
+              gap: 10,
+              background: "var(--white)",
+              border: "1px solid var(--line)",
+              borderRadius: 8,
+              padding: 12,
+              overflow: "hidden",
+            }}
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
+              <div>
+                <strong style={{ fontSize: 15 }}>Canvas mixer</strong>
+                <p className="subtle" style={{ margin: "3px 0 0" }}>
+                  Swipe each row, tap a piece, then save the look.
+                </p>
+              </div>
+              <span className="pill">No AI</span>
+            </div>
+
+            <MixerBodyStage selectedItems={manualSelectedItems} minHeight={430} />
+
+            <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
+              {manualSlots.map(({ slot, label, emptyLabel }) => (
+                <ManualMixerRow
+                  key={slot}
+                  label={label}
+                  emptyLabel={emptyLabel}
+                  items={manualItemsBySlot[slot]}
+                  selectedItemId={manualSelections[slot]}
+                  onSelect={(itemId) => {
+                    setManualSelections((selections) => ({ ...selections, [slot]: itemId }));
+                    setManualSavedOutfitId(null);
+                  }}
+                />
+              ))}
+            </div>
+          </section>
+
+          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
+            <button type="button" className="button" onClick={saveManualLook}>
+              <Shirt size={16} aria-hidden="true" />
+              Create look
+            </button>
+            {manualSavedOutfitId ? (
+              <Link className="button secondary" href={`/avatar?savedOutfitId=${manualSavedOutfitId}`}>
+                <UserRound size={16} aria-hidden="true" />
+                Avatar
+              </Link>
+            ) : (
+              <button
+                type="button"
+                className="button secondary"
+                onClick={saveManualLook}
+                title="Save this canvas mix before opening Avatar Studio"
+              >
+                <UserRound size={16} aria-hidden="true" />
+                Avatar
+              </button>
+            )}
+          </div>
+        </div>
+      ) : (
       <div className="stack">
         {saveMessage ? (
           <div className="pill dark" role="status" style={{ justifySelf: "start" }}>
@@ -409,6 +740,10 @@ export default function MixerPage() {
                   <ChevronRight size={16} aria-hidden="true" />
                 </button>
               </div>
+              <button type="button" className="button ghost" onClick={resetSmartMixer}>
+                <RefreshCcw size={16} aria-hidden="true" />
+                New mix
+              </button>
             </div>
             <article
               key={currentSuggestion.id}
@@ -476,6 +811,7 @@ export default function MixerPage() {
           </>
         ) : null}
       </div>
+      )}
 
       <BottomNav />
     </AppShell>

@@ -11,10 +11,17 @@ export function ClosetAssetArtwork({ asset }: ClosetAssetArtworkProps) {
   if ("imageUrl" in asset) {
     return (
       <span
-        data-closet-asset-frame="real"
+        data-closet-asset-artwork="real"
         style={{ position: "relative", display: "block", width: "100%", height: "100%", minHeight: 0 }}
       >
-        <Image src={asset.imageUrl} alt={asset.label} fill sizes="360px" unoptimized style={{ objectFit: "contain" }} />
+        <Image
+          src={asset.imageUrl}
+          alt={asset.label}
+          fill
+          sizes="360px"
+          unoptimized
+          style={{ objectFit: "contain", transform: "scale(1.18)" }}
+        />
       </span>
     );
   }
