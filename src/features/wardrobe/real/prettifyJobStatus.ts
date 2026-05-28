@@ -12,14 +12,14 @@ export interface PrettifyJobStep {
 const orderedSteps: Array<{ id: Exclude<PrettifyJobStatus, "failed">; label: string }> = [
   { id: "queued", label: "Upload" },
   { id: "analyzing", label: "Analyze" },
-  { id: "prettifying", label: "Prettify" },
+  { id: "prettifying", label: "Prepare" },
   { id: "validating", label: "Validate" },
   { id: "ready", label: "Review" },
 ];
 
 const outfitStepLabels: Partial<Record<Exclude<PrettifyJobStatus, "failed">, string>> = {
   analyzing: "Detect garments",
-  prettifying: "Prettify garments",
+  prettifying: "Prepare garments",
   validating: "Validate assets",
 };
 
@@ -91,7 +91,7 @@ export function getPrettifyStepCaption(
   const pendingCaptions: Record<Exclude<PrettifyJobStatus, "failed">, string> = {
     queued: "Upload waiting",
     analyzing: jobKind === "outfit_parent" ? "Detection waiting" : "Analysis waiting",
-    prettifying: jobKind === "outfit_parent" ? "Prettify waiting" : "Cleanup waiting",
+    prettifying: jobKind === "outfit_parent" ? "Preparation waiting" : "Cleanup waiting",
     validating: "Validation waiting",
     ready: "Review waiting",
   };

@@ -22,7 +22,7 @@ export const demoDetectedGarments: DetectedGarment[] = [
     asset: {
       id: "asset-brown-jacket",
       kind: "prettified",
-      label: "Brown jacket prettified asset",
+      label: "Brown jacket prepared asset",
       visualToken: "jacket-brown",
     },
     retryVariantId: "detected-brown-jacket-retry",
@@ -42,7 +42,7 @@ export const demoDetectedGarments: DetectedGarment[] = [
     asset: {
       id: "asset-cream-sweater",
       kind: "prettified",
-      label: "Cream sweater prettified asset",
+      label: "Cream sweater prepared asset",
       visualToken: "sweater-cream",
     },
     retryVariantId: "detected-cream-sweater-retry",
@@ -62,7 +62,7 @@ export const demoDetectedGarments: DetectedGarment[] = [
     asset: {
       id: "asset-wine-crew",
       kind: "prettified",
-      label: "Maroon crew neck prettified asset",
+      label: "Maroon crew neck prepared asset",
       visualToken: "crew-wine",
     },
     retryVariantId: "detected-wine-crew-retry",
@@ -82,7 +82,7 @@ export const demoDetectedGarments: DetectedGarment[] = [
     asset: {
       id: "asset-striped-shirt",
       kind: "prettified",
-      label: "Striped shirt prettified asset",
+      label: "Striped shirt prepared asset",
       visualToken: "shirt-striped",
     },
   },
@@ -101,7 +101,7 @@ export const demoDetectedGarments: DetectedGarment[] = [
     asset: {
       id: "asset-charcoal-trouser",
       kind: "prettified",
-      label: "Charcoal trouser prettified asset",
+      label: "Charcoal trouser prepared asset",
       visualToken: "trouser-charcoal",
     },
   },
@@ -120,7 +120,7 @@ export const demoDetectedGarments: DetectedGarment[] = [
     asset: {
       id: "asset-brown-shoe",
       kind: "prettified",
-      label: "Brown loafer prettified asset",
+      label: "Brown loafer prepared asset",
       visualToken: "shoe-brown",
     },
   },
@@ -153,7 +153,7 @@ export const demoRetryVariants: Record<string, DetectedGarment> = {
 export const demoUploadBatch: UploadBatch = {
   id: "batch-demo-upload",
   sourceType: "batch_upload",
-  title: "Demo Auto-Prettify Batch",
+  title: "Demo Wardrobe Prep Batch",
   createdAtIso: "2026-05-26T00:00:00.000Z",
   detectedGarments: demoDetectedGarments,
 };

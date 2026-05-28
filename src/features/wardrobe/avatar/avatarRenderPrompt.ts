@@ -1,7 +1,7 @@
 import type { WardrobeItem } from "@/src/domain/wardrobe";
 import type { AvatarPoseId, AvatarRenderQuality } from "./avatarTypes";
 
-export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1";
+export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.1";
 
 interface AvatarRenderPromptInput {
   savedOutfitName: string;
@@ -31,13 +31,16 @@ export function buildAvatarRenderPrompt(input: AvatarRenderPromptInput): string 
   return [
     `Create one polished full-body Wearabouts Avatar Studio render for the saved outfit "${input.savedOutfitName}".`,
     `Pose: ${pose}. Head, hands, legs, and shoes must be visible.`,
-    "Make the person look good-looking, confident, with a relaxed casual fashion pose, upright posture, natural shoulders, and no hunching.",
-    "Use the face reference for recognizable likeness and the body reference for realistic body proportions, height/width relationship, and broad silhouette.",
+    "Use a relaxed casual fashion pose with upright posture, natural shoulders, and no hunching.",
+    "Use the face reference for recognizable likeness. Preserve the same facial structure, face shape, age, skin tone, hairstyle, facial hair, and expression.",
+    "Apply only very subtle studio-photo polish: smoother even lighting, natural skin texture, cleaner eye and jaw detail, and reduced harsh shadows.",
+    "Avoid beauty filters, face slimming, symmetry changes, younger-looking face, airbrushed skin, or making the person look like someone else.",
+    "Use the body reference for realistic body proportions, height/width relationship, broad silhouette, and natural head-to-body scale. Avoid an oversized head or enlarged face.",
     "Prioritize outfit quality: make the selected wardrobe items look naturally worn, well styled, properly fitted, and faithful to their category, colors, patterns, and silhouettes.",
     `Selected wardrobe items: ${itemList}.`,
     "Use a neutral light gray or white studio background with clean catalog lighting.",
     "Do not add extra core garments, shopping items, bags, hats, or accessories that are not in the selected saved outfit.",
-    "Do not crop the head or feet. Do not make a pasted-on garment collage. Do not change the user's body into a different person.",
+    "Do not crop the head or feet. Do not make a pasted-on garment collage. Do not change the user's face or body into a different person.",
     `Quality target: ${input.quality === "final" ? "high-quality final fashion-catalog image" : "draft-quality preview"}.`,
   ].join(" ");
 }

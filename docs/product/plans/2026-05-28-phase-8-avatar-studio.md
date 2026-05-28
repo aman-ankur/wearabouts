@@ -92,6 +92,8 @@ Avatar output should be:
 - Neutral light studio background.
 - Realistic fashion-catalog styling.
 - Recognizably based on the user, but not optimized for passport-photo identity precision.
+- Lightly polished like a realistic studio photo, without face slimming, filter-like smoothing, age changes, or identity drift.
+- Natural head-to-body scale, avoiding an oversized head or enlarged face.
 - Faithful to selected outfit categories, colors, patterns, and silhouettes.
 - Good enough to answer: `Does this outfit work on me?`
 
@@ -395,7 +397,7 @@ Cover that the prompt:
 Use a versioned constant:
 
 ```ts
-export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1";
+export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.1";
 ```
 
 Keep prompts deterministic. Do not concatenate raw user notes into the prompt in Phase 8.

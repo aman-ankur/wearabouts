@@ -10,7 +10,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ ga
     const job = await repository.getPrettifyJobByDetectedGarmentId(garmentId);
 
     if (!job) {
-      return NextResponse.json({ error: "Prettify job not found for garment." }, { status: 404 });
+      return NextResponse.json({ error: "Processing job not found for garment." }, { status: 404 });
     }
 
     await repository.deleteDetectedGarment(garmentId);

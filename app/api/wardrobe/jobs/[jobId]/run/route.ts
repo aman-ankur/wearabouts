@@ -22,10 +22,10 @@ export async function POST(_request: Request, { params }: { params: Promise<{ jo
   } catch (error) {
     logWearaboutsTelemetry("api.job_run.failed", {
       durationMs: timer.elapsedMs(),
-      error: error instanceof Error ? error.message : "Could not run prettify job.",
+      error: error instanceof Error ? error.message : "Could not process photo.",
     });
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : "Could not run prettify job." },
+      { error: error instanceof Error ? error.message : "Could not process photo." },
       { status: 500 },
     );
   }
