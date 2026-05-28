@@ -21,6 +21,7 @@ import {
 const garmentCategories: GarmentCategory[] = ["tops", "bottoms", "outerwear", "footwear", "accessories", "combo"];
 const confidenceLevels: ConfidenceLevel[] = ["high", "medium", "low"];
 const visibilityStates: GarmentVisibilityState[] = ["visible", "occluded", "needs_review"];
+export const OPENAI_PRETTIFY_PROMPT_VERSION = "prettify-v1";
 
 export function buildOpenAIPrettifyPrompt(analysis: GarmentAnalysisResult): string {
   return [
@@ -73,6 +74,21 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
     private readonly imageQuality: ImageQuality = "medium",
   ) {
     this.client = new OpenAI({ apiKey });
+  }
+
+  getPrettifyCacheConfig() {
+    return {
+      promptVersion: OPENAI_PRETTIFY_PROMPT_VERSION,
+      imageModel: this.imageModel,
+      imageQuality: this.imageQuality,
+      imageSize: "1024x1024",
+      background: "transparent",
+      outputFormat: "png",
+      inputFidelity: "high",
+      inputImageMaxDimension: this.prettifyImageOptions.maxDimension ?? 1024,
+      inputImageFormat: this.prettifyImageOptions.format ?? "jpeg",
+      inputImageQuality: this.prettifyImageOptions.quality ?? 88,
+    };
   }
 
   async detectOutfitGarments(input: {

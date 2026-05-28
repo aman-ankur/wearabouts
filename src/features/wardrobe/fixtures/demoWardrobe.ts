@@ -1,7 +1,7 @@
 import type { DetectedGarment, UploadBatch, WardrobeProfile } from "@/src/domain/wardrobe";
 
 export const demoProfiles: WardrobeProfile[] = [
-  { id: "profile-aankur", displayName: "Aankur", shortLabel: "A" },
+  { id: "profile-aankur", displayName: "You", shortLabel: "Y" },
   { id: "profile-wife", displayName: "Wife", shortLabel: "W" },
   { id: "profile-shared", displayName: "Shared", shortLabel: "S" },
 ];

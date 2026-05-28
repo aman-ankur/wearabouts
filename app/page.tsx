@@ -249,7 +249,7 @@ export default function HomePage() {
       <section style={{ display: "grid", gap: 6, marginTop: 22 }}>
         <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "center" }}>
           <div>
-            <h2 style={{ margin: 0, fontSize: 23, lineHeight: 1.05 }}>{getGreeting()}, Aankur</h2>
+            <h2 style={{ margin: 0, fontSize: 23, lineHeight: 1.05 }}>{getGreeting()}, You</h2>
             <p className="subtle" style={{ margin: "5px 0 0" }}>
               {hasClosetData ? "Fresh combinations from your wardrobe." : "A preview of what your closet feed becomes."}
             </p>

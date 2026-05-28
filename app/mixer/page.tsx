@@ -21,10 +21,19 @@ import type { OutfitSlot, WardrobeItem } from "@/src/domain/wardrobe";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { ClosetAssetArtwork } from "@/src/features/wardrobe/components/ClosetAssetArtwork";
+import { ManualMixerRow } from "@/src/features/wardrobe/components/ManualMixerRow";
 import { MixerBodyStage } from "@/src/features/wardrobe/components/MixerBodyStage";
+import { MixerSuggestionHeader } from "@/src/features/wardrobe/components/MixerSuggestionHeader";
+import { MixerSuggestionDetails } from "@/src/features/wardrobe/components/MixerSuggestionDetails";
+import {
+  defaultMixerIntent,
+  getStoredOutfitIntent,
+  mixerIntentStorageKey,
+  outfitIntentOptions,
+} from "@/src/features/wardrobe/outfits/outfitIntentDisplay";
 import { getRefinementAlternatives, refineOutfitSelection } from "@/src/features/wardrobe/outfits/outfitRefinement";
 import { getOutfitRecommendations } from "@/src/features/wardrobe/outfits/outfitRecommendationService";
-import type { OutfitSuggestion } from "@/src/features/wardrobe/outfits/outfitTypes";
+import type { OutfitIntent, OutfitSuggestion } from "@/src/features/wardrobe/outfits/outfitTypes";
 import { getSelectedItem, mixerSlots } from "@/src/features/wardrobe/selectors/mixerSelectors";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
@@ -56,13 +65,6 @@ function getSelectedItems(items: WardrobeItem[], suggestion: OutfitSuggestion): 
 
     return selected;
   }, {});
-}
-
-function itemNames(items: WardrobeItem[], suggestion: OutfitSuggestion): string {
-  return suggestion.selections
-    .map((selection) => getSelectedItem(items, selection)?.name)
-    .filter(Boolean)
-    .join(" · ");
 }
 
 function selectedIds(suggestion: OutfitSuggestion): Set<string> {
@@ -131,94 +133,10 @@ function getManualSelectedItems(
   }, {});
 }
 
-function ManualMixerRow({
-  label,
-  emptyLabel,
-  items,
-  selectedItemId,
-  onSelect,
-}: {
-  label: string;
-  emptyLabel: string;
-  items: WardrobeItem[];
-  selectedItemId: string | null;
-  onSelect: (itemId: string) => void;
-}) {
-  return (
-    <section aria-label={`${label} manual mixer row`} style={{ display: "grid", gap: 5, minWidth: 0 }}>
-      <span
-        style={{
-          color: "var(--muted)",
-          fontSize: 11,
-          fontWeight: 820,
-          textTransform: "uppercase",
-        }}
-      >
-        {label}
-      </span>
-      {items.length === 0 ? (
-        <div className="subtle" style={{ minHeight: 78, display: "grid", placeItems: "center" }}>
-          {emptyLabel}
-        </div>
-      ) : (
-        <div
-          style={{
-            display: "grid",
-            gridAutoFlow: "column",
-            gridAutoColumns: "58%",
-            gap: 26,
-            overflowX: "auto",
-            overscrollBehaviorX: "contain",
-            scrollSnapType: "x mandatory",
-            padding: "0 21% 8px",
-            scrollbarWidth: "none",
-          }}
-        >
-          {items.map((item) => {
-            const selected = item.id === selectedItemId;
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onSelect(item.id)}
-                aria-pressed={selected}
-                title={item.name}
-                style={{
-                  minHeight: item.category === "bottoms" ? 158 : item.category === "footwear" ? 82 : 124,
-                  scrollSnapAlign: "center",
-                  border: 0,
-                  borderRadius: 8,
-                  background: "transparent",
-                  padding: 0,
-                  display: "grid",
-                  placeItems: "center",
-                  opacity: selected ? 1 : 0.86,
-                }}
-              >
-                <span
-                  style={{
-                    width: "100%",
-                    height: item.category === "bottoms" ? 154 : item.category === "footwear" ? 78 : 120,
-                    display: "grid",
-                    placeItems: "center",
-                    filter: "drop-shadow(0 14px 16px rgba(20,20,20,.10))",
-                  }}
-                >
-                  <ClosetAssetArtwork asset={item.asset} />
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      )}
-    </section>
-  );
-}
-
 export default function MixerPage() {
   const { state, mixerState, saveCurrentOutfit } = useWardrobe();
   const [mixerMode, setMixerMode] = useState<MixerMode>("smart");
+  const [selectedIntent, setSelectedIntent] = useState<OutfitIntent>(defaultMixerIntent);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [dismissedSuggestionIds, setDismissedSuggestionIds] = useState<string[]>([]);
   const [similarityAnchorId, setSimilarityAnchorId] = useState<string | null>(null);
@@ -241,7 +159,7 @@ export default function MixerPage() {
     () => {
       const recommended = getOutfitRecommendations({
         profileId: "profile-aankur",
-        intent: "dinner",
+        intent: selectedIntent,
         closetItems: state.closetItems,
         savedOutfits: mixerState.savedOutfits,
         feedbackSignals: [],
@@ -261,7 +179,7 @@ export default function MixerPage() {
         return similarityScore(anchor, second) - similarityScore(anchor, first) || second.score - first.score;
       });
     },
-    [dismissedSuggestionIds, mixerState.savedOutfits, similarityAnchorId, state.closetItems],
+    [dismissedSuggestionIds, mixerState.savedOutfits, selectedIntent, similarityAnchorId, state.closetItems],
   );
   const currentSuggestion = suggestions[Math.min(activeSuggestionIndex, Math.max(suggestions.length - 1, 0))] ?? null;
   const activeSuggestion = refiningSuggestion ?? currentSuggestion;
@@ -274,6 +192,14 @@ export default function MixerPage() {
   useEffect(() => {
     setActiveSuggestionIndex((index) => Math.min(index, Math.max(suggestions.length - 1, 0)));
   }, [suggestions.length]);
+
+  useEffect(() => {
+    setSelectedIntent(getStoredOutfitIntent(window.localStorage.getItem(mixerIntentStorageKey)));
+  }, []);
+
+  useEffect(() => {
+    window.localStorage.setItem(mixerIntentStorageKey, selectedIntent);
+  }, [selectedIntent]);
 
   useEffect(() => {
     setManualSelections((current) => {
@@ -332,12 +258,24 @@ export default function MixerPage() {
     setSaveMessage("Showing closest matches");
   }
 
-  function resetSmartMixer() {
+  function chooseMixerIntent(intent: OutfitIntent) {
+    setSelectedIntent(intent);
     setDismissedSuggestionIds([]);
     setSimilarityAnchorId(null);
     setActiveSuggestionIndex(0);
     setRefiningSuggestion(null);
-    setSaveMessage("Ready for a new mix");
+    setSaveMessage(null);
+  }
+
+  function shuffleSmartMixer() {
+    setSimilarityAnchorId(null);
+    if (suggestions.length < 2) {
+      setSaveMessage("Add more pieces for more mixes");
+      return;
+    }
+
+    setActiveSuggestionIndex((index) => (index + 1) % suggestions.length);
+    setSaveMessage("Shuffled");
   }
 
   function saveManualLook() {
@@ -444,7 +382,7 @@ export default function MixerPage() {
         <div className="appbar">
           <div>
             <h1 className="app-title">Refine Look</h1>
-            <p className="subtle">{refiningSuggestion.confidenceLabel}</p>
+            <p className="subtle">Tune the pieces before saving.</p>
           </div>
           <button type="button" className="button secondary" onClick={() => setRefiningSuggestion(null)}>
             <ArrowLeft size={17} aria-hidden="true" />
@@ -549,7 +487,7 @@ export default function MixerPage() {
                       {alternative.reason}
                     </span>
                   </span>
-                  <span className="pill">{alternative.score}</span>
+                  <span className="pill">Swap</span>
                 </button>
               ))
             )}
@@ -577,6 +515,27 @@ export default function MixerPage() {
           {suggestions.length} looks
         </span>
       </div>
+
+      <section style={{ display: "grid", gap: 8, marginBottom: 12 }}>
+        <strong style={{ fontSize: 15 }}>What are we mixing for?</strong>
+        <div style={{ display: "flex", gap: 7, overflowX: "auto", paddingBottom: 2 }}>
+          {outfitIntentOptions.map((option) => {
+            const selected = selectedIntent === option.id;
+            return (
+              <button
+                key={option.id}
+                type="button"
+                className={selected ? "pill dark" : "pill"}
+                aria-pressed={selected}
+                onClick={() => chooseMixerIntent(option.id)}
+                style={{ border: 0, whiteSpace: "nowrap" }}
+              >
+                {option.label}
+              </button>
+            );
+          })}
+        </div>
+      </section>
 
       <div
         role="tablist"
@@ -623,7 +582,7 @@ export default function MixerPage() {
           ) : null}
 
           <section
-            aria-label="Manual transparent mixer canvas"
+            aria-label="Manual transparent mixer preview"
             style={{
               display: "grid",
               gap: 10,
@@ -636,17 +595,37 @@ export default function MixerPage() {
           >
             <div style={{ display: "flex", justifyContent: "space-between", gap: 10, alignItems: "flex-start" }}>
               <div>
-                <strong style={{ fontSize: 15 }}>Canvas mixer</strong>
+                <strong style={{ fontSize: 15 }}>Canvas preview</strong>
                 <p className="subtle" style={{ margin: "3px 0 0" }}>
-                  Swipe each row, tap a piece, then save the look.
+                  Your selected pieces line up here.
                 </p>
               </div>
               <span className="pill">No AI</span>
             </div>
 
-            <MixerBodyStage selectedItems={manualSelectedItems} minHeight={430} />
+            <MixerBodyStage selectedItems={manualSelectedItems} minHeight={390} showLabels={false} layout="compact" />
+          </section>
 
-            <div style={{ display: "grid", gap: 10, minWidth: 0 }}>
+          <section
+            aria-label="Manual transparent mixer swipe controls"
+            style={{
+              display: "grid",
+              gap: 12,
+              background: "var(--white)",
+              border: "1px solid var(--line)",
+              borderRadius: 8,
+              padding: 12,
+              overflow: "hidden",
+            }}
+          >
+            <div>
+              <strong style={{ fontSize: 15 }}>Swipe pieces</strong>
+              <p className="subtle" style={{ margin: "3px 0 0" }}>
+                Slide each row sideways. The centered piece becomes the one in preview.
+              </p>
+            </div>
+
+            <div style={{ display: "grid", gap: 12, minWidth: 0 }}>
               {manualSlots.map(({ slot, label, emptyLabel }) => (
                 <ManualMixerRow
                   key={slot}
@@ -740,9 +719,9 @@ export default function MixerPage() {
                   <ChevronRight size={16} aria-hidden="true" />
                 </button>
               </div>
-              <button type="button" className="button ghost" onClick={resetSmartMixer}>
+              <button type="button" className="button ghost" onClick={shuffleSmartMixer}>
                 <RefreshCcw size={16} aria-hidden="true" />
-                New mix
+                Shuffle
               </button>
             </div>
             <article
@@ -754,30 +733,11 @@ export default function MixerPage() {
                 background: "linear-gradient(180deg, #fffefa 0%, #f1ebe2 100%)",
               }}
             >
-              <div style={{ display: "flex", justifyContent: "space-between", gap: 12, alignItems: "flex-start" }}>
-                <div>
-                  <p className="subtle" style={{ margin: 0 }}>
-                    Aankur · {currentSuggestion.intent.replace("_", " ")}
-                  </p>
-                  <h2 style={{ fontSize: 22, lineHeight: 1.05, margin: "4px 0 0" }}>{currentSuggestion.title}</h2>
-                </div>
-                <span className="pill">{currentSuggestion.confidenceLabel}</span>
-              </div>
+              <MixerSuggestionHeader suggestion={currentSuggestion} />
 
-              <MixerBodyStage selectedItems={getSelectedItems(state.closetItems, currentSuggestion)} />
+              <MixerBodyStage selectedItems={getSelectedItems(state.closetItems, currentSuggestion)} showLabels={false} />
 
-              <div style={{ display: "grid", gap: 8 }}>
-                <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
-                  <strong style={{ fontSize: 13 }}>Score {currentSuggestion.score}</strong>
-                  {currentSuggestion.warnings.length > 0 ? <span className="pill">{currentSuggestion.warnings[0]}</span> : null}
-                </div>
-                <p className="subtle" style={{ margin: 0 }}>
-                  {currentSuggestion.rationale}
-                </p>
-                <p className="subtle" style={{ margin: 0 }}>
-                  {itemNames(state.closetItems, currentSuggestion)}
-                </p>
-              </div>
+              <MixerSuggestionDetails suggestion={currentSuggestion} closetItems={state.closetItems} />
 
               <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
                 <button type="button" className="button" onClick={() => saveSuggestion(currentSuggestion, "suggestion")}>

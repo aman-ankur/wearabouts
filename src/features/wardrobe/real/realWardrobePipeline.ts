@@ -21,6 +21,7 @@ import {
 } from "./outfitGarmentCandidates";
 import { getTerminalPrettifyStatus } from "./prettifyJobStatus";
 import { createTimer, logWearaboutsTelemetry } from "./prettifyTelemetry";
+import { createGeneratedGarmentCacheKey, type PrettifyCacheConfig } from "./generatedGarmentCacheKey";
 
 export type PrettifyJobKind = "single_item" | "outfit_parent" | "outfit_candidate";
 
@@ -37,6 +38,7 @@ export interface RealSourceImageRecord {
   bucket: "source-images";
   storagePath: string;
   signedUrl: string;
+  contentHash: string;
   contentType: string;
   originalFilename: string;
 }
@@ -88,6 +90,13 @@ export interface GeneratedImageResult {
   qualityNotes: string[];
 }
 
+export interface GeneratedGarmentCacheRecord {
+  id: string;
+  cacheKey: string;
+  asset: ClosetAsset;
+  qualityNotes: string[];
+}
+
 export interface ValidationResult {
   accepted: boolean;
 }
@@ -119,6 +128,12 @@ export interface RealWardrobeRepository {
   getGarmentCandidate: (candidateId: string) => Promise<GarmentCandidateRecord | null>;
   listGarmentCandidatesForBatch: (batchId: string) => Promise<GarmentCandidateRecord[]>;
   updateGarmentCandidate: (candidateId: string, patch: Partial<GarmentCandidateRecord>) => Promise<GarmentCandidateRecord>;
+  getGeneratedGarmentCache: (cacheKey: string) => Promise<GeneratedGarmentCacheRecord | null>;
+  createGeneratedGarmentCache: (input: {
+    cacheKey: string;
+    asset: ClosetAsset;
+    qualityNotes: string[];
+  }) => Promise<GeneratedGarmentCacheRecord>;
   createDetectedGarment: (input: {
     uploadBatchId: string;
     proposedName: string;
@@ -146,12 +161,14 @@ export interface RealAssetStorage {
     bucket: "source-images";
     storagePath: string;
     signedUrl: string;
+    contentHash: string;
   }>;
   downloadSourceImage: (sourceImage: RealSourceImageRecord) => Promise<{ bytes: Uint8Array; contentType: string }>;
   uploadClosetAsset: (input: { bytes: Uint8Array; contentType: "image/png"; label: string }) => Promise<ClosetAsset>;
 }
 
 export interface PrettifyAIProvider {
+  getPrettifyCacheConfig: () => PrettifyCacheConfig;
   analyzeGarment: (input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }) => Promise<GarmentAnalysisResult>;
   detectOutfitGarments: (input: { sourceImage: RealSourceImageRecord; bytes: Uint8Array }) => Promise<OutfitDetectionResult>;
   prettifyGarment: (input: {
@@ -348,6 +365,7 @@ export class RealWardrobePipeline {
       bucket: storedSource.bucket,
       storagePath: storedSource.storagePath,
       signedUrl: storedSource.signedUrl,
+      contentHash: storedSource.contentHash,
       contentType: file.type,
       originalFilename: file.name,
     });
@@ -576,6 +594,59 @@ export class RealWardrobePipeline {
         visibilityState: candidate.visibilityState,
       });
       const timer = createTimer();
+      const cacheKey = createGeneratedGarmentCacheKey({
+        sourceImageHash: sourceImage.contentHash,
+        boundingBox: candidate.boundingBox,
+        category: candidate.category,
+        config: this.ai.getPrettifyCacheConfig(),
+      });
+      const cached = await this.repository.getGeneratedGarmentCache(cacheKey);
+      if (cached) {
+        const garment = await this.repository.createDetectedGarment({
+          uploadBatchId: job.uploadBatchId,
+          proposedName: candidate.proposedName,
+          category: candidate.category,
+          confidence: candidate.confidence,
+          prettifyStatus: "ready",
+          readyForMixer: true,
+          asset: cached.asset,
+          sourceType: "outfit_photo",
+          sourceImageId: sourceImage.id,
+          garmentCandidateId: candidate.id,
+          visibilityState: candidate.visibilityState,
+          sourceBoundingBox: candidate.boundingBox,
+        });
+        await this.repository.updateGarmentCandidate(candidate.id, {
+          status: "ready",
+          errorMessage: null,
+          detectedGarmentId: garment.id,
+        });
+        const readyJob = await this.repository.updatePrettifyJob(job.id, {
+          status: "ready",
+          errorMessage: null,
+          detectedGarmentId: garment.id,
+        });
+        logWearaboutsTelemetry("pipeline.candidate_generation.cache_hit", {
+          jobId: job.id,
+          batchId: job.uploadBatchId,
+          candidateId: candidate.id,
+          proposedName: candidate.proposedName,
+          category: candidate.category,
+          cacheKey,
+          durationMs: timer.elapsedMs(),
+        });
+
+        return { job: readyJob, garment, garments: [garment] };
+      }
+
+      logWearaboutsTelemetry("pipeline.candidate_generation.cache_miss", {
+        jobId: job.id,
+        batchId: job.uploadBatchId,
+        candidateId: candidate.id,
+        proposedName: candidate.proposedName,
+        category: candidate.category,
+        cacheKey,
+      });
       const cropBytes = await cropGarmentCandidateImage(sourceBytes, candidate.boundingBox, {
         category: candidate.category,
       });
@@ -613,6 +684,13 @@ export class RealWardrobePipeline {
         bytes: generated.bytes,
         contentType: generated.contentType,
         label: `${candidate.proposedName} studio asset`,
+      });
+      await this.cacheGeneratedAsset({
+        job,
+        candidate,
+        cacheKey,
+        asset,
+        qualityNotes: generated.qualityNotes,
       });
       const garment = await this.repository.createDetectedGarment({
         uploadBatchId: job.uploadBatchId,
@@ -711,6 +789,40 @@ export class RealWardrobePipeline {
       proposedName,
       qualityNotes,
     });
+  }
+
+  private async cacheGeneratedAsset(input: {
+    job: PrettifyJobRecord;
+    candidate: GarmentCandidateRecord;
+    cacheKey: string;
+    asset: ClosetAsset;
+    qualityNotes: string[];
+  }) {
+    try {
+      await this.repository.createGeneratedGarmentCache({
+        cacheKey: input.cacheKey,
+        asset: input.asset,
+        qualityNotes: input.qualityNotes,
+      });
+      logWearaboutsTelemetry("pipeline.candidate_generation.cache_saved", {
+        jobId: input.job.id,
+        batchId: input.job.uploadBatchId,
+        candidateId: input.candidate.id,
+        proposedName: input.candidate.proposedName,
+        category: input.candidate.category,
+        cacheKey: input.cacheKey,
+      });
+    } catch (error) {
+      logWearaboutsTelemetry("pipeline.candidate_generation.cache_save_failed", {
+        jobId: input.job.id,
+        batchId: input.job.uploadBatchId,
+        candidateId: input.candidate.id,
+        proposedName: input.candidate.proposedName,
+        category: input.candidate.category,
+        cacheKey: input.cacheKey,
+        error: error instanceof Error ? error.message : "Could not save generated garment cache.",
+      });
+    }
   }
 
   private async getExistingClosetItemsForDuplicateCheck(job: PrettifyJobRecord): Promise<WardrobeItem[]> {

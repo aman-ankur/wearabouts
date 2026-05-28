@@ -7,7 +7,7 @@ interface SavedOutfitListProps {
 }
 
 const profileLabels: Record<SavedOutfit["profileId"], string> = {
-  "profile-aankur": "Aankur",
+  "profile-aankur": "You",
   "profile-wife": "Wife",
   "profile-shared": "Shared",
 };

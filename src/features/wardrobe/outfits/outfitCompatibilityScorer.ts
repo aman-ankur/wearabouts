@@ -54,12 +54,15 @@ export function scoreItemForIntent(item: WardrobeItem, intent: OutfitIntent): nu
     if (formality === "technical") score += 8;
   }
 
-  if (intent === "warm_weather" && warmWords.some((word) => text.includes(word))) {
-    score += 14;
+  if (intent === "warm_weather") {
+    if (warmWords.some((word) => text.includes(word))) score += 14;
+    if (item.warmth === "warm") score -= 24;
+    if (item.warmth === "medium") score -= 8;
   }
 
   if (intent === "rain_ready") {
     if (item.rainSuitability === "good") score += 18;
+    if (item.rainSuitability === "avoid") score -= 18;
     if (rainWords.some((word) => text.includes(word))) score += 14;
   }
 

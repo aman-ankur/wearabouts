@@ -52,7 +52,10 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
   const candidates = new Map<string, GarmentCandidateRecord>();
   const detectedGarments = new Map<string, DetectedGarment>();
   const wardrobeItems: WardrobeItem[] = [];
+  const generatedGarmentCache = new Map<string, Awaited<ReturnType<RealWardrobeRepository["getGeneratedGarmentCache"]>>>();
   let createDetectedGarmentCount = 0;
+  let batchSequence = 0;
+  let sourceSequence = 0;
   let candidateSequence = 0;
   let jobSequence = 0;
   let prettifyCallCount = 0;
@@ -60,8 +63,9 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
 
   const repository: RealWardrobeRepository = {
     async createUploadBatch(input) {
+      batchSequence += 1;
       const batch = {
-        id: input.sourceType === "outfit_photo" ? "batch-outfit-1" : "batch-real-1",
+        id: input.sourceType === "outfit_photo" ? `batch-outfit-${batchSequence}` : `batch-real-${batchSequence}`,
         sourceType: input.sourceType,
         extractionMode: input.extractionMode ?? (input.sourceType === "outfit_photo" ? "pick_after_scan" : "single_item"),
         skipExistingItems: input.skipExistingItems ?? true,
@@ -74,12 +78,14 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
       return batch;
     },
     async createSourceImage(input) {
+      sourceSequence += 1;
       const sourceImage: RealSourceImageRecord = {
-        id: "source-real-1",
+        id: `source-real-${sourceSequence}`,
         uploadBatchId: input.uploadBatchId,
         bucket: input.bucket,
         storagePath: input.storagePath,
         signedUrl: input.signedUrl,
+        contentHash: input.contentHash,
         contentType: input.contentType,
         originalFilename: input.originalFilename,
       };
@@ -224,6 +230,19 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
     async listGarmentCandidatesForBatch(batchId) {
       return Array.from(candidates.values()).filter((candidate) => candidate.uploadBatchId === batchId);
     },
+    async getGeneratedGarmentCache(cacheKey) {
+      return generatedGarmentCache.get(cacheKey) ?? null;
+    },
+    async createGeneratedGarmentCache(input) {
+      const record = {
+        id: `cache-${generatedGarmentCache.size + 1}`,
+        cacheKey: input.cacheKey,
+        asset: input.asset,
+        qualityNotes: input.qualityNotes,
+      };
+      generatedGarmentCache.set(input.cacheKey, record);
+      return record;
+    },
   };
 
   const storage: RealAssetStorage = {
@@ -232,6 +251,7 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
         bucket: "source-images",
         storagePath: `demo-household/profile-aankur/${input.file.name}`,
         signedUrl: "https://signed.example/source.png",
+        contentHash: "source-hash-repeatable",
       };
     },
     async downloadSourceImage() {
@@ -266,6 +286,20 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
     async validatePrettifiedAsset() {
       validationCallCount += 1;
       return { accepted: true };
+    },
+    getPrettifyCacheConfig() {
+      return {
+        promptVersion: "prettify-v1",
+        imageModel: "gpt-image-test",
+        imageQuality: "medium",
+        imageSize: "1024x1024",
+        background: "transparent",
+        outputFormat: "png",
+        inputFidelity: "high",
+        inputImageMaxDimension: 1024,
+        inputImageFormat: "jpeg",
+        inputImageQuality: 88,
+      };
     },
     async detectOutfitGarments() {
       return {
@@ -321,6 +355,7 @@ function createHarness(options: { failWardrobeItemLookup?: boolean } = {}) {
     getPrettifyCallCount: () => prettifyCallCount,
     getValidationCallCount: () => validationCallCount,
     getCreateDetectedGarmentCount: () => createDetectedGarmentCount,
+    getGeneratedGarmentCacheSize: () => generatedGarmentCache.size,
   };
 }
 
@@ -415,6 +450,30 @@ describe("RealWardrobePipeline", () => {
     await pipeline.generateOutfitCandidates(job.id, [pantsCandidate?.id ?? ""]);
 
     expect(getPrettifyCallCount()).toBe(1);
+  });
+
+  it("reuses a cached generated asset for the same source hash, crop, category, and generation config", async () => {
+    const { pipeline, candidates, getPrettifyCallCount, getGeneratedGarmentCacheSize } = createHarness();
+    const firstUpload = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+    await pipeline.runPrettifyJob(firstUpload.job.id);
+    const firstPantsCandidate = Array.from(candidates.values()).find(
+      (candidate) => candidate.uploadBatchId === firstUpload.batch.id && candidate.proposedName === "Black Travel Pants",
+    );
+
+    const firstResult = await pipeline.generateOutfitCandidates(firstUpload.job.id, [firstPantsCandidate?.id ?? ""]);
+    const secondUpload = await pipeline.createOutfitUpload(createUploadFile({ name: "outfit.png" }));
+    await pipeline.runPrettifyJob(secondUpload.job.id);
+    const secondPantsCandidate = Array.from(candidates.values()).find(
+      (candidate) => candidate.uploadBatchId === secondUpload.batch.id && candidate.proposedName === "Black Travel Pants",
+    );
+
+    const secondResult = await pipeline.generateOutfitCandidates(secondUpload.job.id, [secondPantsCandidate?.id ?? ""]);
+
+    expect(firstResult.garments.map((garment) => garment.proposedName)).toEqual(["Black Travel Pants"]);
+    expect(secondResult.garments.map((garment) => garment.proposedName)).toEqual(["Black Travel Pants"]);
+    expect(secondResult.garments[0]?.id).not.toBe(firstResult.garments[0]?.id);
+    expect(getPrettifyCallCount()).toBe(1);
+    expect(getGeneratedGarmentCacheSize()).toBe(1);
   });
 
   it("skips validation for forced high-confidence visible core candidates even when they look existing", async () => {
