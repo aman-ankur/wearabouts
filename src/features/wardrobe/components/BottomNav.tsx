@@ -13,16 +13,21 @@ export function BottomNav() {
     <nav
       aria-label="Primary"
       style={{
-        position: "absolute",
-        left: 0,
-        right: 0,
-        bottom: 0,
+        position: "fixed",
+        left: "50%",
+        bottom: 18,
+        width: "min(calc(100vw - 24px), 428px)",
+        transform: "translateX(-50%)",
+        zIndex: 30,
         height: 58,
         display: "grid",
         gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
         alignItems: "center",
         borderTop: "1px solid var(--line)",
+        borderBottomLeftRadius: 28,
+        borderBottomRightRadius: 28,
         background: "rgba(255,255,255,.94)",
+        backdropFilter: "blur(14px)",
       }}
     >
       <Link href="/" style={navLinkStyle}>
