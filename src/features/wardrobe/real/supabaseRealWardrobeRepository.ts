@@ -454,6 +454,17 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     return mapSupabaseWardrobeItem(row, input.garment.asset.imageUrl);
   }
 
+  async deleteWardrobeItem(wardrobeItemId: string): Promise<void> {
+    const { error } = await this.supabase
+      .from("wardrobe_items")
+      .delete()
+      .eq("household_id", REAL_HOUSEHOLD_ID)
+      .eq("id", wardrobeItemId);
+    if (error) {
+      throw new Error(error.message);
+    }
+  }
+
   async getUploadBatchWithGarments(batchId: string): Promise<UploadBatch | null> {
     const { data: batch, error: batchError } = await this.supabase
       .from("upload_batches")

@@ -20,12 +20,25 @@ const filters: Array<{ id: ClosetFilter; label: string }> = [
 ];
 
 export default function ClosetPage() {
-  const { state, mixerState } = useWardrobe();
+  const { state, mixerState, deleteWardrobeItem } = useWardrobe();
   const [activeFilter, setActiveFilter] = useState<ClosetFilter>("all");
+  const [deletingItemId, setDeletingItemId] = useState<string | null>(null);
   const filteredItems = useMemo(
     () => getClosetItemsForFilter(state.closetItems, activeFilter),
     [activeFilter, state.closetItems],
   );
+  const handleDeleteItem = async (itemId: string) => {
+    if (deletingItemId) {
+      return;
+    }
+
+    setDeletingItemId(itemId);
+    try {
+      await deleteWardrobeItem(itemId);
+    } finally {
+      setDeletingItemId(null);
+    }
+  };
 
   return (
     <AppShell>
@@ -54,7 +67,7 @@ export default function ClosetPage() {
         ))}
       </div>
 
-      <ClosetGrid items={filteredItems} />
+      <ClosetGrid items={filteredItems} onDelete={(itemId) => void handleDeleteItem(itemId)} />
       <div style={{ marginTop: 16 }}>
         <SavedOutfitList outfits={mixerState.savedOutfits} />
       </div>

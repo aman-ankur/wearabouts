@@ -38,6 +38,7 @@ interface WardrobeContextValue {
   loadRealBatch: (batchId: string) => Promise<UploadBatch>;
   addRealGarment: (garmentId: string) => Promise<WardrobeItem>;
   addAllRealGarments: () => Promise<void>;
+  deleteWardrobeItem: (wardrobeItemId: string) => Promise<void>;
   retryRealGarment: (garmentId: string) => Promise<void>;
   generateRealCandidates: (jobId: string, candidateIds: string[]) => Promise<void>;
   startMixer: () => void;
@@ -119,6 +120,20 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     }
   }, [addRealGarment, state.activeBatch?.detectedGarments]);
 
+  const deleteWardrobeItem = useCallback(
+    async (wardrobeItemId: string) => {
+      if (runtimeMode === "real" || runtimeMode === "dev") {
+        const response = await fetch(`/api/wardrobe/wardrobe-items/${wardrobeItemId}`, { method: "DELETE" });
+        if (!response.ok) {
+          throw new Error("Could not delete wardrobe item.");
+        }
+      }
+
+      dispatch({ type: "wardrobeItemDeleted", wardrobeItemId });
+    },
+    [runtimeMode],
+  );
+
   const retryRealGarment = useCallback(async (garmentId: string) => {
     const response = await fetch(`/api/wardrobe/garments/${garmentId}/retry`, { method: "POST" });
     if (!response.ok) {
@@ -167,6 +182,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     loadRealBatch,
     addRealGarment,
     addAllRealGarments,
+    deleteWardrobeItem,
     retryRealGarment,
     generateRealCandidates,
     startMixer() {

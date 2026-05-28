@@ -22,8 +22,8 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
         style={{
           display: "grid",
           gap: 12,
-          background: "#444341",
-          color: "white",
+          background: "var(--white)",
+          color: "var(--ink)",
           padding: 14,
         }}
       >
@@ -37,7 +37,7 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
             maxHeight: 360,
             borderRadius: 8,
             border: 0,
-            background: "#5a5956",
+            background: "radial-gradient(circle at 50% 48%, rgba(239,233,223,.72), rgba(255,255,255,0) 68%), var(--white)",
             display: "grid",
             placeItems: "center",
             padding: 10,
@@ -57,7 +57,7 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
               style={{
                 border: 0,
                 background: "transparent",
-                color: "white",
+                color: "var(--ink)",
                 width: 34,
                 height: 34,
                 display: "grid",
@@ -73,8 +73,8 @@ export function DetectedGarmentCard({ garment, onAdd, onDelete, onRetry }: Detec
               minHeight: 34,
               display: "flex",
               alignItems: "center",
-              color: "#f2eee7",
-              borderBottom: "1px solid rgba(255,255,255,.18)",
+              color: "var(--muted)",
+              borderBottom: "1px solid var(--line)",
               fontSize: 13,
             }}
           >

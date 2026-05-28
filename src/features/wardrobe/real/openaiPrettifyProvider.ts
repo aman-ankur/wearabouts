@@ -10,6 +10,7 @@ import type {
 } from "./realWardrobePipeline";
 import { normalizeImageForOpenAI, type OpenAIImageNormalizationOptions } from "./openaiImageNormalizer";
 import type { GarmentVisibilityState } from "@/src/domain/wardrobe";
+import { removeGeneratedAssetBackground } from "./imageBackgroundRemoval";
 import { analyzeImageTransparency, getTransparencyQualityNotes } from "./imageTransparencyValidation";
 import {
   createTimer,
@@ -26,6 +27,7 @@ export function buildOpenAIPrettifyPrompt(analysis: GarmentAnalysisResult): stri
     `Create one canonical transparent-background PNG cutout of this exact real garment: ${analysis.proposedName}.`,
     analysis.cropPrompt ? `Target garment guidance: ${analysis.cropPrompt}.` : "",
     "Output an isolated garment only with a transparent alpha channel.",
+    "Use real alpha transparency; do not draw a checkerboard transparency grid, checker pattern, matte rectangle, or fake transparent backdrop.",
     "No floor, hanger, mannequin, hands, person, body, shadow box, studio backdrop, square card, border, or background.",
     "Keep the full garment centered with natural padding for a wardrobe styling board.",
     "Preserve the original color, pattern, silhouette, logos, hems, sleeves, stitching, fabric texture, wear marks, and distinctive details.",
@@ -237,15 +239,19 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       image,
       size: "1024x1024",
       quality: "high",
+      background: "transparent",
+      output_format: "png",
+      input_fidelity: "high",
       prompt: buildOpenAIPrettifyPrompt(input.analysis),
     })) as OpenAIImageResponse;
     const base64 = response.data?.[0]?.b64_json;
     if (!base64) {
       throw new Error("OpenAI image edit did not return an image.");
     }
-    const bytes = new Uint8Array(Buffer.from(base64, "base64"));
-    const transparency = await analyzeImageTransparency(bytes);
-    const qualityNotes = getTransparencyQualityNotes(transparency);
+    const generatedBytes = new Uint8Array(Buffer.from(base64, "base64"));
+    const cleaned = await removeGeneratedAssetBackground(generatedBytes);
+    const transparency = await analyzeImageTransparency(cleaned.bytes);
+    const qualityNotes = [...cleaned.qualityNotes, ...getTransparencyQualityNotes(transparency)];
 
     logWearaboutsTelemetry("openai.image_edit.completed", {
       sourceImageId: input.sourceImage.id,
@@ -255,6 +261,10 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       category: input.analysis.category,
       quality: "high",
       size: "1024x1024",
+      background: "transparent",
+      outputFormat: "png",
+      inputFidelity: "high",
+      backgroundCleanup: cleaned.analysis,
       estimatedOutputCostUsd: estimateImageOutputCostUsd({
         model: this.imageModel,
         quality: "high",
@@ -264,7 +274,7 @@ export class OpenAIPrettifyProvider implements PrettifyAIProvider {
       qualityNotes,
       usage: response.usage ?? null,
     });
-    return { bytes, contentType: "image/png", qualityNotes };
+    return { bytes: cleaned.bytes, contentType: "image/png", qualityNotes };
   }
 
   async validatePrettifiedAsset(input: {

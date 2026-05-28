@@ -14,6 +14,7 @@ describe("buildOpenAIPrettifyPrompt", () => {
 
     expect(prompt).toContain("transparent-background PNG cutout");
     expect(prompt).toContain("transparent alpha channel");
+    expect(prompt).toContain("do not draw a checkerboard transparency grid");
     expect(prompt).toContain("isolated garment only");
     expect(prompt).toContain("No floor, hanger, mannequin, hands, person");
     expect(prompt).toContain("Preserve the original color, pattern, silhouette, logos");

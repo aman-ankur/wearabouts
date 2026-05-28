@@ -137,6 +137,7 @@ export interface RealWardrobeRepository {
   listDetectedGarmentsForBatch: (batchId: string) => Promise<DetectedGarment[]>;
   deleteDetectedGarment: (garmentId: string) => Promise<void>;
   createWardrobeItem: (input: { garment: DetectedGarment; addedAtIso: string }) => Promise<WardrobeItem>;
+  deleteWardrobeItem: (wardrobeItemId: string) => Promise<void>;
   listWardrobeItems: () => Promise<WardrobeItem[]>;
 }
 
@@ -260,6 +261,10 @@ export class RealWardrobePipeline {
     const wardrobeItem = await this.repository.createWardrobeItem({ garment, addedAtIso });
     await this.repository.deleteDetectedGarment(garment.id);
     return wardrobeItem;
+  }
+
+  async deleteWardrobeItem(wardrobeItemId: string): Promise<void> {
+    await this.repository.deleteWardrobeItem(wardrobeItemId);
   }
 
   async generateOutfitCandidates(parentJobId: string, candidateIds: string[]) {

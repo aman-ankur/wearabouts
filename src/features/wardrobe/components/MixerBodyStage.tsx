@@ -28,25 +28,25 @@ function getSlotStyle(slot: OutfitSlot, selectedItems: Partial<Record<OutfitSlot
 
   if (slot === "layer") {
     return hasTop
-      ? { ...base, left: "-1%", top: "2%", width: "52%", height: "42%" }
-      : { ...base, left: "21%", top: "2%", width: "58%", height: "42%" };
+      ? { ...base, left: "0%", top: "1%", width: "48%", height: "33%" }
+      : { ...base, left: "22%", top: "1%", width: "56%", height: "33%" };
   }
 
   if (slot === "top") {
     return hasLayer
-      ? { ...base, left: "49%", top: "2%", width: "52%", height: "42%" }
-      : { ...base, left: "19%", top: "3%", width: "62%", height: "40%" };
+      ? { ...base, left: "52%", top: "1%", width: "48%", height: "33%" }
+      : { ...base, left: "22%", top: "1%", width: "56%", height: "33%" };
   }
 
   if (slot === "bottom") {
-    return { ...base, left: "21%", top: "38%", width: "58%", height: "40%" };
+    return { ...base, left: "23%", top: "42%", width: "54%", height: "34%" };
   }
 
   if (slot === "shoes") {
-    return { ...base, left: "27%", top: "78%", width: "46%", height: "18%" };
+    return { ...base, left: "30%", top: "84%", width: "40%", height: "12%" };
   }
 
-  return { ...base, right: "4%", top: "45%", width: "24%", height: "22%" };
+  return { ...base, right: "6%", top: "36%", width: "22%", height: "18%" };
 }
 
 function BoardItem({ item, slot }: { item?: WardrobeItem; slot: OutfitSlot }) {
