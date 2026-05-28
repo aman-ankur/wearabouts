@@ -186,13 +186,21 @@ Each look shows:
 
 - Outfit board preview.
 - Variant label.
-- Score or confidence label.
+- Confidence label.
 - Owned item names.
 - Weather/activity rationale.
 - Style rationale.
 - Warnings or caveats.
-- `Save`.
-- `Refine`.
+- `Pass`, `Save`, and `Refine` controls.
+
+The result deck should stay compact on mobile:
+
+- Weather is shown on the request screen, not repeated in a separate results summary box.
+- The results header is an unboxed control row with the result-set mode, count, `Include ideas`, and `Edit request`.
+- Do not show swipe instructions in the result deck.
+- Tapping `Save` persists the current look and advances to the next suggestion.
+- Tapping `Pass` advances to the next suggestion without saving.
+- The result deck may support swipe gestures, but explicit controls must work end to end.
 
 ### Include Ideas
 
