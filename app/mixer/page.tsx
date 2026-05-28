@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
   ChevronLeft,
@@ -9,11 +10,9 @@ import {
   Lock,
   RefreshCcw,
   Save,
-  Shirt,
   SlidersHorizontal,
   Sparkles,
   Unlock,
-  UserRound,
   X,
 } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
@@ -134,6 +133,7 @@ function getManualSelectedItems(
 }
 
 export default function MixerPage() {
+  const router = useRouter();
   const { state, mixerState, saveCurrentOutfit } = useWardrobe();
   const [mixerMode, setMixerMode] = useState<MixerMode>("smart");
   const [selectedIntent, setSelectedIntent] = useState<OutfitIntent>(defaultMixerIntent);
@@ -303,6 +303,16 @@ export default function MixerPage() {
     setManualSavedOutfitId(outfitId);
     setSaveMessage("Saved canvas mix");
     return outfitId;
+  }
+
+  function createAvatarFromManualLook() {
+    const outfitId = manualSavedOutfitId ?? saveManualLook();
+
+    if (!outfitId) {
+      return;
+    }
+
+    router.push(`/avatar?savedOutfitId=${encodeURIComponent(outfitId)}`);
   }
 
   if (readyItems.length === 0) {
@@ -642,27 +652,11 @@ export default function MixerPage() {
             </div>
           </section>
 
-          <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
-            <button type="button" className="button" onClick={saveManualLook}>
-              <Shirt size={16} aria-hidden="true" />
-              Create look
+          <div style={{ display: "grid", gap: 8 }}>
+            <button type="button" className="button" onClick={createAvatarFromManualLook}>
+              <Sparkles size={16} aria-hidden="true" />
+              Create avatar
             </button>
-            {manualSavedOutfitId ? (
-              <Link className="button secondary" href={`/avatar?savedOutfitId=${manualSavedOutfitId}`}>
-                <UserRound size={16} aria-hidden="true" />
-                Avatar
-              </Link>
-            ) : (
-              <button
-                type="button"
-                className="button secondary"
-                onClick={saveManualLook}
-                title="Save this canvas mix before opening Avatar Studio"
-              >
-                <UserRound size={16} aria-hidden="true" />
-                Avatar
-              </button>
-            )}
           </div>
         </div>
       ) : (
