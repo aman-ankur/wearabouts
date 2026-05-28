@@ -1,0 +1,1143 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Wearabouts Avatar Studio Flow Mockup</title>
+  <style>
+    :root {
+      --bg: #f6f3ee;
+      --paper: #fffefa;
+      --ink: #111111;
+      --muted: #706b64;
+      --line: #e5ded4;
+      --soft: #eee8de;
+      --studio: #eeeeec;
+      --white: #ffffff;
+      --green: #60796b;
+      --blue: #315a7d;
+      --clay: #a46946;
+      --wine: #7b2638;
+      --gold: #b28a42;
+      --shadow: 0 18px 45px rgba(20, 20, 20, 0.12);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      letter-spacing: 0;
+    }
+
+    .page {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 30px 18px 58px;
+    }
+
+    .topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 18px;
+      margin-bottom: 28px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 840;
+      font-size: 18px;
+    }
+
+    .mark {
+      width: 31px;
+      height: 31px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: var(--ink);
+      color: var(--white);
+      font-size: 12px;
+      font-weight: 850;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      padding: 7px 11px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.75);
+      color: #403c37;
+      font-size: 12px;
+      font-weight: 760;
+      white-space: nowrap;
+    }
+
+    .pill.dark {
+      background: var(--ink);
+      border-color: var(--ink);
+      color: var(--white);
+    }
+
+    .pill.green {
+      background: #e6eee8;
+      border-color: #c8d8cd;
+      color: #2e4638;
+    }
+
+    .hero {
+      display: grid;
+      gap: 10px;
+      max-width: 920px;
+      margin-bottom: 28px;
+    }
+
+    .eyebrow {
+      color: var(--muted);
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 800;
+    }
+
+    h1 {
+      margin: 0;
+      max-width: 880px;
+      font-size: clamp(34px, 6vw, 68px);
+      line-height: 0.98;
+      letter-spacing: 0;
+    }
+
+    .hero p,
+    .section-note {
+      margin: 0;
+      color: #4e4a45;
+      font-size: 17px;
+      line-height: 1.5;
+    }
+
+    .journey {
+      display: grid;
+      grid-template-columns: repeat(6, minmax(320px, 1fr));
+      gap: 22px;
+      overflow-x: auto;
+      padding: 2px 0 22px;
+      scroll-snap-type: x mandatory;
+    }
+
+    .frame {
+      display: grid;
+      gap: 12px;
+      scroll-snap-align: start;
+    }
+
+    .frame h2 {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .frame p {
+      margin: 5px 0 0;
+      color: var(--muted);
+      font-size: 14px;
+      line-height: 1.45;
+    }
+
+    .phone {
+      width: min(100%, 390px);
+      margin: 0 auto;
+      border-radius: 36px;
+      background: #111;
+      padding: 10px;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(255, 255, 255, 0.5);
+    }
+
+    .screen {
+      min-height: 760px;
+      border-radius: 28px;
+      background: var(--bg);
+      overflow: hidden;
+      position: relative;
+      padding: 18px 16px 84px;
+    }
+
+    .appbar {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .app-title {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1;
+      letter-spacing: 0;
+      font-weight: 850;
+      text-align: center;
+      flex: 1;
+    }
+
+    .icon-button {
+      width: 38px;
+      height: 38px;
+      border-radius: 999px;
+      border: 1px solid var(--line);
+      background: rgba(255, 255, 255, 0.82);
+      display: grid;
+      place-items: center;
+      color: var(--ink);
+      font-size: 16px;
+      font-weight: 850;
+      box-shadow: 0 10px 28px rgba(40, 43, 56, 0.12);
+    }
+
+    .stack {
+      display: grid;
+      gap: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 254, 250, 0.94);
+      padding: 14px;
+    }
+
+    .panel-title {
+      margin: 0 0 8px;
+      font-size: 15px;
+      line-height: 1.2;
+      font-weight: 850;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.45;
+    }
+
+    .button {
+      border: 0;
+      border-radius: 999px;
+      background: var(--ink);
+      color: var(--white);
+      min-height: 46px;
+      padding: 12px 16px;
+      font-size: 14px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      width: 100%;
+    }
+
+    .button.secondary {
+      background: var(--white);
+      color: var(--ink);
+      border: 1px solid var(--line);
+    }
+
+    .button.ghost {
+      background: var(--soft);
+      color: var(--ink);
+    }
+
+    .button.disabled {
+      background: #bdb9b2;
+      color: #fff;
+    }
+
+    .saved-look {
+      display: grid;
+      gap: 12px;
+    }
+
+    .outfit-board {
+      min-height: 285px;
+      border-radius: 8px;
+      background: #f9f8f5;
+      border: 1px solid var(--line);
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      place-items: center;
+    }
+
+    .flatlay {
+      width: 238px;
+      height: 244px;
+      position: relative;
+    }
+
+    .garment {
+      position: absolute;
+      border-radius: 8px;
+      box-shadow: 0 12px 24px rgba(45, 40, 34, 0.12);
+    }
+
+    .shirt {
+      left: 72px;
+      top: 8px;
+      width: 92px;
+      height: 98px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.22) 1px, transparent 1px) 0 0 / 18px 18px,
+        linear-gradient(0deg, rgba(30,30,30,0.1) 1px, transparent 1px) 0 0 / 18px 18px,
+        #7e563c;
+      clip-path: polygon(18% 0, 82% 0, 100% 26%, 82% 39%, 82% 100%, 18% 100%, 18% 39%, 0 26%);
+    }
+
+    .pants {
+      left: 78px;
+      top: 112px;
+      width: 86px;
+      height: 104px;
+      background: #1e3156;
+      clip-path: polygon(18% 0, 82% 0, 92% 100%, 56% 100%, 50% 24%, 44% 100%, 8% 100%);
+    }
+
+    .shoe-left,
+    .shoe-right {
+      width: 52px;
+      height: 22px;
+      background: #6b3e24;
+      bottom: 0;
+      border-radius: 50% 35% 38% 45%;
+    }
+
+    .shoe-left {
+      left: 56px;
+      transform: rotate(-8deg);
+    }
+
+    .shoe-right {
+      right: 54px;
+      transform: rotate(8deg);
+    }
+
+    .look-meta {
+      display: grid;
+      gap: 5px;
+    }
+
+    .look-title {
+      margin: 0;
+      font-size: 26px;
+      line-height: 1.08;
+      letter-spacing: 0;
+    }
+
+    .item-list {
+      display: grid;
+      gap: 7px;
+      margin-top: 4px;
+    }
+
+    .item-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 0;
+      border-top: 1px solid var(--line);
+      font-size: 13px;
+      font-weight: 740;
+    }
+
+    .setup-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 4px;
+    }
+
+    .photo-slot {
+      min-height: 244px;
+      background: #ddd7cd;
+      position: relative;
+      overflow: hidden;
+      display: grid;
+      align-items: end;
+      justify-items: center;
+    }
+
+    .photo-slot.face {
+      background:
+        radial-gradient(circle at 50% 29%, #ba7a54 0 20px, transparent 22px),
+        radial-gradient(circle at 50% 41%, #8f563c 0 41px, transparent 43px),
+        linear-gradient(160deg, #25384f, #c8a269 52%, #745033);
+    }
+
+    .photo-slot.body {
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.28), transparent 35%),
+        linear-gradient(180deg, #b8c6d5, #f2f0e9 45%, #aaa18f);
+    }
+
+    .photo-label {
+      position: absolute;
+      top: 7px;
+      left: 8px;
+      right: 8px;
+      color: rgba(17, 17, 17, 0.68);
+      text-align: center;
+      font-size: 11px;
+      font-weight: 850;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+    }
+
+    .swap {
+      position: absolute;
+      bottom: 13px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      padding: 9px 13px;
+      background: rgba(255, 255, 255, 0.78);
+      border: 1px solid rgba(255, 255, 255, 0.74);
+      font-size: 12px;
+      font-weight: 800;
+      box-shadow: 0 10px 24px rgba(18, 18, 18, 0.14);
+      white-space: nowrap;
+    }
+
+    .status-row {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      padding: 10px 0;
+      border-top: 1px solid var(--line);
+    }
+
+    .status-dot {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: #e7eee7;
+      color: #274736;
+      font-size: 12px;
+      font-weight: 900;
+      flex: 0 0 auto;
+    }
+
+    .status-dot.warn {
+      background: #f5e8ca;
+      color: #725116;
+    }
+
+    .status-copy {
+      display: grid;
+      gap: 1px;
+      font-size: 12px;
+      line-height: 1.25;
+    }
+
+    .status-copy strong {
+      font-size: 13px;
+    }
+
+    .body-picker {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 4px;
+      min-height: 430px;
+    }
+
+    .body-large,
+    .body-small {
+      background: #ddd5c9;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .body-large {
+      display: grid;
+      place-items: center;
+      background: linear-gradient(180deg, #d7d6ce, #f0ece3);
+    }
+
+    .body-small-stack {
+      display: grid;
+      gap: 4px;
+    }
+
+    .body-small {
+      min-height: 212px;
+      background: linear-gradient(160deg, #d0c7ba, #957864);
+    }
+
+    .check,
+    .xmark {
+      position: absolute;
+      bottom: 12px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 14px;
+      font-weight: 900;
+      background: #fff;
+      color: #1f3f2c;
+    }
+
+    .xmark {
+      background: #e85d56;
+      color: #fff;
+    }
+
+    .person {
+      width: 122px;
+      height: 338px;
+      position: relative;
+    }
+
+    .person .head {
+      position: absolute;
+      top: 0;
+      left: 39px;
+      width: 44px;
+      height: 52px;
+      border-radius: 45% 45% 42% 42%;
+      background: #9b6040;
+      box-shadow: inset 0 9px 0 #1f1b18;
+    }
+
+    .person .torso {
+      position: absolute;
+      top: 57px;
+      left: 31px;
+      width: 60px;
+      height: 92px;
+      background: #d7d0c4;
+      border-radius: 12px 12px 8px 8px;
+    }
+
+    .person .arm-left,
+    .person .arm-right {
+      position: absolute;
+      top: 62px;
+      width: 22px;
+      height: 112px;
+      background: #9b6040;
+      border-radius: 999px;
+    }
+
+    .person .arm-left {
+      left: 15px;
+      transform: rotate(7deg);
+    }
+
+    .person .arm-right {
+      right: 15px;
+      transform: rotate(-9deg);
+    }
+
+    .person .leg-left,
+    .person .leg-right {
+      position: absolute;
+      top: 148px;
+      width: 34px;
+      height: 156px;
+      background: #2e2a2a;
+      border-radius: 8px 8px 12px 12px;
+    }
+
+    .person .leg-left {
+      left: 29px;
+    }
+
+    .person .leg-right {
+      right: 28px;
+    }
+
+    .person .foot-left,
+    .person .foot-right {
+      position: absolute;
+      bottom: 14px;
+      width: 42px;
+      height: 16px;
+      border-radius: 999px;
+      background: #5d321e;
+    }
+
+    .person .foot-left {
+      left: 21px;
+    }
+
+    .person .foot-right {
+      right: 20px;
+    }
+
+    .face-upload {
+      min-height: 455px;
+      display: grid;
+      place-items: center;
+      border-radius: 8px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 50% 28%, #9a5d3e 0 52px, transparent 54px),
+        radial-gradient(circle at 50% 44%, #b96f48 0 95px, transparent 98px),
+        linear-gradient(135deg, #27445a, #b77c4f 55%, #5d392e);
+      position: relative;
+    }
+
+    .processing-scrim {
+      position: absolute;
+      inset: 0;
+      background: rgba(35, 34, 42, 0.38);
+      display: grid;
+      place-items: center;
+      color: #fff;
+      font-weight: 850;
+    }
+
+    .spinner {
+      width: 28px;
+      height: 28px;
+      border-radius: 50%;
+      border: 3px solid rgba(255, 255, 255, 0.42);
+      border-top-color: #fff;
+      margin: 0 auto 12px;
+    }
+
+    .render-stage {
+      min-height: 466px;
+      border-radius: 8px;
+      background: var(--studio);
+      position: relative;
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+    }
+
+    .avatar {
+      width: 150px;
+      height: 370px;
+      position: relative;
+    }
+
+    .avatar .head {
+      position: absolute;
+      top: 0;
+      left: 50px;
+      width: 52px;
+      height: 62px;
+      border-radius: 46% 46% 42% 42%;
+      background: #9b6040;
+      box-shadow: inset 0 11px 0 #1b1815;
+    }
+
+    .avatar .neck {
+      position: absolute;
+      top: 58px;
+      left: 65px;
+      width: 22px;
+      height: 20px;
+      background: #9b6040;
+    }
+
+    .avatar .shirt {
+      position: absolute;
+      top: 75px;
+      left: 31px;
+      width: 90px;
+      height: 106px;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,0.24) 1px, transparent 1px) 0 0 / 16px 16px,
+        linear-gradient(0deg, rgba(22,22,22,0.08) 1px, transparent 1px) 0 0 / 16px 16px,
+        #866049;
+      clip-path: polygon(14% 0, 86% 0, 100% 25%, 83% 39%, 82% 100%, 18% 100%, 17% 39%, 0 25%);
+      border-radius: 8px;
+    }
+
+    .avatar .arm-left,
+    .avatar .arm-right {
+      position: absolute;
+      top: 88px;
+      width: 24px;
+      height: 125px;
+      background: #9b6040;
+      border-radius: 999px;
+    }
+
+    .avatar .arm-left {
+      left: 17px;
+      transform: rotate(5deg);
+    }
+
+    .avatar .arm-right {
+      right: 15px;
+      transform: rotate(-5deg);
+    }
+
+    .avatar .pants-left,
+    .avatar .pants-right {
+      position: absolute;
+      top: 181px;
+      width: 39px;
+      height: 143px;
+      background: #1f3157;
+      border-radius: 8px 8px 14px 14px;
+    }
+
+    .avatar .pants-left {
+      left: 40px;
+      transform: rotate(-2deg);
+    }
+
+    .avatar .pants-right {
+      right: 32px;
+      transform: rotate(2deg);
+    }
+
+    .avatar .shoe-left,
+    .avatar .shoe-right {
+      position: absolute;
+      bottom: 24px;
+      width: 48px;
+      height: 18px;
+      background: #6b3e24;
+      border-radius: 999px;
+    }
+
+    .avatar .shoe-left {
+      left: 26px;
+    }
+
+    .avatar .shoe-right {
+      right: 17px;
+    }
+
+    .render-controls {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .segmented {
+      display: inline-flex;
+      gap: 2px;
+      padding: 3px;
+      border-radius: 999px;
+      background: rgba(17, 17, 17, 0.12);
+    }
+
+    .segmented span {
+      width: 34px;
+      height: 34px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      background: transparent;
+      font-size: 16px;
+    }
+
+    .segmented span.active {
+      background: #fff;
+    }
+
+    .round-action {
+      min-width: 48px;
+      min-height: 48px;
+      border-radius: 999px;
+      background: #fff;
+      border: 0;
+      box-shadow: 0 10px 24px rgba(18, 18, 18, 0.12);
+      font-size: 16px;
+      font-weight: 900;
+    }
+
+    .render-button {
+      flex: 1;
+      min-height: 48px;
+      border: 0;
+      border-radius: 999px;
+      background: #fff;
+      color: #111;
+      box-shadow: 0 10px 24px rgba(18, 18, 18, 0.12);
+      font-size: 15px;
+      font-weight: 850;
+    }
+
+    .bottom-nav {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      min-height: 66px;
+      background: rgba(255, 254, 250, 0.96);
+      border-top: 1px solid var(--line);
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      align-items: center;
+      padding: 7px 8px 9px;
+    }
+
+    .nav-item {
+      display: grid;
+      justify-items: center;
+      gap: 3px;
+      color: #77716a;
+      font-size: 10px;
+      font-weight: 780;
+    }
+
+    .nav-item strong {
+      color: var(--ink);
+    }
+
+    .nav-icon {
+      width: 25px;
+      height: 25px;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 13px;
+      background: transparent;
+    }
+
+    .nav-item.active .nav-icon {
+      background: var(--ink);
+      color: #fff;
+    }
+
+    .caption-fields {
+      display: grid;
+      gap: 0;
+      background: rgba(255, 254, 250, 0.86);
+      border-top: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+    }
+
+    .field {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 13px 0;
+      border-bottom: 1px solid var(--line);
+    }
+
+    .field:last-child {
+      border-bottom: 0;
+    }
+
+    .field span {
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 780;
+    }
+
+    .field strong {
+      font-size: 14px;
+    }
+
+    @media (max-width: 760px) {
+      .topbar {
+        align-items: flex-start;
+        flex-direction: column;
+      }
+
+      .journey {
+        grid-template-columns: repeat(6, minmax(300px, 1fr));
+      }
+
+      .screen {
+        min-height: 730px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div class="brand"><span class="mark">W</span> Wearabouts</div>
+      <div class="pill dark">Phase 8 mockup · Avatar Studio</div>
+    </header>
+
+    <section class="hero">
+      <div class="eyebrow">Saved-look avatar render</div>
+      <h1>One great studio preview after the outfit is worth saving.</h1>
+      <p>Avatar Studio keeps the fast Stylist and Mixer surfaces cheap. The user saves a look first, adds face and body references once, then spends image generation only on a high-quality full-body preview.</p>
+    </section>
+
+    <section class="journey" aria-label="Avatar Studio flow mockups">
+      <article class="frame">
+        <div>
+          <h2>1. Saved look handoff</h2>
+          <p>The avatar action appears after a look is saved, with the outfit board still available as the honest fallback.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div class="icon-button">‹</div>
+              <h3 class="app-title">Saved Look</h3>
+              <div class="icon-button">⋯</div>
+            </div>
+            <div class="saved-look">
+              <div class="outfit-board">
+                <div class="flatlay">
+                  <span class="garment shirt"></span>
+                  <span class="garment pants"></span>
+                  <span class="garment shoe-left"></span>
+                  <span class="garment shoe-right"></span>
+                </div>
+              </div>
+              <div class="look-meta">
+                <span class="pill green">Stylist · closet-only</span>
+                <h3 class="look-title">Dinner Date</h3>
+                <div class="muted">Patterned resort shirt, navy trousers, brown loafers. Saved from tonight's Stylist result.</div>
+              </div>
+              <button class="button">Render avatar preview</button>
+              <button class="button secondary">Use outfit board</button>
+              <div class="panel">
+                <h4 class="panel-title">Cost-safe behavior</h4>
+                <div class="muted">No avatar image is generated until this button is tapped. Cached previews are reused for the same avatar, outfit, pose, and prompt version.</div>
+              </div>
+            </div>
+            <nav class="bottom-nav">
+              <div class="nav-item"><span class="nav-icon">⌂</span><span>Home</span></div>
+              <div class="nav-item active"><span class="nav-icon">◌</span><strong>Closet</strong></div>
+              <div class="nav-item"><span class="nav-icon">＋</span><span>Add</span></div>
+              <div class="nav-item"><span class="nav-icon">⇄</span><span>Mixer</span></div>
+              <div class="nav-item"><span class="nav-icon">✦</span><span>Stylist</span></div>
+            </nav>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>2. Face pic</h2>
+          <p>Face reference is validated before rendering. Good likeness matters, but the goal is still outfit judgment.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div class="icon-button">‹</div>
+              <h3 class="app-title">Face Pic</h3>
+              <div class="icon-button">×</div>
+            </div>
+            <div class="stack">
+              <div class="face-upload">
+                <div class="processing-scrim">
+                  <div>
+                    <div class="spinner"></div>
+                    Processing face reference
+                  </div>
+                </div>
+              </div>
+              <div class="panel">
+                <h4 class="panel-title">Use a clear close-up</h4>
+                <div class="muted">One person, face visible, no sunglasses, good light. Existing camera-roll photos are fine.</div>
+              </div>
+              <button class="button disabled">Processing...</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>3. Body pic</h2>
+          <p>The body reference captures proportions and stance. The clothing in this photo is not the outfit source.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div class="icon-button">‹</div>
+              <h3 class="app-title">Body Pic</h3>
+              <div class="icon-button">×</div>
+            </div>
+            <div class="stack">
+              <div class="body-picker">
+                <div class="body-large">
+                  <div class="person">
+                    <span class="head"></span>
+                    <span class="torso"></span>
+                    <span class="arm-left"></span>
+                    <span class="arm-right"></span>
+                    <span class="leg-left"></span>
+                    <span class="leg-right"></span>
+                    <span class="foot-left"></span>
+                    <span class="foot-right"></span>
+                  </div>
+                  <span class="check">✓</span>
+                </div>
+                <div class="body-small-stack">
+                  <div class="body-small"><span class="xmark">×</span></div>
+                  <div class="body-small"><span class="xmark">×</span></div>
+                </div>
+              </div>
+              <div class="panel">
+                <h4 class="panel-title">Head to toe, nobody else</h4>
+                <div class="muted">Mirror photos are okay if the full body is visible and nothing blocks the silhouette.</div>
+              </div>
+              <button class="button">Upload body pic</button>
+              <button class="button ghost">Skip for now</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>4. Review avatar inputs</h2>
+          <p>Quality gates prevent spending image-generation cost on weak references.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div class="icon-button">‹</div>
+              <h3 class="app-title">Your Avatar</h3>
+              <div class="icon-button">×</div>
+            </div>
+            <div class="stack">
+              <div class="setup-grid">
+                <div class="photo-slot face">
+                  <div class="photo-label">Face</div>
+                  <div class="swap">↻ Swap</div>
+                </div>
+                <div class="photo-slot body">
+                  <div class="photo-label">Body</div>
+                  <div class="person" style="transform: scale(.62); transform-origin: center bottom;">
+                    <span class="head"></span>
+                    <span class="torso"></span>
+                    <span class="arm-left"></span>
+                    <span class="arm-right"></span>
+                    <span class="leg-left"></span>
+                    <span class="leg-right"></span>
+                    <span class="foot-left"></span>
+                    <span class="foot-right"></span>
+                  </div>
+                  <div class="swap">↻ Swap</div>
+                </div>
+              </div>
+              <div class="panel">
+                <div class="status-row">
+                  <span class="status-dot">✓</span>
+                  <div class="status-copy">
+                    <strong>Face reference ready</strong>
+                    <span class="muted">One clear face, good enough for recognizable likeness.</span>
+                  </div>
+                </div>
+                <div class="status-row">
+                  <span class="status-dot warn">!</span>
+                  <div class="status-copy">
+                    <strong>Body reference usable</strong>
+                    <span class="muted">Full body visible. Slight angle is okay for studio pose.</span>
+                  </div>
+                </div>
+              </div>
+              <button class="button">Finish avatar setup</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>5. Rendering state</h2>
+          <p>The app shows exactly what is being rendered and keeps the outfit board visible while the job runs.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div class="icon-button">‹</div>
+              <h3 class="app-title">Avatar Preview</h3>
+              <div class="icon-button">×</div>
+            </div>
+            <div class="stack">
+              <div class="render-stage">
+                <div>
+                  <div class="spinner" style="border-color: rgba(17,17,17,.16); border-top-color: #111;"></div>
+                  <div style="font-weight: 850; text-align: center;">Rendering studio preview</div>
+                  <div class="muted" style="text-align: center; margin-top: 6px;">Face + body + saved outfit</div>
+                </div>
+              </div>
+              <div class="panel">
+                <h4 class="panel-title">Dinner Date</h4>
+                <div class="item-list">
+                  <div class="item-row"><span>Patterned camp shirt</span><span>Top</span></div>
+                  <div class="item-row"><span>Navy drawstring trousers</span><span>Bottom</span></div>
+                  <div class="item-row"><span>Brown leather loafers</span><span>Shoes</span></div>
+                </div>
+              </div>
+              <button class="button secondary">Use outfit board while this runs</button>
+            </div>
+          </div>
+        </div>
+      </article>
+
+      <article class="frame">
+        <div>
+          <h2>6. Saved avatar render</h2>
+          <p>The final state is intentionally clean and simple: keep, regenerate, delete, or fall back to the board.</p>
+        </div>
+        <div class="phone">
+          <div class="screen">
+            <div class="appbar">
+              <div class="icon-button">‹</div>
+              <h3 class="app-title">Avatar Preview</h3>
+              <div class="icon-button">✎</div>
+            </div>
+            <div class="stack">
+              <div class="render-stage">
+                <div class="avatar" aria-label="Full-body avatar render mock">
+                  <span class="head"></span>
+                  <span class="neck"></span>
+                  <span class="shirt"></span>
+                  <span class="arm-left"></span>
+                  <span class="arm-right"></span>
+                  <span class="pants-left"></span>
+                  <span class="pants-right"></span>
+                  <span class="shoe-left"></span>
+                  <span class="shoe-right"></span>
+                </div>
+                <div class="render-controls">
+                  <div class="segmented"><span class="active">♙</span><span>▣</span></div>
+                  <button class="render-button">↻ Regenerate</button>
+                  <button class="round-action" style="color: #d33b35;">⌫</button>
+                </div>
+              </div>
+              <div class="caption-fields">
+                <div class="field"><span>Caption</span><strong>Dinner Date</strong></div>
+                <div class="field"><span>Date</span><strong>May 28 '26</strong></div>
+              </div>
+              <button class="button">Save avatar preview</button>
+              <button class="button secondary">Use outfit board instead</button>
+            </div>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <p class="section-note">This mockup intentionally shows no live body try-on in Mixer or Stylist. Avatar rendering is a premium, explicit, cached step after a saved outfit exists.</p>
+  </main>
+</body>
+</html>

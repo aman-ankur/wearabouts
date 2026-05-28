@@ -12,6 +12,14 @@ export interface RealWardrobeConfig {
   openaiDetectionImage: Required<OpenAIImageNormalizationOptions>;
 }
 
+export interface RealAvatarRenderConfig {
+  openaiApiKey: string;
+  avatarRealRenderEnabled: boolean;
+  model: string;
+  size: string;
+  quality: string;
+}
+
 export function getRealWardrobeConfig(): RealWardrobeConfig {
   const supabaseUrl = process.env.SUPABASE_URL;
   const supabaseServiceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -33,6 +41,22 @@ export function getRealWardrobeConfig(): RealWardrobeConfig {
       quality: parsePositiveInteger(process.env.OPENAI_DETECTION_IMAGE_QUALITY, 82),
       filenamePrefix: "wearabouts-openai-detection",
     },
+  };
+}
+
+export function getRealAvatarRenderConfig(): RealAvatarRenderConfig {
+  const openaiApiKey = process.env.OPENAI_API_KEY;
+
+  if (!openaiApiKey) {
+    throw new Error("Real avatar rendering requires OPENAI_API_KEY.");
+  }
+
+  return {
+    openaiApiKey,
+    avatarRealRenderEnabled: process.env.WEARABOUTS_AVATAR_REAL_RENDER_ENABLED === "true",
+    model: process.env.OPENAI_AVATAR_IMAGE_MODEL ?? "gpt-image-2",
+    size: process.env.OPENAI_AVATAR_IMAGE_SIZE ?? "1024x1536",
+    quality: process.env.OPENAI_AVATAR_IMAGE_QUALITY ?? "high",
   };
 }
 

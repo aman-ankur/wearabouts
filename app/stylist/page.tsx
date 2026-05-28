@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { CloudSun, LocateFixed, MapPin, Sparkles } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import type { AvatarRender } from "@/src/features/wardrobe/avatar/avatarTypes";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
+import { AvatarRenderGallery } from "@/src/features/wardrobe/components/AvatarRenderGallery";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { StylistLookCard } from "@/src/features/wardrobe/components/StylistLookCard";
 import { generateStylistChips } from "@/src/features/wardrobe/stylist/stylistChipService";
@@ -43,11 +45,12 @@ export default function StylistPage() {
   const [note, setNote] = useState("");
   const [looks, setLooks] = useState<StylistLook[]>([]);
   const [includeIdeas, setIncludeIdeas] = useState(false);
-  const [savedLook, setSavedLook] = useState<StylistLook | null>(null);
+  const [savedLook, setSavedLook] = useState<{ look: StylistLook; outfitId: string } | null>(null);
   const [refineLook, setRefineLook] = useState<StylistLook | null>(null);
   const [chipsExpanded, setChipsExpanded] = useState(false);
   const [activeLookIndex, setActiveLookIndex] = useState(0);
   const [rejectedLookIds, setRejectedLookIds] = useState<string[]>([]);
+  const [avatarRenders, setAvatarRenders] = useState<AvatarRender[]>([]);
   const readyItems = useMemo(() => state.closetItems.filter((item) => item.readyForMixer), [state.closetItems]);
   const chips = useMemo(
     () => generateStylistChips({ now, weather: stylistWeather.weather, closetItems: state.closetItems }),
@@ -68,6 +71,13 @@ export default function StylistPage() {
       return chips.filter((chip) => chip.selectedByDefault).map((chip) => chip.id);
     });
   }, [chips]);
+
+  useEffect(() => {
+    void fetch("/api/wardrobe/avatar/renders")
+      .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load avatar renders."))))
+      .then((payload: { renders: AvatarRender[] }) => setAvatarRenders(payload.renders))
+      .catch(() => undefined);
+  }, []);
 
   function buildLooks(nextIncludeIdeas: boolean) {
     const request = parseStylistRequest({
@@ -95,12 +105,12 @@ export default function StylistPage() {
   }
 
   function saveLook(look: StylistLook) {
-    saveCurrentOutfit(look.suggestion.title, look.suggestion.profileId, look.suggestion.selections, {
+    const outfitId = saveCurrentOutfit(look.suggestion.title, look.suggestion.profileId, look.suggestion.selections, {
       source: "suggestion",
       intent: "stylist",
       rationale: `${look.weatherRationale} ${look.styleRationale}`,
     });
-    setSavedLook(look);
+    setSavedLook({ look, outfitId });
     setRejectedLookIds((ids) => (ids.includes(look.id) ? ids : [...ids, look.id]));
     setActiveLookIndex((index) => Math.min(index, Math.max(visibleLooks.length - 2, 0)));
   }
@@ -109,6 +119,16 @@ export default function StylistPage() {
     setRejectedLookIds((ids) => (ids.includes(look.id) ? ids : [...ids, look.id]));
     setSavedLook(null);
     setActiveLookIndex((index) => Math.min(index, Math.max(visibleLooks.length - 2, 0)));
+  }
+
+  async function deleteAvatarRender(renderId: string) {
+    const response = await fetch(`/api/wardrobe/avatar/renders/${encodeURIComponent(renderId)}`, { method: "DELETE" });
+    if (!response.ok) {
+      return;
+    }
+
+    const payload = (await response.json()) as { render: AvatarRender };
+    setAvatarRenders((renders) => renders.map((render) => (render.id === payload.render.id ? payload.render : render)));
   }
 
   if (readyItems.length === 0) {
@@ -338,6 +358,8 @@ export default function StylistPage() {
           </p>
         ) : null}
 
+        <AvatarRenderGallery renders={avatarRenders} onDelete={(renderId) => void deleteAvatarRender(renderId)} />
+
         {refineLook ? (
           <section className="card" style={{ display: "grid", gap: 10 }}>
             <strong>Refine handoff</strong>
@@ -352,15 +374,15 @@ export default function StylistPage() {
 
         {savedLook ? (
           <section className="card" style={{ display: "grid", gap: 10, borderColor: "rgba(95,116,104,.42)" }}>
-            <strong>Saved {savedLook.suggestion.title}</strong>
+            <strong>Saved {savedLook.look.suggestion.title}</strong>
             <p className="subtle" style={{ margin: 0 }}>
-              Recommendation source: Stylist · {savedLook.missingPieceIdeas.length > 0 ? "idea-assisted" : "closet-only"}
+              Recommendation source: Stylist · {savedLook.look.missingPieceIdeas.length > 0 ? "idea-assisted" : "closet-only"}
             </p>
-            <button type="button" className="button secondary" disabled title="Avatar rendering is not implemented in this phase.">
-              Preview this on me
-            </button>
+            <Link className="button secondary" href={`/avatar?savedOutfitId=${encodeURIComponent(savedLook.outfitId)}`}>
+              Render avatar preview
+            </Link>
             <p className="subtle" style={{ margin: 0 }}>
-              Generate one high-quality avatar render for this saved outfit. Avatar rendering is not implemented yet.
+              Generate one high-quality avatar render for this saved outfit only when you explicitly ask.
             </p>
           </section>
         ) : null}
