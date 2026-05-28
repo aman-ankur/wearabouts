@@ -99,4 +99,14 @@ describe("AvatarRenderPanel", () => {
     expect(html).toContain("Render failed");
     expect(html).toContain("Outfit board fallback");
   });
+
+  it("shows a magic wand processing state while rendering", () => {
+    const html = renderToStaticMarkup(<AvatarRenderPanel {...props} avatarProfile={avatarProfile} render={null} canRegenerate isBusy />);
+
+    expect(html).toContain("avatar-magic-stage");
+    expect(html).toContain("Composing your avatar");
+    expect(html).toContain("balancing the pose");
+    expect(html).toContain("relaxing shoulders, avoiding hunches");
+    expect(html).not.toContain("Outfit board fallback");
+  });
 });

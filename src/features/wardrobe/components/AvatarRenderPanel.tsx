@@ -41,6 +41,26 @@ function stateLabel(render: AvatarRender | null, isBusy?: boolean): string {
   return "Ready to render";
 }
 
+export function AvatarMagicProcessingStage() {
+  return (
+    <section className="avatar-magic-stage" aria-live="polite" aria-label="Avatar render progress">
+      <span className="avatar-magic-wand" aria-hidden="true" />
+      <div className="avatar-magic-copy">
+        <span>Working</span>
+        <strong>Composing your avatar</strong>
+        <p>Confident posture, natural casual pose, and the exact saved outfit.</p>
+      </div>
+      <div className="avatar-processing-stream">
+        <span>balancing the pose</span>
+        <span>keeping garment colors and shapes faithful</span>
+        <span>checking head-to-toe framing</span>
+        <span>relaxing shoulders, avoiding hunches</span>
+        <span>polishing studio light</span>
+      </div>
+    </section>
+  );
+}
+
 export function AvatarRenderPanel({
   savedOutfit,
   closetItems,
@@ -105,7 +125,9 @@ export function AvatarRenderPanel({
         </div>
       </div>
 
-      {showAvatarImage ? (
+      {isBusy || render?.status === "rendering" || render?.status === "queued" ? (
+        <AvatarMagicProcessingStage />
+      ) : showAvatarImage ? (
         <div className="card" style={{ display: "grid", gap: 10, background: "#eeeeec" }}>
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img src={render.imageUrl} alt={`${savedOutfit.name} avatar preview`} style={{ width: "100%", maxHeight: 560, objectFit: "contain" }} />

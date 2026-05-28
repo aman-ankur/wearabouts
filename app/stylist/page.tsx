@@ -8,6 +8,7 @@ import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { AvatarRenderGallery } from "@/src/features/wardrobe/components/AvatarRenderGallery";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { StylistLookCard } from "@/src/features/wardrobe/components/StylistLookCard";
+import { getVisibleStylistChips } from "@/src/features/wardrobe/stylist/stylistChipDisplay";
 import { generateStylistChips } from "@/src/features/wardrobe/stylist/stylistChipService";
 import { buildStylistLooks } from "@/src/features/wardrobe/stylist/stylistRecommendationService";
 import { parseStylistRequest } from "@/src/features/wardrobe/stylist/stylistRequestParser";
@@ -56,8 +57,9 @@ export default function StylistPage() {
     () => generateStylistChips({ now, weather: stylistWeather.weather, closetItems: state.closetItems }),
     [now, state.closetItems, stylistWeather.weather],
   );
-  const visibleChips = chipsExpanded ? chips : chips.slice(0, 9);
-  const hiddenChipCount = Math.max(chips.length - visibleChips.length, 0);
+  const chipDisplay = getVisibleStylistChips(chips, chipsExpanded);
+  const visibleChips = chipDisplay.chips;
+  const hiddenChipCount = chipDisplay.hiddenChipCount;
   const visibleLooks = looks.filter((look) => !rejectedLookIds.includes(look.id));
   const activeLook = visibleLooks[Math.min(activeLookIndex, Math.max(visibleLooks.length - 1, 0))] ?? null;
 
@@ -221,45 +223,36 @@ export default function StylistPage() {
           </>
         ) : (
           <>
-        <section className="card" style={{ display: "grid", gap: 12, background: "#242622", color: "var(--white)", borderColor: "#242622" }}>
-          <span className="pill" style={{ justifySelf: "start" }}>
-            <CloudSun size={14} aria-hidden="true" />
-            {weatherLine(stylistWeather)}
-          </span>
+        <section className="card stylist-request-card">
+          <div className="stylist-weather-row">
+            <span className="stylist-weather-status">
+              <CloudSun size={14} aria-hidden="true" />
+              {weatherLine(stylistWeather)}
+            </span>
+            {stylistWeather.locationState === "unknown" ? (
+              <div className="stylist-weather-actions">
+                <button type="button" className="stylist-mini-button stylist-mini-button-primary" onClick={stylistWeather.requestBrowserLocation}>
+                  <LocateFixed size={14} aria-hidden="true" />
+                  Location
+                </button>
+                <button type="button" className="stylist-mini-button" onClick={stylistWeather.skipWeather}>
+                  Skip
+                </button>
+              </div>
+            ) : null}
+          </div>
           <h2 style={{ fontSize: 30, lineHeight: 1.04, margin: 0 }}>What are you dressing for?</h2>
-          <p style={{ margin: 0, color: "rgba(255,255,255,.72)", fontSize: 13, lineHeight: 1.45 }}>
-            Wearabouts uses time, weather when available, and your closet. Weather is automatic, never a manual outfit chip.
-          </p>
-          {stylistWeather.locationState === "unknown" ? (
-            <div style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)", gap: 8 }}>
-              <button type="button" className="button" onClick={stylistWeather.requestBrowserLocation} style={{ background: "#6f8274" }}>
-                <LocateFixed size={16} aria-hidden="true" />
-                Use my location
-              </button>
-              <button type="button" className="button secondary" onClick={stylistWeather.skipWeather}>
-                Skip weather
-              </button>
-            </div>
-          ) : null}
           {stylistWeather.locationState === "unknown" || stylistWeather.locationState === "denied" || stylistWeather.locationState === "failed" ? (
-            <form onSubmit={submitCity} style={{ display: "grid", gridTemplateColumns: "minmax(0, 1fr) auto", gap: 8 }}>
+            <form onSubmit={submitCity} className="stylist-city-row">
               <input
                 value={city}
                 onChange={(event) => setCity(event.target.value)}
                 placeholder="Enter city"
                 aria-label="Enter city"
-                style={{
-                  minWidth: 0,
-                  minHeight: 44,
-                  borderRadius: 999,
-                  border: "1px solid rgba(255,255,255,.26)",
-                  padding: "0 14px",
-                  background: "rgba(255,255,255,.12)",
-                  color: "var(--white)",
-                }}
+                className="stylist-city-input"
               />
-              <button type="submit" className="button secondary" disabled={!city.trim()}>
-                <MapPin size={16} aria-hidden="true" />
+              <button type="submit" className="stylist-mini-button" disabled={!city.trim()}>
+                <MapPin size={14} aria-hidden="true" />
                 City
               </button>
             </form>
@@ -280,7 +273,7 @@ export default function StylistPage() {
         ) : null}
 
         <section className="card" style={{ display: "grid", gap: 12 }}>
-          <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+          <div className="stylist-chip-grid">
             {visibleChips.map((chip) => {
               const selected = selectedChipIds.includes(chip.id);
               return (
@@ -295,6 +288,11 @@ export default function StylistPage() {
                     border: selected ? "1px solid #242622" : "1px solid var(--line)",
                     background: selected ? "#242622" : "linear-gradient(180deg, #fffefa, #f3eee7)",
                     color: selected ? "var(--white)" : "var(--ink)",
+                    width: "100%",
+                    minWidth: 0,
+                    justifyContent: "center",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
                   }}
                 >
                   {chip.label}
@@ -312,24 +310,16 @@ export default function StylistPage() {
             ) : null}
           </div>
           <label
+            className="stylist-chat-note"
             style={{
-              display: "grid",
-              gap: 6,
-              border: "1px solid var(--line)",
-              borderRadius: 8,
-              padding: 12,
-              background: "linear-gradient(180deg, #fffefa, #faf6ef)",
               color: "var(--ink)",
             }}
           >
-            <span style={{ color: "var(--muted)", fontSize: 11, fontWeight: 820, textTransform: "uppercase", letterSpacing: ".04em" }}>
-              Optional nuance
-            </span>
             <textarea
               value={note}
               onChange={(event) => setNote(event.target.value)}
-              placeholder="Sharp but comfortable. Avoid black jeans tonight."
-              aria-label="Optional stylist note"
+              placeholder="Ask Wearabouts... sharp but comfortable, no black jeans tonight."
+              aria-label="Message stylist"
               rows={2}
               style={{
                 width: "100%",
