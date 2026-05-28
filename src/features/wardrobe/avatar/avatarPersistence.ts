@@ -1,9 +1,8 @@
 import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { AvatarInputQualityCheck, AvatarProfile, AvatarRender, AvatarRenderRequest } from "./avatarTypes";
+import type { AvatarInputQualityCheck, AvatarProfile, AvatarRender, AvatarRenderRequest, AvatarStoredInput } from "./avatarTypes";
+import { AVATAR_STORAGE_BUCKET, type AvatarUploadSlot } from "./avatarUploadSlot";
 import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "@/src/features/wardrobe/real/realWardrobeConfig";
-
-const avatarBucket = "avatar-assets";
 
 interface AvatarProfileRow {
   id: string;
@@ -53,21 +52,12 @@ export class AvatarPersistence {
 
   async upsertProfile(input: {
     profileId: AvatarProfile["profileId"];
-    faceDataUrl: string;
-    bodyDataUrl: string;
+    face: AvatarStoredInput;
+    body: AvatarStoredInput;
     faceQuality: AvatarInputQualityCheck;
     bodyQuality: AvatarInputQualityCheck;
   }): Promise<AvatarProfile> {
     const profileId = `avatar-profile-${input.profileId}`;
-    const face = dataUrlToBytes(input.faceDataUrl);
-    const body = dataUrlToBytes(input.bodyDataUrl);
-    const faceAssetId = `avatar-face-${randomUUID()}`;
-    const bodyAssetId = `avatar-body-${randomUUID()}`;
-    const faceStoragePath = `${REAL_HOUSEHOLD_ID}/${input.profileId}/${faceAssetId}.${extensionForContentType(face.contentType)}`;
-    const bodyStoragePath = `${REAL_HOUSEHOLD_ID}/${input.profileId}/${bodyAssetId}.${extensionForContentType(body.contentType)}`;
-
-    await this.upload(avatarBucket, faceStoragePath, face.bytes, face.contentType, true);
-    await this.upload(avatarBucket, bodyStoragePath, body.bytes, body.contentType, true);
 
     const { data, error } = await this.supabase
       .from("avatar_profiles")
@@ -76,14 +66,14 @@ export class AvatarPersistence {
           id: profileId,
           household_id: REAL_HOUSEHOLD_ID,
           profile_id: input.profileId,
-          face_asset_id: faceAssetId,
-          body_asset_id: bodyAssetId,
-          face_bucket: avatarBucket,
-          face_storage_path: faceStoragePath,
-          face_content_type: face.contentType,
-          body_bucket: avatarBucket,
-          body_storage_path: bodyStoragePath,
-          body_content_type: body.contentType,
+          face_asset_id: input.face.assetId,
+          body_asset_id: input.body.assetId,
+          face_bucket: AVATAR_STORAGE_BUCKET,
+          face_storage_path: input.face.storagePath,
+          face_content_type: input.face.contentType,
+          body_bucket: AVATAR_STORAGE_BUCKET,
+          body_storage_path: input.body.storagePath,
+          body_content_type: input.body.contentType,
           face_quality: input.faceQuality,
           body_quality: input.bodyQuality,
         },
@@ -96,6 +86,15 @@ export class AvatarPersistence {
     }
 
     return this.mapProfile(data as AvatarProfileRow);
+  }
+
+  async createUploadUrl(input: AvatarUploadSlot): Promise<{ signedUrl: string; token: string }> {
+    const { data, error } = await this.supabase.storage.from(input.bucket).createSignedUploadUrl(input.storagePath, { upsert: false });
+    if (error) {
+      throw new Error(error.message);
+    }
+
+    return { signedUrl: data.signedUrl, token: data.token };
   }
 
   async getProfile(profileId = REAL_PROFILE_ID as AvatarProfile["profileId"]): Promise<AvatarProfile | null> {
@@ -154,7 +153,7 @@ export class AvatarPersistence {
     const image = dataUrlToBytes(input.imageDataUrl);
     const imageAssetId = `avatar-render-${randomUUID()}`;
     const storagePath = `${REAL_HOUSEHOLD_ID}/${REAL_PROFILE_ID}/${imageAssetId}.${extensionForContentType(image.contentType)}`;
-    await this.upload(avatarBucket, storagePath, image.bytes, image.contentType, false);
+    await this.upload(AVATAR_STORAGE_BUCKET, storagePath, image.bytes, image.contentType, false);
 
     const { data, error } = await this.supabase
       .from("avatar_renders")
@@ -167,7 +166,7 @@ export class AvatarPersistence {
         request: input.request,
         status: "ready",
         image_asset_id: imageAssetId,
-        image_bucket: avatarBucket,
+        image_bucket: AVATAR_STORAGE_BUCKET,
         image_storage_path: storagePath,
         image_content_type: image.contentType,
         quality_notes: input.qualityNotes,
@@ -207,7 +206,7 @@ export class AvatarPersistence {
   }
 
   private async signedUrl(storagePath: string): Promise<string> {
-    const { data, error } = await this.supabase.storage.from(avatarBucket).createSignedUrl(storagePath, 60 * 60);
+    const { data, error } = await this.supabase.storage.from(AVATAR_STORAGE_BUCKET).createSignedUrl(storagePath, 60 * 60);
     if (error) {
       throw new Error(error.message);
     }

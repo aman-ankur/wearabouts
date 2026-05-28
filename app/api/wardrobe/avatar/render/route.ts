@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
-import type { AvatarRenderProviderRequest } from "@/src/features/wardrobe/avatar/avatarRenderProvider";
+import { withAvatarProfileReferenceImages, type AvatarRenderProviderRequest } from "@/src/features/wardrobe/avatar/avatarRenderProvider";
 import { AvatarPersistence } from "@/src/features/wardrobe/avatar/avatarPersistence";
 import { createRealAvatarRenderProvider } from "@/src/features/wardrobe/avatar/realAvatarRenderProvider";
 import { logWearaboutsTelemetry } from "@/src/features/wardrobe/real/prettifyTelemetry";
@@ -50,11 +50,16 @@ export async function POST(request: Request) {
     client: new OpenAI({ apiKey: config.openaiApiKey }) as unknown as Parameters<typeof createRealAvatarRenderProvider>[0]["client"],
     config,
   });
-  const result = await provider.renderAvatar(payload);
+  const persistedProfile = await persistence.getProfile(payload.avatarProfile.profileId);
+  const renderPayload = withAvatarProfileReferenceImages(payload, {
+    faceImageUrl: persistedProfile?.faceImageUrl,
+    bodyImageUrl: persistedProfile?.bodyImageUrl,
+  });
+  const result = await provider.renderAvatar(renderPayload);
   if (result.status === "ready" && result.imageUrl) {
     const render = await persistence.saveRender({
-      request: payload.request,
-      cacheKey: payload.cacheKey,
+      request: renderPayload.request,
+      cacheKey: renderPayload.cacheKey,
       imageDataUrl: result.imageUrl,
       qualityNotes: result.qualityNotes,
     });

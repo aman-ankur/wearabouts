@@ -228,6 +228,7 @@ Add an avatar layer parallel to the existing wardrobe provider structure:
 src/features/wardrobe/avatar/
   avatarTypes.ts
   avatarValidation.ts
+  avatarUploadSlot.ts
   avatarRenderPrompt.ts
   avatarRenderCacheKey.ts
   avatarRenderProvider.ts
@@ -247,9 +248,14 @@ Suggested route:
 
 ```text
 app/avatar/page.tsx
+app/api/wardrobe/avatar/upload-url/route.ts
+app/api/wardrobe/avatar/profile/route.ts
+app/api/wardrobe/avatar/render/route.ts
 ```
 
 Keep implementation details flexible when planning starts. The important boundary is that saved-look pages call an avatar provider; they should not know model or prompt details.
+
+Avatar input media must not be sent through function JSON payloads as base64. In real mode, the setup flow requests a signed private Supabase Storage upload slot, uploads the original face/body file directly to `avatar-assets`, and then saves only metadata in the avatar profile.
 
 ### Core Types
 
@@ -277,6 +283,12 @@ export interface AvatarProfile {
   updatedAtIso: string;
 }
 
+export interface AvatarStoredInput {
+  assetId: string;
+  storagePath: string;
+  contentType: "image/png" | "image/jpeg" | "image/webp";
+}
+
 export interface AvatarRenderRequest {
   avatarProfileId: string;
   savedOutfitId: string;
@@ -300,9 +312,9 @@ export interface AvatarRender {
 
 Use a staged job pipeline:
 
-1. Upload face/body source images.
+1. Upload face/body source images directly to private Supabase Storage using signed upload URLs.
 2. Run low-cost validation.
-3. Store avatar profile references.
+3. Store avatar profile references as metadata only.
 4. Build render request from:
    - Face image.
    - Body image.
@@ -404,6 +416,17 @@ Minimum persisted objects:
 - Avatar render job.
 - Avatar render output asset.
 - Render status and prompt version.
+
+Storage contract:
+
+- Avatar source and output images live in the private Supabase `avatar-assets` bucket.
+- Setup photos are uploaded directly from the browser to Supabase with a server-created signed upload URL.
+- `avatar_profiles` stores asset IDs, storage paths, content types, and quality checks, not base64 data.
+- Profile GET/POST responses are metadata-only and must not include image payloads or signed source URLs.
+- Render routes resolve short-lived signed face/body URLs server-side before preparing OpenAI reference images.
+- Server routes validate that profile metadata points to the expected household/profile avatar path before persisting it.
+
+This avoids Vercel's function payload ceiling, keeps the bucket private, and preserves original reference quality for controlled provider-side normalization.
 
 Do not store derived biometric measurements in the first slice.
 

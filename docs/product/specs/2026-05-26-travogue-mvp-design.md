@@ -329,6 +329,8 @@ The app validates:
 - Good lighting
 - Minimal occlusion
 
+Avatar reference photos are stored as private media assets. In real mode, the browser uploads the original face/body files directly to Supabase Storage through signed upload URLs, then the app saves only asset metadata in the avatar profile. Do not send base64 avatar photos through serverless JSON routes.
+
 ### Two-Level Avatar Strategy
 
 1. Instant Mixer Preview
@@ -342,6 +344,7 @@ The app validates:
    - Generated only when user chooses a selected outfit.
    - Used for polished preview.
    - Can later support location backdrops.
+   - Resolves avatar reference images server-side from private storage before calling the image provider.
 
 The MVP should not depend on photoreal rendering for the core flow.
 

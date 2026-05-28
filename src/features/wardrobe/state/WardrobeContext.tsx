@@ -14,6 +14,7 @@ import type {
   AvatarInputKind,
   AvatarInputQualityCheck,
   AvatarRenderRequest,
+  AvatarStoredInput,
 } from "@/src/features/wardrobe/avatar/avatarTypes";
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { demoTrip } from "@/src/features/wardrobe/fixtures/demoTrip";
@@ -50,7 +51,7 @@ interface WardrobeContextValue {
     selections?: OutfitSlotSelection[],
     metadata?: Pick<SavedOutfit, "source" | "intent" | "rationale">,
   ) => string;
-  saveAvatarInput: (kind: AvatarInputKind, assetId: string, previewUrl: string, quality: AvatarInputQualityCheck) => void;
+  saveAvatarInput: (kind: AvatarInputKind, assetId: string, previewUrl: string, quality: AvatarInputQualityCheck, storedInput?: AvatarStoredInput) => void;
   hydrateAvatarProfile: (profile: AvatarState["profile"]) => void;
   hydrateAvatarRenders: (renders: AvatarState["renders"]) => void;
   completeAvatarProfile: (profileId: WardrobeProfileId) => void;
@@ -212,8 +213,8 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       });
       return outfitId;
     },
-    saveAvatarInput(kind, assetId, previewUrl, quality) {
-      avatarDispatch({ type: "avatarInputSaved", kind, assetId, previewUrl, quality });
+    saveAvatarInput(kind, assetId, previewUrl, quality, storedInput) {
+      avatarDispatch({ type: "avatarInputSaved", kind, assetId, previewUrl, quality, storedInput });
     },
     hydrateAvatarProfile(profile) {
       avatarDispatch({ type: "avatarProfileHydrated", profile });

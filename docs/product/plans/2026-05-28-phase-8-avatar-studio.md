@@ -17,6 +17,7 @@ Implemented on `codex/phase8-avatar-studio`:
 - Real OpenAI avatar render provider behind `NEXT_PUBLIC_TRAVOGUE_MODE=real`, `WEARABOUTS_AVATAR_REAL_RENDER_ENABLED=true`, and OpenAI avatar model config.
 - `/avatar?savedOutfitId=...` setup and render flow launched only from saved looks.
 - Supabase-backed `avatar-assets`, `avatar_profiles`, and `avatar_renders` persistence for saved avatar references and rendered avatar outputs.
+- Avatar face/body setup uses signed direct uploads to the private Supabase `avatar-assets` bucket; profile APIs persist metadata only and avoid Vercel function payload limits.
 - Cache lookup before paid rendering; explicit regenerate bypasses cache and remains limited by the reducer.
 - Soft delete for avatar renders: deleted renders remain in the library record and storage.
 - Stylist avatar render gallery for saved and deleted renders.
@@ -35,6 +36,16 @@ Manual real-mode benchmark captured on 2026-05-28:
 - Route latency: about `84.9s`.
 - Output image bytes: `1,878,954`.
 - Cache hit verified afterward in about `300ms` with no OpenAI call.
+
+Production payload fix captured on 2026-05-28:
+
+- Vercel returned `FUNCTION_PAYLOAD_TOO_LARGE` when avatar setup/profile traffic could carry large base64 image data.
+- The long-term fix is signed direct upload to private Supabase Storage, not client-side image compression.
+- `/api/wardrobe/avatar/upload-url` returns one signed upload slot for a face/body input.
+- The browser uploads the original file directly to Supabase Storage, then `/api/wardrobe/avatar/profile` saves only asset IDs, storage paths, content types, and quality metadata.
+- `/api/wardrobe/avatar/profile` responses remain metadata-only.
+- `/api/wardrobe/avatar/render` resolves short-lived signed face/body reference URLs server-side before calling OpenAI.
+- This preserves original avatar reference quality while keeping serverless payloads small.
 
 ---
 

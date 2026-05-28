@@ -117,8 +117,6 @@ function AvatarPageContent() {
             prompt,
             cacheKey,
             forceRegenerate,
-            faceImageUrl: avatarState.pendingFacePreviewUrl,
-            bodyImageUrl: avatarState.pendingBodyPreviewUrl,
           }),
         });
         result = (await response.json()) as AvatarRenderResponse;
@@ -161,7 +159,16 @@ function AvatarPageContent() {
       return;
     }
 
-    if (!avatarState.pendingFacePreviewUrl || !avatarState.pendingBodyPreviewUrl || !avatarState.pendingFaceQuality || !avatarState.pendingBodyQuality) {
+    if (
+      !avatarState.pendingFaceAssetId ||
+      !avatarState.pendingFaceStoragePath ||
+      !avatarState.pendingFaceContentType ||
+      !avatarState.pendingBodyAssetId ||
+      !avatarState.pendingBodyStoragePath ||
+      !avatarState.pendingBodyContentType ||
+      !avatarState.pendingFaceQuality ||
+      !avatarState.pendingBodyQuality
+    ) {
       return;
     }
 
@@ -169,15 +176,21 @@ function AvatarPageContent() {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        faceDataUrl: avatarState.pendingFacePreviewUrl,
-        bodyDataUrl: avatarState.pendingBodyPreviewUrl,
+        face: {
+          assetId: avatarState.pendingFaceAssetId,
+          storagePath: avatarState.pendingFaceStoragePath,
+          contentType: avatarState.pendingFaceContentType,
+        },
+        body: {
+          assetId: avatarState.pendingBodyAssetId,
+          storagePath: avatarState.pendingBodyStoragePath,
+          contentType: avatarState.pendingBodyContentType,
+        },
         faceQuality: avatarState.pendingFaceQuality,
         bodyQuality: avatarState.pendingBodyQuality,
       }),
     });
     if (!response.ok) {
-      completeAvatarProfile(savedOutfit.profileId);
-      setIsEditingAvatarProfile(false);
       return;
     }
 
@@ -263,6 +276,7 @@ function AvatarPageContent() {
             bodyPreviewUrl={avatarState.pendingBodyPreviewUrl}
             faceQuality={avatarState.pendingFaceQuality}
             bodyQuality={avatarState.pendingBodyQuality}
+            uploadMode={runtimeMode === "real" ? "direct" : "local"}
             onSaveInput={saveAvatarInput}
             onStepChange={setSetupStep}
             onComplete={() => void finishAvatarProfile()}
