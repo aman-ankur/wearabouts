@@ -1,7 +1,7 @@
 import type { WardrobeItem } from "@/src/domain/wardrobe";
 import type { AvatarPoseId, AvatarRenderQuality } from "./avatarTypes";
 
-export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.4";
+export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.5";
 
 interface AvatarRenderPromptInput {
   savedOutfitName: string;
@@ -48,8 +48,10 @@ export function buildAvatarRenderPrompt(input: AvatarRenderPromptInput): string 
     `Create one polished full-body Wearabouts Avatar Studio render for the saved outfit "${input.savedOutfitName}".`,
     `Pose: ${pose}. Head, hands, legs, and shoes must be visible.`,
     "Style direction: realistic accurate studio person with a subtle fashion-catalog lift, not passport photo, not corporate headshot, not casual snapshot, not a model makeover.",
+    "Reference priority: use the full-body reference as the primary person anchor for head scale, neck length, shoulder line, posture, body proportions, skin tone continuity, and how the head sits on the torso. Use the face reference only to refine likeness, eyes, facial hair, hairline, and expression.",
     "Camera and framing: full-body 70-85mm studio catalog perspective, camera at upper-torso height, natural vertical proportions, generous neutral background around the person, feet grounded, no wide-angle distortion.",
     "Face direction: use the face reference for recognizable likeness and keep the same person. Preserve facial structure, face shape, age, skin tone, hairstyle, facial hair, and natural facial fullness; allow only a calmer, more alert composed expression if the source smile or blink looks awkward.",
+    "Head-neck-shoulder cohesion: render one continuous photograph, not a face pasted onto a generated dressed body. Match head angle to torso angle, align the neck naturally between jaw and shoulders, keep ears/hairline/jaw/neck transitions coherent, and match lighting, sharpness, skin tone, and shadow direction across face, neck, hands, and visible skin.",
     "Apply restrained studio-photo polish through lighting, focus, and grooming: smoother even lighting, natural skin texture, clearer eyes, natural facial detail, tidier hair definition, cleaner neck-to-jaw separation from lighting and posture, and reduced harsh shadows.",
     "Avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw, thinner cheeks, symmetry changes, younger-looking face, airbrushed skin, plastic skin, or making the person look like someone else.",
     "Use the body reference for realistic body proportions, height/width relationship, broad silhouette, shoulder width, and natural head-to-body scale. Improve neck posture, shoulder set, and garment drape without making the body taller, slimmer, more muscular, enlarged, or reshaped.",

@@ -129,8 +129,8 @@ export function createRealAvatarRenderProvider(input: CreateRealAvatarRenderProv
 
       try {
         const references: AvatarReferenceImage[] = [
-          request.faceImageUrl ? { role: "face", label: "Avatar face reference", imageUrl: request.faceImageUrl } : null,
           request.bodyImageUrl ? { role: "body", label: "Avatar body reference", imageUrl: request.bodyImageUrl } : null,
+          request.faceImageUrl ? { role: "face", label: "Avatar face reference", imageUrl: request.faceImageUrl } : null,
           ...request.wardrobeItems.map((item) =>
             "imageUrl" in item.asset
               ? { role: "wardrobe" as const, label: item.name, imageUrl: item.asset.imageUrl }

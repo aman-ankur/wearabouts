@@ -12,7 +12,7 @@ const request: AvatarRenderProviderRequest = {
     wardrobeItemIds: ["shirt"],
     poseId: "studio-three-quarter",
     quality: "final",
-    promptVersion: "avatar-studio-v1.4",
+    promptVersion: "avatar-studio-v1.5",
   },
   avatarProfile: {
     id: "avatar-profile-aankur",
@@ -67,7 +67,7 @@ describe("realAvatarRenderProvider", () => {
     expect(client.images.edit).not.toHaveBeenCalled();
   });
 
-  it("sends face, body, and wardrobe references with configured model, size, quality, and prompt", async () => {
+  it("sends body, face, and wardrobe references with configured model, size, quality, and prompt", async () => {
     const client = { images: { edit: vi.fn().mockResolvedValue({ data: [{ b64_json: "cmVuZGVy" }] }) } };
     const info = vi.spyOn(console, "info").mockImplementation(() => {});
     const provider = createRealAvatarRenderProvider({
@@ -91,6 +91,14 @@ describe("realAvatarRenderProvider", () => {
     expect(info).toHaveBeenCalledWith(expect.stringContaining("wearabouts.telemetry.avatar.real_render.completed"));
     expect(info).toHaveBeenCalledWith(expect.stringContaining("wearabouts.telemetry.avatar.real_render.references_prepared"));
     expect(info).toHaveBeenCalledWith(expect.stringContaining("\"estimatedOutputCostUsd\":0.165"));
+    const preparedLog = info.mock.calls
+      .map(([message]) => JSON.parse(String(message)) as { event: string; references?: Array<{ index: number; role: string }> })
+      .find((message) => message.event === "wearabouts.telemetry.avatar.real_render.references_prepared");
+    expect(preparedLog?.references?.map((reference) => `${reference.index}:${reference.role}`)).toEqual([
+      "0:body",
+      "1:face",
+      "2:wardrobe",
+    ]);
     info.mockRestore();
   });
 

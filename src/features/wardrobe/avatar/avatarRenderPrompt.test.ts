@@ -27,7 +27,7 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.4");
+    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.5");
     expect(prompt).toContain("full-body");
     expect(prompt).toContain("neutral light gray or white studio background");
     expect(prompt).toContain("recognizable likeness");
@@ -49,10 +49,17 @@ describe("buildAvatarRenderPrompt", () => {
     });
 
     expect(prompt).toContain("subtle fashion-catalog lift");
+    expect(prompt).toContain("use the full-body reference as the primary person anchor");
+    expect(prompt).toContain("Use the face reference only to refine likeness");
     expect(prompt).toContain("Apply restrained studio-photo polish");
     expect(prompt).toContain("natural skin texture");
     expect(prompt).toContain("clearer eyes");
     expect(prompt).toContain("natural facial detail");
+    expect(prompt).toContain("render one continuous photograph");
+    expect(prompt).toContain("not a face pasted onto a generated dressed body");
+    expect(prompt).toContain("Match head angle to torso angle");
+    expect(prompt).toContain("align the neck naturally between jaw and shoulders");
+    expect(prompt).toContain("match lighting, sharpness, skin tone, and shadow direction");
     expect(prompt).toContain("cleaner neck-to-jaw separation from lighting and posture");
     expect(prompt).toContain("Avoid beauty filters, face slimming, jaw sharpening, longer or more chiseled jaw");
     expect(prompt).toContain("thinner cheeks");
