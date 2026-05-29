@@ -27,7 +27,7 @@ describe("buildAvatarRenderPrompt", () => {
       quality: "final",
     });
 
-    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.5");
+    expect(AVATAR_RENDER_PROMPT_VERSION).toBe("avatar-studio-v1.6");
     expect(prompt).toContain("full-body");
     expect(prompt).toContain("neutral light gray or white studio background");
     expect(prompt).toContain("recognizable likeness");
@@ -38,6 +38,23 @@ describe("buildAvatarRenderPrompt", () => {
     expect(prompt).toContain("Striped Shirt");
     expect(prompt).toContain("Do not add extra core garments");
     expect(prompt).toContain("Do not crop the head or feet");
+  });
+
+  it("keeps current body and pose while borrowing the old-winner face treatment", () => {
+    const prompt = buildAvatarRenderPrompt({
+      savedOutfitName: "Soft casual look",
+      items: [item("shirt", "Oxford Shirt", "tops")],
+      poseId: "studio-three-quarter",
+      quality: "final",
+    });
+
+    expect(prompt).toContain("Camera and framing: full-body 70-85mm studio catalog perspective");
+    expect(prompt).toContain("Use the body reference for realistic body proportions");
+    expect(prompt).toContain("slight three-quarter natural fashion-studio pose");
+    expect(prompt).toContain("soft natural expression");
+    expect(prompt).toContain("same facial structure, face shape, age, skin tone, hairstyle, facial hair, and natural facial fullness");
+    expect(prompt).toContain("Do not sharpen the jaw, thin the cheeks, slim the face, change age");
+    expect(prompt).not.toContain("relaxed walking catalog pose");
   });
 
   it("asks for subtle realistic studio polish without changing identity", () => {
