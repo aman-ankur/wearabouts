@@ -30,7 +30,7 @@ export function BottomNav() {
         backdropFilter: "blur(14px)",
       }}
     >
-      <Link href="/" style={navLinkStyle}>
+      <Link href="/demo" style={navLinkStyle}>
         <Home size={18} />
         Home
       </Link>
