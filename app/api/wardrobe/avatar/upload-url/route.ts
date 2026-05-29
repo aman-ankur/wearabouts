@@ -1,9 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { NextResponse } from "next/server";
+import { requireAccountSession } from "@/src/features/account/accountSession";
 import { AvatarPersistence } from "@/src/features/wardrobe/avatar/avatarPersistence";
 import { createAvatarUploadSlot, isSupportedAvatarUploadContentType } from "@/src/features/wardrobe/avatar/avatarUploadSlot";
 import type { AvatarInputKind } from "@/src/features/wardrobe/avatar/avatarTypes";
-import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "@/src/features/wardrobe/real/realWardrobeConfig";
 import { createSupabaseServiceClient } from "@/src/features/wardrobe/real/supabaseServerClient";
 
 function isAvatarInputKind(value: string): value is AvatarInputKind {
@@ -12,6 +12,11 @@ function isAvatarInputKind(value: string): value is AvatarInputKind {
 
 export async function POST(request: Request) {
   try {
+    const session = await requireAccountSession(request);
+    if (!session.ok) {
+      return NextResponse.json({ error: session.error }, { status: session.status });
+    }
+
     const payload = (await request.json()) as { kind?: string; contentType?: string };
     if (!payload.kind || !isAvatarInputKind(payload.kind)) {
       return NextResponse.json({ error: "Expected avatar input kind face or body." }, { status: 400 });
@@ -22,13 +27,16 @@ export async function POST(request: Request) {
     }
 
     const slot = createAvatarUploadSlot({
-      householdId: REAL_HOUSEHOLD_ID,
-      profileId: REAL_PROFILE_ID,
+      householdId: session.circleId,
+      profileId: session.profileId,
       kind: payload.kind,
       contentType: payload.contentType,
       token: randomUUID(),
     });
-    const upload = await new AvatarPersistence(createSupabaseServiceClient()).createUploadUrl(slot);
+    const upload = await new AvatarPersistence(createSupabaseServiceClient(), {
+      circleId: session.circleId,
+      profileId: session.profileId,
+    }).createUploadUrl(slot);
 
     return NextResponse.json({ ...slot, signedUrl: upload.signedUrl, token: upload.token });
   } catch (error) {

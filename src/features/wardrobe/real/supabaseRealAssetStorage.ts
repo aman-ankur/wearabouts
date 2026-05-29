@@ -2,18 +2,22 @@ import { createHash, randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { ClosetAsset } from "@/src/domain/wardrobe";
 import type { RealAssetStorage, RealSourceImageRecord, RealUploadFile } from "./realWardrobePipeline";
-import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "./realWardrobeConfig";
+import type { RealWardrobeOwner } from "./realWardrobeConfig";
 
 function sanitizeFilename(filename: string): string {
   return filename.toLowerCase().replace(/[^a-z0-9.]+/g, "-").replace(/^-|-$/g, "");
 }
 
 export class SupabaseRealAssetStorage implements RealAssetStorage {
-  constructor(private readonly supabase: SupabaseClient) {}
+  constructor(
+    private readonly supabase: SupabaseClient,
+    private readonly owner: RealWardrobeOwner,
+  ) {}
 
   async uploadSourceImage(input: { file: RealUploadFile; uploadBatchId: string }) {
-    const storagePath = `${REAL_HOUSEHOLD_ID}/${REAL_PROFILE_ID}/${input.uploadBatchId}/${randomUUID()}-${sanitizeFilename(
+    const storagePath = `${this.owner.circleId}/${this.owner.profileId}/source-${randomUUID()}.${extensionForFilename(
       input.file.name,
+      input.file.type,
     )}`;
     const bytes = Buffer.from(await input.file.arrayBuffer());
     const contentHash = createHash("sha256").update(bytes).digest("hex");
@@ -47,7 +51,7 @@ export class SupabaseRealAssetStorage implements RealAssetStorage {
 
   async uploadClosetAsset(input: { bytes: Uint8Array; contentType: "image/png"; label: string }): Promise<ClosetAsset> {
     const assetId = `asset-${randomUUID()}`;
-    const storagePath = `${REAL_HOUSEHOLD_ID}/${REAL_PROFILE_ID}/${assetId}.png`;
+    const storagePath = `${this.owner.circleId}/${this.owner.profileId}/${assetId}.png`;
     const { error } = await this.supabase.storage.from("closet-assets").upload(storagePath, Buffer.from(input.bytes), {
       contentType: input.contentType,
       upsert: false,
@@ -74,4 +78,15 @@ export class SupabaseRealAssetStorage implements RealAssetStorage {
 
     return data.signedUrl;
   }
+}
+
+function extensionForFilename(filename: string, contentType: string): string {
+  const sanitized = sanitizeFilename(filename);
+  const extension = sanitized.split(".").pop();
+  if (extension === "jpg" || extension === "jpeg" || extension === "png" || extension === "webp") {
+    return extension === "jpeg" ? "jpg" : extension;
+  }
+  if (contentType === "image/png") return "png";
+  if (contentType === "image/webp") return "webp";
+  return "jpg";
 }

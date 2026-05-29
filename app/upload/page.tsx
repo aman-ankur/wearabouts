@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import { useState, type ChangeEvent, type FormEvent } from "react";
 import type { OutfitExtractionMode, UploadSourceType } from "@/src/domain/wardrobe";
+import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import { getRuntimeMode, getRuntimeModeLabel, setRuntimeModeOverride } from "@/src/features/runtime/runtimeMode";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
@@ -51,7 +52,8 @@ export default function UploadPage() {
       formData.append("extraction_mode", extractionMode);
       formData.append("skip_existing_items", String(skipExistingItems));
 
-      const response = await fetch(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
+      const fetcher = isDevMode ? fetch : fetchWithAccountSession;
+      const response = await fetcher(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
         method: "POST",
         body: formData,
       });

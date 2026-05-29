@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
+import { requireAccountSession } from "@/src/features/account/accountSession";
 import { withAvatarProfileReferenceImages, type AvatarRenderProviderRequest } from "@/src/features/wardrobe/avatar/avatarRenderProvider";
 import { AvatarPersistence } from "@/src/features/wardrobe/avatar/avatarPersistence";
 import { createRealAvatarRenderProvider } from "@/src/features/wardrobe/avatar/realAvatarRenderProvider";
@@ -15,6 +16,16 @@ export async function POST(request: Request) {
     );
   }
 
+  const session = await requireAccountSession(request);
+  if (!session.ok) {
+    return NextResponse.json({ error: session.error }, { status: session.status });
+  }
+
+  const payload = (await request.json()) as AvatarRenderProviderRequest;
+  if (payload.avatarProfile.profileId !== session.profileId) {
+    return NextResponse.json({ error: "That wardrobe profile is not available in your Circle." }, { status: 403 });
+  }
+
   let config;
   try {
     config = getRealAvatarRenderConfig();
@@ -25,8 +36,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const payload = (await request.json()) as AvatarRenderProviderRequest;
-  const persistence = new AvatarPersistence(createSupabaseServiceClient());
+  const persistence = new AvatarPersistence(createSupabaseServiceClient(), { circleId: session.circleId, profileId: session.profileId });
   if (!payload.forceRegenerate) {
     const cached = await persistence.getReadyRender(payload.cacheKey);
     if (cached) {

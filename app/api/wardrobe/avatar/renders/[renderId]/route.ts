@@ -1,11 +1,17 @@
 import { NextResponse } from "next/server";
+import { requireAccountSession } from "@/src/features/account/accountSession";
 import { AvatarPersistence } from "@/src/features/wardrobe/avatar/avatarPersistence";
 import { createSupabaseServiceClient } from "@/src/features/wardrobe/real/supabaseServerClient";
 
-export async function DELETE(_request: Request, context: { params: Promise<{ renderId: string }> }) {
+export async function DELETE(request: Request, context: { params: Promise<{ renderId: string }> }) {
   try {
+    const session = await requireAccountSession(request);
+    if (!session.ok) {
+      return NextResponse.json({ error: session.error }, { status: session.status });
+    }
+
     const { renderId } = await context.params;
-    const persistence = new AvatarPersistence(createSupabaseServiceClient());
+    const persistence = new AvatarPersistence(createSupabaseServiceClient(), { circleId: session.circleId, profileId: session.profileId });
     return NextResponse.json({ render: await persistence.softDeleteRender(renderId) });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not delete avatar render." }, { status: 500 });

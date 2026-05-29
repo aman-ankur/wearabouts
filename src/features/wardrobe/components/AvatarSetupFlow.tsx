@@ -4,6 +4,7 @@ import {
   evaluateBodyInput,
   evaluateFaceInput,
 } from "@/src/features/wardrobe/avatar/avatarValidation";
+import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import type { AvatarInputKind, AvatarInputQualityCheck, AvatarStoredInput } from "@/src/features/wardrobe/avatar/avatarTypes";
 import { AvatarInputReview } from "./AvatarInputReview";
 
@@ -79,7 +80,7 @@ export function AvatarSetupFlow({
   const title = step === "review" ? "Review Your Avatar" : activeKind === "face" ? "Face Pic" : "Body Pic";
 
   async function uploadAvatarInput(kind: AvatarInputKind, file: File): Promise<AvatarStoredInput> {
-    const slotResponse = await fetch("/api/wardrobe/avatar/upload-url", {
+    const slotResponse = await fetchWithAccountSession("/api/wardrobe/avatar/upload-url", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ kind, contentType: file.type }),

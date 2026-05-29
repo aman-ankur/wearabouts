@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useRef, useState } from "react";
 import type { PrettifyJobStatus } from "@/src/domain/wardrobe";
+import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { getPrettifyJobSteps, getPrettifyStepCaption } from "@/src/features/wardrobe/real/prettifyJobStatus";
 import type { PrettifyJobRecord } from "@/src/features/wardrobe/real/realWardrobePipeline";
@@ -34,7 +35,7 @@ export default function ProcessingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadJob = useCallback(async () => {
-    const response = await fetch(`/api/wardrobe/jobs/${jobId}`);
+    const response = await fetchWithAccountSession(`/api/wardrobe/jobs/${jobId}`);
     const payload = (await response.json()) as JobPayload;
 
     if (!response.ok || !payload.job) {
@@ -52,7 +53,7 @@ export default function ProcessingPage() {
     setError(null);
 
     try {
-      const response = await fetch(`/api/wardrobe/jobs/${jobId}/run`, { method: "POST" });
+      const response = await fetchWithAccountSession(`/api/wardrobe/jobs/${jobId}/run`, { method: "POST" });
       const payload = (await response.json()) as JobPayload;
 
       if (!response.ok || !payload.job) {

@@ -19,7 +19,7 @@ import type {
   RealSourceImageRecord,
   RealWardrobeRepository,
 } from "./realWardrobePipeline";
-import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "./realWardrobeConfig";
+import type { RealWardrobeOwner } from "./realWardrobeConfig";
 import {
   mapSupabaseDetectedGarment,
   mapSupabaseUploadBatch,
@@ -82,7 +82,10 @@ interface GeneratedGarmentCacheRow {
 }
 
 export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
-  constructor(private readonly supabase: SupabaseClient) {}
+  constructor(
+    private readonly supabase: SupabaseClient,
+    private readonly owner: RealWardrobeOwner,
+  ) {}
 
   async createUploadBatch(input: {
     sourceType: Extract<UploadSourceType, "item_photo" | "outfit_photo">;
@@ -91,8 +94,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     skipExistingItems?: boolean;
   }): Promise<UploadBatch> {
     const values = {
-      household_id: REAL_HOUSEHOLD_ID,
-      profile_id: REAL_PROFILE_ID,
+      household_id: this.owner.circleId,
+      profile_id: this.owner.profileId,
       source_type: input.sourceType,
       extraction_mode: input.extractionMode ?? (input.sourceType === "outfit_photo" ? "pick_after_scan" : "single_item"),
       skip_existing_items: input.skipExistingItems ?? true,
@@ -109,8 +112,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
 
   async createSourceImage(input: Omit<RealSourceImageRecord, "id">): Promise<RealSourceImageRecord> {
     const row = await this.insertSingleWithSchemaFallback<SourceImageRow>("source_images", {
-      household_id: REAL_HOUSEHOLD_ID,
-      profile_id: REAL_PROFILE_ID,
+      household_id: this.owner.circleId,
+      profile_id: this.owner.profileId,
       upload_batch_id: input.uploadBatchId,
       bucket: input.bucket,
       storage_path: input.storagePath,
@@ -139,8 +142,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     garmentCandidateId?: string | null;
   }): Promise<PrettifyJobRecord> {
     const row = await this.insertSingle<PrettifyJobRow>("prettify_jobs", {
-      household_id: REAL_HOUSEHOLD_ID,
-      profile_id: REAL_PROFILE_ID,
+      household_id: this.owner.circleId,
+      profile_id: this.owner.profileId,
       upload_batch_id: input.uploadBatchId,
       source_image_id: input.sourceImageId,
       job_kind: input.jobKind ?? "single_item",
@@ -155,7 +158,13 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   }
 
   async getPrettifyJob(jobId: string): Promise<PrettifyJobRecord | null> {
-    const { data, error } = await this.supabase.from("prettify_jobs").select("*").eq("id", jobId).maybeSingle();
+    const { data, error } = await this.supabase
+      .from("prettify_jobs")
+      .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
+      .eq("id", jobId)
+      .maybeSingle();
     if (error) {
       throw new Error(error.message);
     }
@@ -167,6 +176,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("prettify_jobs")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("detected_garment_id", garmentId)
       .maybeSingle();
     if (error) {
@@ -200,6 +211,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("prettify_jobs")
       .update(rowPatch)
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("id", jobId)
       .select()
       .single();
@@ -214,6 +227,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("upload_batches")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("id", batchId)
       .maybeSingle();
     if (error) {
@@ -224,7 +239,13 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   }
 
   async getSourceImage(sourceImageId: string): Promise<RealSourceImageRecord | null> {
-    const { data, error } = await this.supabase.from("source_images").select("*").eq("id", sourceImageId).maybeSingle();
+    const { data, error } = await this.supabase
+      .from("source_images")
+      .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
+      .eq("id", sourceImageId)
+      .maybeSingle();
     if (error) {
       throw new Error(error.message);
     }
@@ -249,7 +270,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     input: Omit<GarmentCandidateRecord, "id" | "errorMessage" | "detectedGarmentId">,
   ): Promise<GarmentCandidateRecord> {
     const values = {
-      household_id: REAL_HOUSEHOLD_ID,
+      household_id: this.owner.circleId,
+      profile_id: this.owner.profileId,
       upload_batch_id: input.uploadBatchId,
       source_image_id: input.sourceImageId,
       parent_job_id: input.parentJobId,
@@ -281,6 +303,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("garment_candidates")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("id", candidateId)
       .maybeSingle();
     if (error) {
@@ -294,6 +318,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("garment_candidates")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("upload_batch_id", batchId)
       .order("created_at", { ascending: true });
     if (error) {
@@ -330,6 +356,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     let { data, error } = await this.supabase
       .from("garment_candidates")
       .update(rowPatch)
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("id", candidateId)
       .select()
       .single();
@@ -338,6 +366,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       const fallbackResult = await this.supabase
         .from("garment_candidates")
         .update(fallbackPatch)
+        .eq("household_id", this.owner.circleId)
+        .eq("profile_id", this.owner.profileId)
         .eq("id", candidateId)
         .select()
         .single();
@@ -355,8 +385,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("generated_garment_cache")
       .select("*")
-      .eq("household_id", REAL_HOUSEHOLD_ID)
-      .eq("profile_id", REAL_PROFILE_ID)
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("cache_key", cacheKey)
       .maybeSingle();
     if (error) {
@@ -382,8 +412,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     const values = {
-      household_id: REAL_HOUSEHOLD_ID,
-      profile_id: REAL_PROFILE_ID,
+      household_id: this.owner.circleId,
+      profile_id: this.owner.profileId,
       cache_key: input.cacheKey,
       asset_id: input.asset.id,
       asset_label: input.asset.label,
@@ -430,12 +460,13 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     const values: Record<string, unknown> = {
-      household_id: REAL_HOUSEHOLD_ID,
+      household_id: this.owner.circleId,
+      profile_id: this.owner.profileId,
       upload_batch_id: input.uploadBatchId,
       proposed_name: input.proposedName,
       brand: "",
       category: input.category,
-      owner_profile_id: REAL_PROFILE_ID,
+      owner_profile_id: this.owner.profileId,
       source_type: input.sourceType ?? "item_photo",
       confidence: input.confidence,
       prettify_status: input.prettifyStatus,
@@ -469,6 +500,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("detected_garments")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("owner_profile_id", this.owner.profileId)
       .eq("upload_batch_id", batchId)
       .order("created_at", { ascending: true });
     if (error) {
@@ -486,6 +519,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("detected_garments")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("owner_profile_id", this.owner.profileId)
       .eq("id", garmentId)
       .maybeSingle();
     if (error) {
@@ -500,7 +535,12 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
   }
 
   async deleteDetectedGarment(garmentId: string): Promise<void> {
-    const { error } = await this.supabase.from("detected_garments").delete().eq("id", garmentId);
+    const { error } = await this.supabase
+      .from("detected_garments")
+      .delete()
+      .eq("household_id", this.owner.circleId)
+      .eq("owner_profile_id", this.owner.profileId)
+      .eq("id", garmentId);
     if (error) {
       throw new Error(error.message);
     }
@@ -512,7 +552,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     }
 
     const row = await this.insertSingle<SupabaseWardrobeItemRow>("wardrobe_items", {
-      household_id: REAL_HOUSEHOLD_ID,
+      household_id: this.owner.circleId,
       source_detected_garment_id: input.garment.id,
       name: input.garment.proposedName,
       brand: input.garment.brand,
@@ -533,7 +573,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { error } = await this.supabase
       .from("wardrobe_items")
       .delete()
-      .eq("household_id", REAL_HOUSEHOLD_ID)
+      .eq("household_id", this.owner.circleId)
+      .eq("owner_profile_id", this.owner.profileId)
       .eq("id", wardrobeItemId);
     if (error) {
       throw new Error(error.message);
@@ -544,6 +585,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data: batch, error: batchError } = await this.supabase
       .from("upload_batches")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("id", batchId)
       .maybeSingle();
     if (batchError) {
@@ -556,6 +599,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data: garmentRows, error: garmentError } = await this.supabase
       .from("detected_garments")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("owner_profile_id", this.owner.profileId)
       .eq("upload_batch_id", batchId)
       .order("created_at", { ascending: true });
     if (garmentError) {
@@ -571,6 +616,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data: candidateRows, error: candidateError } = await this.supabase
       .from("garment_candidates")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("upload_batch_id", batchId);
     if (candidateError) {
       return mapSupabaseUploadBatch(batch as SupabaseUploadBatchRow, garments);
@@ -606,7 +653,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("wardrobe_items")
       .select("*")
-      .eq("household_id", REAL_HOUSEHOLD_ID)
+      .eq("household_id", this.owner.circleId)
+      .eq("owner_profile_id", this.owner.profileId)
       .order("added_at", { ascending: true });
     if (error) {
       throw new Error(error.message);
@@ -673,6 +721,8 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
     const { data, error } = await this.supabase
       .from("source_images")
       .select("*")
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("upload_batch_id", batchId)
       .order("created_at", { ascending: true })
       .limit(1)

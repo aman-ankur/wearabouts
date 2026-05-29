@@ -10,6 +10,7 @@ import type {
   WardrobeItem,
   WardrobeProfileId,
 } from "@/src/domain/wardrobe";
+import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import type {
   AvatarInputKind,
   AvatarInputQualityCheck,
@@ -81,7 +82,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    void fetch("/api/wardrobe/closet")
+    void fetchWithAccountSession("/api/wardrobe/closet")
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load wardrobe."))))
       .then((payload: { closetItems: WardrobeItem[] }) => {
         dispatch({ type: "realClosetLoaded", closetItems: payload.closetItems });
@@ -92,7 +93,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   }, [runtimeMode]);
 
   const loadRealBatch = useCallback(async (batchId: string) => {
-    const response = await fetch(`/api/wardrobe/batches/${batchId}`);
+    const response = await fetchWithAccountSession(`/api/wardrobe/batches/${batchId}`);
     if (!response.ok) {
       throw new Error("Could not load upload batch.");
     }
@@ -103,7 +104,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const addRealGarment = useCallback(async (garmentId: string) => {
-    const response = await fetch(`/api/wardrobe/garments/${garmentId}/add`, { method: "POST" });
+    const response = await fetchWithAccountSession(`/api/wardrobe/garments/${garmentId}/add`, { method: "POST" });
     if (!response.ok) {
       throw new Error("Could not add garment to wardrobe.");
     }
@@ -124,7 +125,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const deleteWardrobeItem = useCallback(
     async (wardrobeItemId: string) => {
       if (runtimeMode === "real" || runtimeMode === "dev") {
-        const response = await fetch(`/api/wardrobe/wardrobe-items/${wardrobeItemId}`, { method: "DELETE" });
+        const response = await fetchWithAccountSession(`/api/wardrobe/wardrobe-items/${wardrobeItemId}`, { method: "DELETE" });
         if (!response.ok) {
           throw new Error("Could not delete wardrobe item.");
         }
@@ -136,14 +137,14 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   );
 
   const retryRealGarment = useCallback(async (garmentId: string) => {
-    const response = await fetch(`/api/wardrobe/garments/${garmentId}/retry`, { method: "POST" });
+    const response = await fetchWithAccountSession(`/api/wardrobe/garments/${garmentId}/retry`, { method: "POST" });
     if (!response.ok) {
       throw new Error("Could not retry garment.");
     }
   }, []);
 
   const generateRealCandidates = useCallback(async (jobId: string, candidateIds: string[]) => {
-    const response = await fetch(`/api/wardrobe/jobs/${jobId}/candidates/generate`, {
+    const response = await fetchWithAccountSession(`/api/wardrobe/jobs/${jobId}/candidates/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ candidateIds }),

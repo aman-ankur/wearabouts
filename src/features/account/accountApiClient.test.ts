@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { completeOnboarding, fetchAccountStatus } from "./accountApiClient";
+import { completeOnboarding, createAuthorizationHeaders, fetchAccountStatus } from "./accountApiClient";
 import type { AccountStatus } from "./accountTypes";
 
 const account: AccountStatus = {
@@ -66,5 +66,15 @@ describe("accountApiClient", () => {
       new Response(JSON.stringify({ error: "Your session has expired. Sign in again." }), { status: 401 });
 
     await expect(fetchAccountStatus("expired", fetcher)).rejects.toThrow("Your session has expired. Sign in again.");
+  });
+
+  it("creates authorization headers from the active Supabase browser session", async () => {
+    const supabase = {
+      auth: {
+        getSession: async () => ({ data: { session: { access_token: "token-1" } }, error: null }),
+      },
+    };
+
+    await expect(createAuthorizationHeaders(supabase as never)).resolves.toEqual({ Authorization: "Bearer token-1" });
   });
 });

@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AvatarInputQualityCheck, AvatarProfile, AvatarRender, AvatarRenderRequest, AvatarStoredInput } from "./avatarTypes";
 import { AVATAR_STORAGE_BUCKET, type AvatarUploadSlot } from "./avatarUploadSlot";
-import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "@/src/features/wardrobe/real/realWardrobeConfig";
+import type { RealWardrobeOwner } from "@/src/features/wardrobe/real/realWardrobeConfig";
 
 interface AvatarProfileRow {
   id: string;
@@ -48,7 +48,10 @@ function extensionForContentType(contentType: string): string {
 }
 
 export class AvatarPersistence {
-  constructor(private readonly supabase: SupabaseClient) {}
+  constructor(
+    private readonly supabase: SupabaseClient,
+    private readonly owner: RealWardrobeOwner,
+  ) {}
 
   async upsertProfile(input: {
     profileId: AvatarProfile["profileId"];
@@ -64,7 +67,7 @@ export class AvatarPersistence {
       .upsert(
         {
           id: profileId,
-          household_id: REAL_HOUSEHOLD_ID,
+          household_id: this.owner.circleId,
           profile_id: input.profileId,
           face_asset_id: input.face.assetId,
           body_asset_id: input.body.assetId,
@@ -97,11 +100,11 @@ export class AvatarPersistence {
     return { signedUrl: data.signedUrl, token: data.token };
   }
 
-  async getProfile(profileId = REAL_PROFILE_ID as AvatarProfile["profileId"]): Promise<AvatarProfile | null> {
+  async getProfile(profileId = this.owner.profileId as AvatarProfile["profileId"]): Promise<AvatarProfile | null> {
     const { data, error } = await this.supabase
       .from("avatar_profiles")
       .select("*")
-      .eq("household_id", REAL_HOUSEHOLD_ID)
+      .eq("household_id", this.owner.circleId)
       .eq("profile_id", profileId)
       .maybeSingle();
     if (error) {
@@ -115,7 +118,8 @@ export class AvatarPersistence {
     const { data, error } = await this.supabase
       .from("avatar_renders")
       .select("*")
-      .eq("household_id", REAL_HOUSEHOLD_ID)
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("cache_key", cacheKey)
       .eq("status", "ready")
       .order("created_at", { ascending: false })
@@ -132,8 +136,8 @@ export class AvatarPersistence {
     const { data, error } = await this.supabase
       .from("avatar_renders")
       .select("*")
-      .eq("household_id", REAL_HOUSEHOLD_ID)
-      .eq("profile_id", REAL_PROFILE_ID)
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) {
@@ -152,14 +156,14 @@ export class AvatarPersistence {
   }): Promise<AvatarRender> {
     const image = dataUrlToBytes(input.imageDataUrl);
     const imageAssetId = `avatar-render-${randomUUID()}`;
-    const storagePath = `${REAL_HOUSEHOLD_ID}/${REAL_PROFILE_ID}/${imageAssetId}.${extensionForContentType(image.contentType)}`;
+    const storagePath = `${this.owner.circleId}/${this.owner.profileId}/${imageAssetId}.${extensionForContentType(image.contentType)}`;
     await this.upload(AVATAR_STORAGE_BUCKET, storagePath, image.bytes, image.contentType, false);
 
     const { data, error } = await this.supabase
       .from("avatar_renders")
       .insert({
-        household_id: REAL_HOUSEHOLD_ID,
-        profile_id: REAL_PROFILE_ID,
+        household_id: this.owner.circleId,
+        profile_id: this.owner.profileId,
         avatar_profile_id: input.request.avatarProfileId,
         saved_outfit_id: input.request.savedOutfitId,
         cache_key: input.cacheKey,
@@ -185,6 +189,8 @@ export class AvatarPersistence {
     const { data, error } = await this.supabase
       .from("avatar_renders")
       .update({ status: "deleted", deleted_at: new Date().toISOString() })
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
       .eq("id", renderId)
       .select()
       .single();
