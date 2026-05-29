@@ -21,7 +21,11 @@ export default function EntryPage() {
         </section>
 
         <section className="stack" aria-label="Choose how to start">
-          <Link className="full-button" href="/demo" style={{ textDecoration: "none" }}>
+          <Link
+            className="full-button"
+            href="/demo"
+            style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 7, textDecoration: "none" }}
+          >
             Explore demo
             <ArrowRight size={17} aria-hidden="true" />
           </Link>
