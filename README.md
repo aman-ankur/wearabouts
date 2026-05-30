@@ -1,62 +1,75 @@
 # Wearabouts
 
-Wearabouts is a mobile-web-first wardrobe and travel packing app. It helps a household turn real clothing photos into clean closet assets, build trip-ready outfits, and remember what actually gets worn.
+Wearabouts helps turn a real closet into outfits you can actually use.
 
-The core product bet is **Auto-Prettify**: messy wardrobe photos should become standardized, reviewable clothing assets that can power a closet, outfit boards, a swipable Closet Mixer, trip looks, packing lists, and eventually daily outfit recommendations.
+Most packing apps start with lists. Wearabouts starts with the clothes: the shirt on the chair, the jacket in yesterday's photo, the shoes you always forget until the taxi is downstairs. The product goal is simple: make your wardrobe visible, make outfits easier to choose, and make travel packing feel less like a small domestic audit.
+
+## What It Solves
+
+Getting dressed for a trip has a few annoying steps:
+
+- remembering what you own
+- turning scattered clothing photos into a useful closet
+- finding combinations that work together
+- planning outfits by day, weather, and activity
+- packing only what supports those outfits
+- remembering what you actually wore
+
+Wearabouts ties those steps together. Upload clothes, review the cleaned-up pieces, build looks, plan a trip, and let the packing list fall out of the outfits instead of starting from a blank checklist.
+
+## Product Shape
+
+The current product spine is:
+
+1. **Auto-Prettify**: turn messy clothing photos into clean closet assets.
+2. **Closet**: keep approved wardrobe items in one place.
+3. **Closet Mixer**: browse outfit combinations quickly, without pretending every swipe is a perfect try-on.
+4. **Stylist**: suggest closet-only looks for the day.
+5. **Trip Looks**: plan what to wear day by day.
+6. **Packing List**: derive what to pack from the approved looks.
+7. **Avatar Studio**: render selected saved outfits when a higher-fidelity preview is worth the wait.
+
+The app is travel-first, but the same closet memory can support daily outfit help later.
+
+## Account Model
+
+Wearabouts now has a real private account boundary.
+
+- Visitors can explore a fixture-backed demo without signing in.
+- Personal upload, wardrobe, avatar, and profile data require login.
+- Login uses email codes, not passwords.
+- A user's private space is called a **Circle**.
+- The first release creates one Circle and one personal wardrobe profile.
+
+Family sharing is intentionally not built yet. One good closet boundary first; party planning later.
 
 ## Current Build
 
-Phase 0-5 foundation is implemented:
+The app currently supports:
 
-- Next.js, React, and TypeScript app scaffold
-- Demo runtime mode for no-cost product flow testing
-- Real runtime mode for single-item upload through Supabase and OpenAI
-- In-app Dev mode toggle on Upload for cached no-OpenAI UI iteration
-- Real outfit-photo decomposition foundation with one review card per generated garment
-- Wardrobe domain models
-- Demo wardrobe ingestion provider
-- Upload flow with Auto-Prettify explainer
-- Detected item review flow
-- Add, Retry, Delete, and Add All actions
-- Closet page showing approved demo and real items
-- Closet Mixer demo with saved looks
-- Trip looks demo with packing list
-- Supabase-backed Phase 4 proof for one standalone item photo
-- Supabase-backed Phase 5 proof for one outfit/person photo with multiple garment candidates
-- OpenAI metadata, neutral studio asset generation, and validation pipeline
-- Source image normalization before OpenAI calls for iPhone/Display P3 compatibility
+- public entry screen and no-login demo
+- email-code login and minimal onboarding
+- profile/settings screen for name, style presentation, and sign out
+- private real-mode wardrobe ownership by authenticated Circle/profile
+- real upload and review flows backed by Supabase storage/tables
+- outfit-photo decomposition into selectable review candidates
+- cached dev upload mode for UI iteration without spending generation calls
+- Closet Mixer, Stylist, Trip Looks, Packing List, and Avatar Studio slices
 
-Phase 5 real mode adds outfit-photo decomposition while keeping Phase 4 standalone item upload intact. Auth, avatar try-on, transparent segmentation, multi-photo batch upload, and production queues are still future phases.
-
-## Product Direction
-
-Wearabouts is travel-first:
-
-1. Upload wardrobe photos.
-2. Auto-Prettify detected clothes into clean assets.
-3. Review and approve items into the closet.
-4. Mix outfits visually.
-5. Plan trip looks day by day.
-6. Generate a packing list from approved outfits.
-7. Log what was worn, skipped, or changed.
-
-Daily "what should I wear today?" recommendations are planned as a later mode powered by the same wardrobe and memory engine.
+Older docs may still mention Travogue. The product name is **Wearabouts**.
 
 ## Documentation
 
-Start here for full context:
+Start here:
 
 - [Project Context](docs/product/PROJECT_CONTEXT.md)
+- [Account, Login, And Onboarding Design](docs/superpowers/specs/2026-05-29-account-login-onboarding-design.md)
+- [Account Login Onboarding Foundation Plan](docs/superpowers/plans/2026-05-29-account-login-onboarding-foundation.md)
 - [MVP Design Spec](docs/product/specs/2026-05-26-travogue-mvp-design.md)
-- [Phase 0-1 Implementation Plan](docs/product/plans/2026-05-26-phase-0-1-foundation-upload-review.md)
-- [Phase 2 Closet Mixer Demo Plan](docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md)
-- [Phase 3 Trip Looks Demo Plan](docs/product/plans/2026-05-26-phase-3-trip-looks-demo.md)
-- [Phase 4 Real Upload + Auto-Prettify Foundation Plan](docs/product/plans/2026-05-26-phase-4-real-upload-prettify-foundation.md)
-- [Phase 5 Real Outfit Photo Decomposition Plan](docs/product/plans/2026-05-26-phase-5-real-outfit-photo-decomposition.md)
 - [UX Test Log](docs/testing/WEARABOUTS_UX_TEST_LOG.md)
 - [Product Flow Mockups](docs/product/mockups/travogue-product-flows.html)
 
-## Development
+## Running Locally
 
 Install dependencies:
 
@@ -64,43 +77,24 @@ Install dependencies:
 npm install
 ```
 
-Run the app:
+Start the app on the project port:
 
 ```bash
-npm run dev
+npm run dev -- -p 3000
 ```
 
-Real upload mode needs local secrets in `.env.local`:
+For real private upload/profile testing, `.env.local` needs:
 
 ```bash
 NEXT_PUBLIC_TRAVOGUE_MODE=real
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_URL=
 SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
-OPENAI_METADATA_MODEL=gpt-5.4
-OPENAI_IMAGE_MODEL=gpt-image-1.5
-OPENAI_PRETTIFY_IMAGE_QUALITY=medium
-OPENAI_PRETTIFY_IMAGE_MAX_DIMENSION=1024
-OPENAI_PRETTIFY_IMAGE_FORMAT=jpeg
-OPENAI_PRETTIFY_IMAGE_INPUT_QUALITY=88
-OPENAI_DETECTION_IMAGE_MAX_DIMENSION=1024
-OPENAI_DETECTION_IMAGE_FORMAT=jpeg
-OPENAI_DETECTION_IMAGE_QUALITY=82
 ```
 
-Outfit scan detection uses the smaller detection image profile above. Final generated closet
-assets use the image generation model with the prettify image profile, while the output stays
-a transparent PNG.
-
-Apply the Supabase migrations before testing real upload:
-
-```text
-supabase/migrations/20260526000000_phase4_real_upload.sql
-supabase/migrations/20260526001000_phase5_outfit_decomposition.sql
-supabase/migrations/20260526002000_phase5_1_smart_extraction_selection.sql
-```
-
-To test UI changes without spending OpenAI tokens, use the **Dev** button on `/upload`. Item photo reuses the latest cached real closet asset; Outfit photo creates a multi-card review batch from recent cached closet assets.
+Before testing the account/profile branch on an existing Supabase project, apply the account/Circle migration in `supabase/migrations/20260529000000_account_circles_profiles.sql`. For shared databases that are still serving older deployed code, use the compatible ownership setup from the PR notes and defer strict storage-path constraints until this branch is deployed.
 
 Run checks:
 
