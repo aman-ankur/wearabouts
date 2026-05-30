@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useMemo, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
+import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import type { AvatarRenderProviderResult } from "@/src/features/wardrobe/avatar/avatarRenderProvider";
 import { createAvatarRenderCacheKey } from "@/src/features/wardrobe/avatar/avatarRenderCacheKey";
 import { buildAvatarRenderPrompt } from "@/src/features/wardrobe/avatar/avatarRenderPrompt";
@@ -74,7 +75,7 @@ function AvatarPageContent() {
   useEffect(() => {
     if (runtimeMode !== "real") return;
 
-    void fetch("/api/wardrobe/avatar/profile")
+    void fetchWithAccountSession("/api/wardrobe/avatar/profile")
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load avatar profile."))))
       .then((payload: { profile: AvatarProfile | null }) => {
         if (payload.profile) {
@@ -85,7 +86,7 @@ function AvatarPageContent() {
       })
       .catch(() => undefined);
 
-    void fetch("/api/wardrobe/avatar/renders")
+    void fetchWithAccountSession("/api/wardrobe/avatar/renders")
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load avatar renders."))))
       .then((payload: { renders: AvatarRender[] }) => hydrateAvatarRenders(payload.renders))
       .catch(() => undefined);
@@ -106,7 +107,7 @@ function AvatarPageContent() {
     try {
       let result: AvatarRenderResponse;
       if (runtimeMode === "real") {
-        const response = await fetch("/api/wardrobe/avatar/render", {
+        const response = await fetchWithAccountSession("/api/wardrobe/avatar/render", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
@@ -172,7 +173,7 @@ function AvatarPageContent() {
       return;
     }
 
-    const response = await fetch("/api/wardrobe/avatar/profile", {
+    const response = await fetchWithAccountSession("/api/wardrobe/avatar/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
@@ -205,7 +206,7 @@ function AvatarPageContent() {
       return;
     }
 
-    const response = await fetch(`/api/wardrobe/avatar/renders/${encodeURIComponent(renderId)}`, { method: "DELETE" });
+    const response = await fetchWithAccountSession(`/api/wardrobe/avatar/renders/${encodeURIComponent(renderId)}`, { method: "DELETE" });
     if (!response.ok) {
       deleteAvatarRender(renderId);
       return;

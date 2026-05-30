@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createDevCachedUpload } from "@/src/features/wardrobe/real/devCachedUpload";
 import { createRealWardrobeServices } from "@/src/features/wardrobe/real/createRealWardrobeServices";
+import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "@/src/features/wardrobe/real/realWardrobeConfig";
 
 export const runtime = "nodejs";
 
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
     const filename = file instanceof File ? file.name : "cached-dev-upload";
     const sourceType = formData.get("source_type") === "outfit_photo" ? "outfit_photo" : "item_photo";
 
-    const { repository } = createRealWardrobeServices();
+    const { repository } = createRealWardrobeServices({ circleId: REAL_HOUSEHOLD_ID, profileId: REAL_PROFILE_ID });
     const result = await createDevCachedUpload(repository, { sourceType, uploadedFilename: filename });
 
     return NextResponse.json({

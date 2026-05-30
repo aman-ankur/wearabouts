@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Home, Plus, Shirt, Shuffle, Sparkles } from "lucide-react";
+import { Home, Plus, Shirt, Shuffle, Sparkles, UserCircle } from "lucide-react";
 
 const navLinkStyle = {
   display: "grid",
@@ -21,7 +21,7 @@ export function BottomNav() {
         zIndex: 30,
         height: 58,
         display: "grid",
-        gridTemplateColumns: "repeat(5, minmax(0, 1fr))",
+        gridTemplateColumns: "repeat(6, minmax(0, 1fr))",
         alignItems: "center",
         borderTop: "1px solid var(--line)",
         borderBottomLeftRadius: 28,
@@ -30,7 +30,7 @@ export function BottomNav() {
         backdropFilter: "blur(14px)",
       }}
     >
-      <Link href="/" style={navLinkStyle}>
+      <Link href="/demo" style={navLinkStyle}>
         <Home size={18} />
         Home
       </Link>
@@ -49,6 +49,10 @@ export function BottomNav() {
       <Link href="/stylist" style={navLinkStyle}>
         <Sparkles size={18} />
         Stylist
+      </Link>
+      <Link href="/settings" style={navLinkStyle}>
+        <UserCircle size={18} />
+        Profile
       </Link>
     </nav>
   );

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { CloudSun, LocateFixed, MapPin, Sparkles } from "lucide-react";
 import { FormEvent, useEffect, useMemo, useState } from "react";
+import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import type { AvatarRender } from "@/src/features/wardrobe/avatar/avatarTypes";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
 import { AvatarRenderGallery } from "@/src/features/wardrobe/components/AvatarRenderGallery";
@@ -75,7 +76,7 @@ export default function StylistPage() {
   }, [chips]);
 
   useEffect(() => {
-    void fetch("/api/wardrobe/avatar/renders")
+    void fetchWithAccountSession("/api/wardrobe/avatar/renders")
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load avatar renders."))))
       .then((payload: { renders: AvatarRender[] }) => setAvatarRenders(payload.renders))
       .catch(() => undefined);
@@ -124,7 +125,7 @@ export default function StylistPage() {
   }
 
   async function deleteAvatarRender(renderId: string) {
-    const response = await fetch(`/api/wardrobe/avatar/renders/${encodeURIComponent(renderId)}`, { method: "DELETE" });
+    const response = await fetchWithAccountSession(`/api/wardrobe/avatar/renders/${encodeURIComponent(renderId)}`, { method: "DELETE" });
     if (!response.ok) {
       return;
     }

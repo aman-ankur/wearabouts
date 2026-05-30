@@ -4,6 +4,11 @@ import type { ImageQuality } from "./prettifyTelemetry";
 export const REAL_HOUSEHOLD_ID = "demo-household";
 export const REAL_PROFILE_ID = "profile-aankur";
 
+export interface RealWardrobeOwner {
+  circleId: string;
+  profileId: string;
+}
+
 export interface RealWardrobeConfig {
   supabaseUrl: string;
   supabaseServiceRoleKey: string;

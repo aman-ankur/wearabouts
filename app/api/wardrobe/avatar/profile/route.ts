@@ -1,14 +1,19 @@
 import { NextResponse } from "next/server";
+import { requireAccountSession } from "@/src/features/account/accountSession";
 import type { AvatarInputQualityCheck, AvatarStoredInput } from "@/src/features/wardrobe/avatar/avatarTypes";
 import { AvatarPersistence } from "@/src/features/wardrobe/avatar/avatarPersistence";
 import { toAvatarProfileResponse } from "@/src/features/wardrobe/avatar/avatarProfileResponse";
 import { isAvatarStoredInputForSlot } from "@/src/features/wardrobe/avatar/avatarUploadSlot";
 import { createSupabaseServiceClient } from "@/src/features/wardrobe/real/supabaseServerClient";
-import { REAL_HOUSEHOLD_ID, REAL_PROFILE_ID } from "@/src/features/wardrobe/real/realWardrobeConfig";
 
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    const persistence = new AvatarPersistence(createSupabaseServiceClient());
+    const session = await requireAccountSession(request);
+    if (!session.ok) {
+      return NextResponse.json({ error: session.error }, { status: session.status });
+    }
+
+    const persistence = new AvatarPersistence(createSupabaseServiceClient(), { circleId: session.circleId, profileId: session.profileId });
     const profile = await persistence.getProfile();
     return NextResponse.json({ profile: toAvatarProfileResponse(profile) });
   } catch (error) {
@@ -18,6 +23,11 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    const session = await requireAccountSession(request);
+    if (!session.ok) {
+      return NextResponse.json({ error: session.error }, { status: session.status });
+    }
+
     const payload = (await request.json()) as {
       face: AvatarStoredInput;
       body: AvatarStoredInput;
@@ -25,15 +35,15 @@ export async function POST(request: Request) {
       bodyQuality: AvatarInputQualityCheck;
     };
     if (
-      !isAvatarStoredInputForSlot({ householdId: REAL_HOUSEHOLD_ID, profileId: REAL_PROFILE_ID, kind: "face", storedInput: payload.face }) ||
-      !isAvatarStoredInputForSlot({ householdId: REAL_HOUSEHOLD_ID, profileId: REAL_PROFILE_ID, kind: "body", storedInput: payload.body })
+      !isAvatarStoredInputForSlot({ householdId: session.circleId, profileId: session.profileId, kind: "face", storedInput: payload.face }) ||
+      !isAvatarStoredInputForSlot({ householdId: session.circleId, profileId: session.profileId, kind: "body", storedInput: payload.body })
     ) {
       return NextResponse.json({ error: "Avatar profile inputs must come from Wearabouts avatar uploads." }, { status: 400 });
     }
 
-    const persistence = new AvatarPersistence(createSupabaseServiceClient());
+    const persistence = new AvatarPersistence(createSupabaseServiceClient(), { circleId: session.circleId, profileId: session.profileId });
     const profile = await persistence.upsertProfile({
-      profileId: REAL_PROFILE_ID,
+      profileId: session.profileId,
       face: payload.face,
       body: payload.body,
       faceQuality: payload.faceQuality,

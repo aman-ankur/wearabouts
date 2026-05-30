@@ -6,7 +6,7 @@ interface SavedOutfitListProps {
   outfits: SavedOutfit[];
 }
 
-const profileLabels: Record<SavedOutfit["profileId"], string> = {
+const profileLabels: Record<string, string> = {
   "profile-aankur": "You",
   "profile-wife": "Wife",
   "profile-shared": "Shared",
@@ -44,7 +44,7 @@ export function SavedOutfitList({ outfits }: SavedOutfitListProps) {
             <div>
               <strong style={{ fontSize: 13 }}>{outfit.name}</strong>
               <p className="subtle" style={{ margin: "3px 0 0" }}>
-                {profileLabels[outfit.profileId]}
+                {profileLabels[outfit.profileId] ?? "You"}
               </p>
               <Link
                 href={`/avatar?savedOutfitId=${encodeURIComponent(outfit.id)}`}

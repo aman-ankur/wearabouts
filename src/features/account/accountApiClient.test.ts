@@ -1,0 +1,80 @@
+import { describe, expect, it } from "vitest";
+import { completeOnboarding, createAuthorizationHeaders, fetchAccountStatus } from "./accountApiClient";
+import type { AccountStatus } from "./accountTypes";
+
+const account: AccountStatus = {
+  email: "aankur@example.com",
+  onboardingComplete: true,
+  circle: { id: "circle-1", name: "Aankur's Circle" },
+  profile: {
+    id: "profile-1",
+    circleId: "circle-1",
+    displayName: "Aankur",
+    genderPresentation: "men",
+    profileType: "personal",
+  },
+};
+
+describe("accountApiClient", () => {
+  it("fetches account status with a bearer token", async () => {
+    const calls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+    const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ input, init });
+      return new Response(JSON.stringify({ account }), { status: 200 });
+    };
+
+    await expect(fetchAccountStatus("token-1", fetcher)).resolves.toEqual(account);
+
+    expect(calls).toEqual([
+      {
+        input: "/api/account/me",
+        init: {
+          headers: { Authorization: "Bearer token-1" },
+        },
+      },
+    ]);
+  });
+
+  it("submits onboarding details with a bearer token", async () => {
+    const calls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
+    const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
+      calls.push({ input, init });
+      return new Response(JSON.stringify({ account }), { status: 200 });
+    };
+
+    await expect(
+      completeOnboarding("token-1", { displayName: "Aankur", genderPresentation: "men" }, fetcher),
+    ).resolves.toEqual(account);
+
+    expect(calls).toEqual([
+      {
+        input: "/api/account/me",
+        init: {
+          method: "POST",
+          headers: {
+            Authorization: "Bearer token-1",
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ displayName: "Aankur", genderPresentation: "men" }),
+        },
+      },
+    ]);
+  });
+
+  it("throws the API error message when account requests fail", async () => {
+    const fetcher = async () =>
+      new Response(JSON.stringify({ error: "Your session has expired. Sign in again." }), { status: 401 });
+
+    await expect(fetchAccountStatus("expired", fetcher)).rejects.toThrow("Your session has expired. Sign in again.");
+  });
+
+  it("creates authorization headers from the active Supabase browser session", async () => {
+    const supabase = {
+      auth: {
+        getSession: async () => ({ data: { session: { access_token: "token-1" } }, error: null }),
+      },
+    };
+
+    await expect(createAuthorizationHeaders(supabase as never)).resolves.toEqual({ Authorization: "Bearer token-1" });
+  });
+});

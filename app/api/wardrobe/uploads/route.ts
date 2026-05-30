@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import type { OutfitExtractionMode } from "@/src/domain/wardrobe";
+import { requireAccountSession } from "@/src/features/account/accountSession";
 import { createRealWardrobeServices } from "@/src/features/wardrobe/real/createRealWardrobeServices";
 import { createTimer, logWearaboutsTelemetry } from "@/src/features/wardrobe/real/prettifyTelemetry";
 
@@ -8,6 +9,11 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const timer = createTimer();
   try {
+    const session = await requireAccountSession(request);
+    if (!session.ok) {
+      return NextResponse.json({ error: session.error }, { status: session.status });
+    }
+
     const formData = await request.formData();
     const file = formData.get("item_photo") ?? formData.get("file");
     const sourceType = formData.get("source_type") === "outfit_photo" ? "outfit_photo" : "item_photo";
@@ -19,7 +25,7 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: "Upload a clothing photo file." }, { status: 400 });
     }
 
-    const { pipeline } = createRealWardrobeServices();
+    const { pipeline } = createRealWardrobeServices({ circleId: session.circleId, profileId: session.profileId });
     logWearaboutsTelemetry("api.upload.started", {
       filename: file.name,
       contentType: file.type,

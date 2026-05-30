@@ -11,12 +11,14 @@ Read this file first in any new chat or coding session. It compresses the produc
 - Phase 2 Closet Mixer implementation plan: `docs/product/plans/2026-05-26-phase-2-closet-mixer-demo.md`
 - Phase 6 Smart Mixer design: `docs/superpowers/specs/2026-05-27-phase6-smart-mixer-outfit-engine-design.md`
 - Phase 6 Smart Mixer implementation handoff: `docs/product/plans/2026-05-27-phase-6-smart-mixer-outfit-engine.md`
+- Account, login, and onboarding design: `docs/superpowers/specs/2026-05-29-account-login-onboarding-design.md`
+- Account foundation implementation plan: `docs/superpowers/plans/2026-05-29-account-login-onboarding-foundation.md`
 
 Open the HTML file directly in a browser. No dev server is needed for the mockup.
 
 ## Product One-Liner
 
-Wearabouts is a mobile-web-first personal wardrobe and travel packing app for a household. It turns real wardrobe photos into clean standardized closet assets, helps users mix outfits visually, plans day-by-day trip looks, derives packing lists, and remembers what people actually wore.
+Wearabouts is a mobile-web-first personal wardrobe and travel packing app. It turns real wardrobe photos into clean standardized closet assets, helps users mix outfits visually, plans day-by-day trip looks, derives packing lists, and remembers what people actually wore.
 
 The project was originally discussed under the working name Travogue. Current product name: **Wearabouts**.
 
@@ -24,7 +26,7 @@ The project was originally discussed under the working name Travogue. Current pr
 
 The first technical and product bet is Auto-Prettify:
 
-> Can Travogue turn messy real-world clothing photos into clean, standardized, closet-ready assets that are good enough for browsing, outfit boards, swiping, mixing, and trip planning?
+> Can Wearabouts turn messy real-world clothing photos into clean, standardized, closet-ready assets that are good enough for browsing, outfit boards, swiping, mixing, and trip planning?
 
 If Auto-Prettify works, the rest of the product becomes much more achievable.
 
@@ -40,7 +42,7 @@ The product is inspired by the category of apps like Alta Daily, especially:
 Wearabouts should not copy Alta exactly. The differentiation is:
 
 - Travel-first rather than daily-first in the MVP.
-- Household profiles for the user and wife.
+- Circle/profile ownership that starts personal and can later support partners, family, or shared travel groups.
 - Auto-Prettify as the core engine.
 - Closet Mixer as a playful central interaction.
 - Trip Looks as the primary output.
@@ -62,7 +64,7 @@ The product spine is:
 
 ## Target Users
 
-- A household with multiple wardrobe profiles, initially the user and his wife.
+- A person or Circle with one or more wardrobe profiles.
 - People who want help packing for short local trips and longer vacations.
 - People who care about style and trend relevance, but still need weather/activity correctness.
 - People who want a personal wardrobe assistant that remembers past outfits and preferences.
@@ -81,15 +83,18 @@ The MVP focuses on:
 
 Daily "what should I wear today?" is a later mode powered by the same engine.
 
-### Household Model
+### Account And Circle Model
 
-Use one household account with multiple wardrobe profiles:
+The current product language is **Circle**, not household. A Circle is the private space that owns wardrobe, avatar, upload, and later trip data. It can represent a solo user, partners, family, roommates, or a shared travel group.
 
-- User
-- Wife
-- Shared
+Current account slice:
 
-This avoids overbuilding social/collaboration features while supporting the real use case.
+- Public `/demo` remains fixture-backed and requires no login.
+- Email-code login gates personal upload, private wardrobe mutations, avatar setup, and real saved data.
+- Onboarding creates one Circle and one personal wardrobe profile.
+- Private real-mode API routes resolve Circle/profile from the Supabase access token.
+- New real assets are stored under `circleId/profileId/assetId.ext`.
+- Family sharing and invites are intentionally deferred.
 
 ### Wardrobe Capture
 

@@ -1,12 +1,18 @@
 import { NextResponse } from "next/server";
+import { requireAccountSession } from "@/src/features/account/accountSession";
 import { createRealWardrobeServices } from "@/src/features/wardrobe/real/createRealWardrobeServices";
 
 export const runtime = "nodejs";
 
-export async function DELETE(_request: Request, { params }: { params: Promise<{ itemId: string }> }) {
+export async function DELETE(request: Request, { params }: { params: Promise<{ itemId: string }> }) {
   try {
+    const session = await requireAccountSession(request);
+    if (!session.ok) {
+      return NextResponse.json({ error: session.error }, { status: session.status });
+    }
+
     const { itemId } = await params;
-    const { pipeline } = createRealWardrobeServices();
+    const { pipeline } = createRealWardrobeServices({ circleId: session.circleId, profileId: session.profileId });
     await pipeline.deleteWardrobeItem(itemId);
 
     return NextResponse.json({ ok: true });
