@@ -1,0 +1,882 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Profile Dashboard Refinements</title>
+    <style>
+      :root {
+        --canvas: #f7f4ef;
+        --paper: #fffdfa;
+        --panel: #ffffff;
+        --ink: #151514;
+        --muted: #746f68;
+        --quiet: #a39b91;
+        --line: #e4dbcf;
+        --soft: #eee7dc;
+        --mint: #ece8df;
+        --mint-ink: #2b2925;
+        --blue: #eeeae3;
+        --blue-ink: #2b2925;
+        --clay: #e9e2d8;
+        --clay-ink: #2b2925;
+        --sun: #f6e6a8;
+        --shadow: 0 18px 50px rgba(35, 28, 20, 0.12);
+        --radius: 8px;
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background:
+          radial-gradient(circle at 12% 0%, rgba(223, 236, 228, 0.9), transparent 28%),
+          radial-gradient(circle at 92% 6%, rgba(223, 233, 244, 0.9), transparent 25%),
+          var(--canvas);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      button,
+      input {
+        font: inherit;
+      }
+
+      button {
+        cursor: default;
+      }
+
+      main {
+        max-width: 1260px;
+        margin: 0 auto;
+        padding: 34px 18px 54px;
+      }
+
+      .intro {
+        max-width: 760px;
+        margin-bottom: 24px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      h1 {
+        font-size: clamp(32px, 5vw, 56px);
+        line-height: 0.94;
+        letter-spacing: 0;
+      }
+
+      .intro p {
+        margin-top: 10px;
+        color: var(--muted);
+        font-size: 17px;
+        line-height: 1.45;
+      }
+
+      .concept-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(330px, 1fr));
+        gap: 22px;
+        align-items: start;
+      }
+
+      .concept {
+        display: grid;
+        gap: 12px;
+      }
+
+      .concept-note {
+        min-height: 88px;
+        color: var(--muted);
+        line-height: 1.45;
+        font-size: 14px;
+      }
+
+      .phone {
+        width: min(100%, 398px);
+        min-height: 760px;
+        margin: 0 auto;
+        border: 1px solid rgba(98, 82, 61, 0.18);
+        border-radius: 30px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+        position: relative;
+      }
+
+      .screen {
+        min-height: 760px;
+        padding: 20px 16px 86px;
+        display: grid;
+        gap: 14px;
+        align-content: start;
+      }
+
+      .appbar {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 14px;
+      }
+
+      .appbar h2 {
+        font-size: 32px;
+        line-height: 0.95;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .top-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .icon-btn {
+        width: 42px;
+        height: 42px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--ink);
+        display: grid;
+        place-items: center;
+        font-size: 23px;
+        font-weight: 500;
+      }
+
+      .icon-btn.soft {
+        background: var(--soft);
+        border-color: transparent;
+      }
+
+      .pill,
+      .tiny-pill {
+        border: 0;
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--ink);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        font-weight: 760;
+      }
+
+      .pill {
+        min-height: 32px;
+        padding: 7px 12px;
+        font-size: 13px;
+      }
+
+      .tiny-pill {
+        min-height: 24px;
+        padding: 4px 9px;
+        font-size: 11px;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--panel);
+        padding: 13px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .panel.tint {
+        background: linear-gradient(135deg, rgba(255, 253, 250, 0.96), rgba(238, 231, 220, 0.55));
+      }
+
+      .section-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .section-title h3 {
+        font-size: 17px;
+        line-height: 1;
+      }
+
+      .profile-list {
+        display: grid;
+        gap: 8px;
+      }
+
+      .profile-row {
+        width: 100%;
+        min-height: 66px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+        color: var(--ink);
+        padding: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        text-align: left;
+      }
+
+      .profile-row.active {
+        background: #f1eee8;
+        border-color: #d8d0c5;
+        box-shadow: inset 4px 0 0 #282622;
+      }
+
+      .profile-row.selected {
+        border-color: #d8d0c5;
+        background: #f6f2ea;
+        box-shadow: inset 4px 0 0 #5a554d;
+      }
+
+      .person {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .avatar {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: #fff;
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+        flex: 0 0 auto;
+      }
+
+      .avatar.mint {
+        background: #282622;
+      }
+
+      .avatar.blue {
+        background: #5a554d;
+      }
+
+      .avatar.clay {
+        background: #726b61;
+      }
+
+      .meta {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .meta strong {
+        font-size: 16px;
+        line-height: 1.1;
+      }
+
+      .meta small {
+        color: var(--muted);
+        font-size: 12px;
+        font-weight: 650;
+      }
+
+      .style-chip {
+        border-radius: 999px;
+        min-height: 30px;
+        padding: 6px 10px;
+        background: var(--soft);
+        color: var(--ink);
+        font-size: 12px;
+        font-weight: 800;
+        white-space: nowrap;
+      }
+
+      .style-chip.mint {
+        background: var(--mint);
+        color: var(--mint-ink);
+      }
+
+      .style-chip.blue {
+        background: var(--blue);
+        color: var(--blue-ink);
+      }
+
+      .style-chip.clay {
+        background: var(--clay);
+        color: var(--clay-ink);
+      }
+
+      .edit-card {
+        background: linear-gradient(180deg, #ffffff, #fbf8f3);
+      }
+
+      .edit-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .edit-person {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .label {
+        display: grid;
+        gap: 6px;
+        color: var(--ink);
+        font-weight: 760;
+        font-size: 13px;
+      }
+
+      input {
+        width: 100%;
+        min-height: 46px;
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        background: var(--paper);
+        color: var(--ink);
+        padding: 0 12px;
+        font-weight: 700;
+      }
+
+      .segment {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 7px;
+      }
+
+      .segment button {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--soft);
+        color: var(--ink);
+        font-weight: 780;
+      }
+
+      .segment button.active {
+        background: #282622;
+        border-color: #282622;
+        color: #fff;
+      }
+
+      .primary {
+        width: 100%;
+        min-height: 48px;
+        border: 0;
+        border-radius: 999px;
+        background: #282622;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        font-weight: 850;
+        font-size: 16px;
+      }
+
+      .secondary-row,
+      .add-row,
+      .signout-row {
+        width: 100%;
+        border-radius: var(--radius);
+        min-height: 54px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        text-align: left;
+      }
+
+      .add-row {
+        border: 1px dashed #c8bbaa;
+        background: #fffaf2;
+      }
+
+      .add-row strong,
+      .secondary-row strong {
+        font-size: 15px;
+      }
+
+      .add-icon {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        background: var(--sun);
+        font-size: 25px;
+        line-height: 1;
+        font-weight: 500;
+      }
+
+      .signout-row {
+        min-height: 44px;
+        border: 1px solid transparent;
+        background: transparent;
+        color: var(--muted);
+        justify-content: flex-start;
+        font-size: 13px;
+        font-weight: 720;
+      }
+
+      .nav {
+        position: absolute;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        min-height: 72px;
+        border-top: 1px solid var(--line);
+        background: rgba(255, 253, 250, 0.95);
+        display: grid;
+        grid-template-columns: repeat(5, 1fr);
+        align-items: center;
+        padding: 8px 6px 10px;
+      }
+
+      .nav span {
+        display: grid;
+        gap: 3px;
+        place-items: center;
+        color: #2f2c29;
+        font-size: 11px;
+      }
+
+      .nav b {
+        width: 20px;
+        height: 20px;
+        border: 2px solid currentColor;
+        border-radius: 6px;
+        display: block;
+      }
+
+      .drawer {
+        border: 1px solid #d4c7b8;
+        border-radius: 16px 16px 8px 8px;
+        background: #fffdfa;
+        padding: 13px;
+        display: grid;
+        gap: 11px;
+        box-shadow: 0 -12px 28px rgba(58, 47, 34, 0.08);
+      }
+
+      .drawer-handle {
+        width: 42px;
+        height: 4px;
+        border-radius: 999px;
+        background: var(--line);
+        justify-self: center;
+      }
+
+      .compact-fields {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .small-primary {
+        min-width: 72px;
+        min-height: 46px;
+        border: 0;
+        border-radius: 999px;
+        background: #282622;
+        color: #fff;
+        font-weight: 850;
+      }
+
+      .hero-band {
+        border-radius: var(--radius);
+        background: #f1eee8;
+        border: 1px solid #d8d0c5;
+        padding: 14px;
+        display: grid;
+        gap: 12px;
+      }
+
+      .hero-band .profile-row {
+        background: rgba(255, 255, 255, 0.78);
+      }
+
+      .split-actions {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px;
+      }
+
+      .ghost-btn {
+        min-height: 40px;
+        border: 1px solid var(--line);
+        border-radius: 999px;
+        background: var(--panel);
+        color: var(--ink);
+        font-weight: 800;
+      }
+
+      @media (max-width: 760px) {
+        main {
+          padding-inline: 12px;
+        }
+
+        .concept-note {
+          min-height: auto;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro">
+        <h1>Profile Dashboard refinements</h1>
+        <p>
+          Three directions starting from the current Circle Dashboard. The shared move is to make profile management feel calm and modern:
+          lighter active states, one focused edit area, compact add affordances, and sign out treated as account metadata instead of a
+          big competing action.
+        </p>
+      </section>
+
+      <section class="concept-grid" aria-label="Profile dashboard concepts">
+        <article class="concept">
+          <div>
+            <h2>Option A: Soft dashboard, inline edit</h2>
+            <p class="concept-note">
+              Best near-term implementation. Existing profiles feel like selectable records, the selected one opens a single edit panel,
+              and adding is a compact row until tapped. This removes the black slab while keeping the current information architecture.
+            </p>
+          </div>
+          <div class="phone">
+            <div class="screen">
+              <header class="appbar">
+                <div>
+                  <h2>Profile</h2>
+                  <p class="subtle">Aman's Circle</p>
+                </div>
+                <div class="top-actions">
+                  <button class="icon-btn soft" aria-label="Add profile">+</button>
+                </div>
+              </header>
+
+              <section class="panel">
+                <div class="section-title">
+                  <h3>Circle profiles</h3>
+                  <span class="pill">2 total</span>
+                </div>
+                <div class="profile-list">
+                  <button class="profile-row active">
+                    <span class="person">
+                      <span class="avatar mint">N</span>
+                      <span class="meta">
+                        <strong>Needhi</strong>
+                        <small>Active closet</small>
+                      </span>
+                    </span>
+                    <span class="style-chip mint">Women</span>
+                  </button>
+                  <button class="profile-row selected">
+                    <span class="person">
+                      <span class="avatar blue">A</span>
+                      <span class="meta">
+                        <strong>Aman</strong>
+                        <small>Selected to edit</small>
+                      </span>
+                    </span>
+                    <span class="style-chip blue">Men</span>
+                  </button>
+                </div>
+              </section>
+
+              <form class="panel edit-card">
+                <div class="edit-head">
+                  <div class="edit-person">
+                    <span class="avatar blue">A</span>
+                    <span class="meta">
+                      <strong>Edit Aman</strong>
+                      <small>Changes apply to this Circle profile</small>
+                    </span>
+                  </div>
+                  <span class="tiny-pill">Men</span>
+                </div>
+                <label class="label">
+                  Name
+                  <input value="Aman" />
+                </label>
+                <div class="label">
+                  Style profile
+                  <div class="segment">
+                    <button class="active">Men</button>
+                    <button>Women</button>
+                    <button>Flexible</button>
+                    <button>Skip</button>
+                  </div>
+                </div>
+                <button class="primary">Check Save changes</button>
+              </form>
+
+              <button class="add-row">
+                <span class="person">
+                  <span class="add-icon">+</span>
+                  <span class="meta">
+                    <strong>Add another profile</strong>
+                    <small>Partner, family member, or second closet</small>
+                  </span>
+                </span>
+                <span class="tiny-pill">Circle</span>
+              </button>
+
+              <button class="signout-row">Sign out of Wearabouts</button>
+            </div>
+            <nav class="nav" aria-label="Bottom navigation">
+              <span><b></b>Home</span>
+              <span><b></b>Closet</span>
+              <span><b></b>Add</span>
+              <span><b></b>Mixer</span>
+              <span><b></b>Profile</span>
+            </nav>
+          </div>
+        </article>
+
+        <article class="concept">
+          <div>
+            <h2>Option B: Active profile hero</h2>
+            <p class="concept-note">
+              More polished and more personal. The active profile gets a soft highlighted band, secondary profiles sit below, and edit is
+              framed as a detail panel for the selected person. Good if Profile should feel like a Circle home screen.
+            </p>
+          </div>
+          <div class="phone">
+            <div class="screen">
+              <header class="appbar">
+                <div>
+                  <h2>Circle</h2>
+                  <p class="subtle">2 profiles in Aman's Circle</p>
+                </div>
+                <button class="pill">Manage</button>
+              </header>
+
+              <section class="hero-band">
+                <div class="section-title">
+                  <h3>Active now</h3>
+                  <span class="style-chip mint">Women</span>
+                </div>
+                <button class="profile-row">
+                  <span class="person">
+                    <span class="avatar mint">N</span>
+                    <span class="meta">
+                      <strong>Needhi</strong>
+                      <small>Wardrobe, avatar, and suggestions</small>
+                    </span>
+                  </span>
+                  <span class="tiny-pill">Edit</span>
+                </button>
+                <div class="split-actions">
+                  <button class="ghost-btn">Switch profile</button>
+                  <button class="ghost-btn">View closet</button>
+                </div>
+              </section>
+
+              <section class="panel">
+                <div class="section-title">
+                  <h3>Circle members</h3>
+                  <span class="pill">2</span>
+                </div>
+                <div class="profile-list">
+                  <button class="profile-row active">
+                    <span class="person">
+                      <span class="avatar mint">N</span>
+                      <span class="meta">
+                        <strong>Needhi</strong>
+                        <small>Active profile</small>
+                      </span>
+                    </span>
+                    <span class="style-chip mint">Women</span>
+                  </button>
+                  <button class="profile-row">
+                    <span class="person">
+                      <span class="avatar clay">A</span>
+                      <span class="meta">
+                        <strong>Aman</strong>
+                        <small>Circle profile</small>
+                      </span>
+                    </span>
+                    <span class="style-chip clay">Men</span>
+                  </button>
+                </div>
+              </section>
+
+              <form class="panel edit-card">
+                <div class="edit-head">
+                  <div>
+                    <h3>Edit Needhi</h3>
+                    <p class="subtle">Keep suggestions aligned with this wardrobe.</p>
+                  </div>
+                  <span class="tiny-pill">Active</span>
+                </div>
+                <label class="label">
+                  Name
+                  <input value="Needhi" />
+                </label>
+                <div class="label">
+                  Style profile
+                  <div class="segment">
+                    <button>Men</button>
+                    <button class="active">Women</button>
+                    <button>Flexible</button>
+                    <button>Skip</button>
+                  </div>
+                </div>
+                <button class="primary">Check Save changes</button>
+              </form>
+
+              <button class="add-row">
+                <span class="person">
+                  <span class="add-icon">+</span>
+                  <span class="meta">
+                    <strong>Add profile</strong>
+                    <small>Start a new closet inside this Circle</small>
+                  </span>
+                </span>
+              </button>
+
+              <button class="signout-row">Sign out</button>
+            </div>
+            <nav class="nav" aria-label="Bottom navigation">
+              <span><b></b>Home</span>
+              <span><b></b>Closet</span>
+              <span><b></b>Add</span>
+              <span><b></b>Mixer</span>
+              <span><b></b>Profile</span>
+            </nav>
+          </div>
+        </article>
+
+        <article class="concept">
+          <div>
+            <h2>Option C: Compact list, add drawer</h2>
+            <p class="concept-note">
+              Cleanest mobile behavior. The page never shows two full forms at once. Add expands into a short drawer only after tapping the
+              compact row, while edit remains the only main form on the screen.
+            </p>
+          </div>
+          <div class="phone">
+            <div class="screen">
+              <header class="appbar">
+                <div>
+                  <h2>Profile</h2>
+                  <p class="subtle">Aman's Circle</p>
+                </div>
+                <button class="icon-btn" aria-label="Account menu">A</button>
+              </header>
+
+              <section class="panel tint">
+                <div class="section-title">
+                  <h3>Profiles</h3>
+                  <span class="pill">2 total</span>
+                </div>
+                <div class="profile-list">
+                  <button class="profile-row active">
+                    <span class="person">
+                      <span class="avatar mint">N</span>
+                      <span class="meta">
+                        <strong>Needhi</strong>
+                        <small>Active closet</small>
+                      </span>
+                    </span>
+                    <span class="style-chip mint">Women</span>
+                  </button>
+                  <button class="profile-row">
+                    <span class="person">
+                      <span class="avatar">A</span>
+                      <span class="meta">
+                        <strong>Aman</strong>
+                        <small>Tap to switch or edit</small>
+                      </span>
+                    </span>
+                    <span class="style-chip">Men</span>
+                  </button>
+                </div>
+              </section>
+
+              <form class="panel edit-card">
+                <div class="edit-head">
+                  <div>
+                    <h3>Edit profile</h3>
+                    <p class="subtle">Needhi is active across closet and styling.</p>
+                  </div>
+                  <span class="tiny-pill">Women</span>
+                </div>
+                <label class="label">
+                  Name
+                  <input value="Needhi" />
+                </label>
+                <div class="label">
+                  Style profile
+                  <div class="segment">
+                    <button>Men</button>
+                    <button class="active">Women</button>
+                    <button>Flexible</button>
+                    <button>Skip</button>
+                  </div>
+                </div>
+                <button class="primary">Check Save changes</button>
+              </form>
+
+              <button class="add-row">
+                <span class="person">
+                  <span class="add-icon">+</span>
+                  <span class="meta">
+                    <strong>Add another profile</strong>
+                    <small>Opens a short setup drawer</small>
+                  </span>
+                </span>
+              </button>
+
+              <section class="drawer">
+                <span class="drawer-handle"></span>
+                <div class="section-title">
+                  <h3>New profile</h3>
+                  <span class="tiny-pill">Circle</span>
+                </div>
+                <div class="compact-fields">
+                  <label class="label">
+                    Name
+                    <input placeholder="Male profile" />
+                  </label>
+                  <button class="small-primary">Add</button>
+                </div>
+                <div class="segment">
+                  <button class="active">Men</button>
+                  <button>Women</button>
+                  <button>Flexible</button>
+                  <button>Skip</button>
+                </div>
+              </section>
+
+              <button class="signout-row">Sign out from this device</button>
+            </div>
+            <nav class="nav" aria-label="Bottom navigation">
+              <span><b></b>Home</span>
+              <span><b></b>Closet</span>
+              <span><b></b>Add</span>
+              <span><b></b>Mixer</span>
+              <span><b></b>Profile</span>
+            </nav>
+          </div>
+        </article>
+      </section>
+    </main>
+  </body>
+</html>
