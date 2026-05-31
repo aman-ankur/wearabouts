@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request, { params }: { params: Promise<{ garmentId: string }> }) {
   const timer = createTimer();
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
@@ -17,7 +17,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ gar
     const { pipeline } = createRealWardrobeServices({ circleId: session.circleId, profileId: session.profileId });
     logWearaboutsTelemetry("api.garment_add.started", {
       garmentId,
-      sessionKind: "account",
+      sessionKind: session.kind,
       circleId: session.circleId,
       profileId: session.profileId,
     });

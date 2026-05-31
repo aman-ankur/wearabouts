@@ -12,7 +12,7 @@ function isAvatarInputKind(value: string): value is AvatarInputKind {
 
 export async function POST(request: Request) {
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
