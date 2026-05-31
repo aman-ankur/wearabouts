@@ -134,8 +134,8 @@ export default function StylistPage() {
       return;
     }
 
-    const payload = (await response.json()) as { render: AvatarRender };
-    setAvatarRenders((renders) => renders.map((render) => (render.id === payload.render.id ? payload.render : render)));
+    const payload = (await response.json()) as { deletedRenderId: string };
+    setAvatarRenders((renders) => renders.filter((render) => render.id !== payload.deletedRenderId));
   }
 
   if (readyItems.length === 0) {

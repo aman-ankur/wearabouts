@@ -62,7 +62,6 @@ interface WardrobeContextValue {
   markAvatarRenderReady: (renderId: string, imageUrl: string, qualityNotes: string[], imageAssetId?: string) => void;
   markAvatarRenderFailed: (renderId: string, notes: string[]) => void;
   deleteAvatarRender: (renderId: string) => void;
-  softDeleteAvatarRender: (render: AvatarState["renders"][number]) => void;
   startDemoTrip: () => void;
   approveTripLook: (lookId: string) => void;
   swapTripLook: (lookId: string) => void;
@@ -292,9 +291,6 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
     },
     deleteAvatarRender(renderId) {
       avatarDispatch({ type: "avatarRenderDeleted", renderId });
-    },
-    softDeleteAvatarRender(render) {
-      avatarDispatch({ type: "avatarRenderSoftDeleted", render });
     },
     startDemoTrip() {
       tripDispatch({

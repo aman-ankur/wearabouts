@@ -25,6 +25,7 @@ interface AvatarRenderRow {
   request: AvatarRenderRequest;
   status: AvatarRender["status"];
   image_asset_id?: string | null;
+  image_bucket?: string | null;
   image_storage_path?: string | null;
   quality_notes: string[] | null;
   created_at: string;
@@ -138,6 +139,7 @@ export class AvatarPersistence {
       .select("*")
       .eq("household_id", this.owner.circleId)
       .eq("profile_id", this.owner.profileId)
+      .neq("status", "deleted")
       .order("created_at", { ascending: false })
       .limit(30);
     if (error) {
@@ -185,20 +187,35 @@ export class AvatarPersistence {
     return this.mapRender(data as AvatarRenderRow);
   }
 
-  async softDeleteRender(renderId: string): Promise<AvatarRender> {
-    const { data, error } = await this.supabase
+  async deleteRender(renderId: string): Promise<void> {
+    const { data: row, error: lookupError } = await this.supabase
       .from("avatar_renders")
-      .update({ status: "deleted", deleted_at: new Date().toISOString() })
+      .select("image_bucket,image_storage_path")
       .eq("household_id", this.owner.circleId)
       .eq("profile_id", this.owner.profileId)
       .eq("id", renderId)
-      .select()
-      .single();
+      .maybeSingle();
+    if (lookupError) {
+      throw new Error(lookupError.message);
+    }
+    if (!row) {
+      throw new Error("Avatar render not found.");
+    }
+
+    const renderRow = row as Pick<AvatarRenderRow, "image_bucket" | "image_storage_path">;
+    const { error } = await this.supabase
+      .from("avatar_renders")
+      .delete()
+      .eq("household_id", this.owner.circleId)
+      .eq("profile_id", this.owner.profileId)
+      .eq("id", renderId);
     if (error) {
       throw new Error(error.message);
     }
 
-    return this.mapRender(data as AvatarRenderRow);
+    if (renderRow.image_storage_path) {
+      await this.supabase.storage.from(renderRow.image_bucket ?? AVATAR_STORAGE_BUCKET).remove([renderRow.image_storage_path]);
+    }
   }
 
   private async upload(bucket: string, storagePath: string, bytes: Uint8Array, contentType: string, upsert: boolean) {

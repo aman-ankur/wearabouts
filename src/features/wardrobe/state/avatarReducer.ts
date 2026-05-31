@@ -60,8 +60,7 @@ export type AvatarAction =
       nowIso: string;
     }
   | { type: "avatarRenderFailed"; renderId: string; qualityNotes: string[]; nowIso: string }
-  | { type: "avatarRenderDeleted"; renderId: string }
-  | { type: "avatarRenderSoftDeleted"; render: AvatarRender };
+  | { type: "avatarRenderDeleted"; renderId: string };
 
 export const initialAvatarState: AvatarState = {
   profile: null,
@@ -186,14 +185,6 @@ export function avatarReducer(state: AvatarState, action: AvatarAction): AvatarS
 
     case "avatarRenderDeleted":
       return { ...state, renders: state.renders.filter((render) => render.id !== action.renderId) };
-
-    case "avatarRenderSoftDeleted":
-      return {
-        ...state,
-        renders: state.renders.some((render) => render.id === action.render.id)
-          ? state.renders.map((render) => (render.id === action.render.id ? action.render : render))
-          : [action.render, ...state.renders],
-      };
   }
 }
 

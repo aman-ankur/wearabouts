@@ -12,7 +12,8 @@ export async function DELETE(request: Request, context: { params: Promise<{ rend
 
     const { renderId } = await context.params;
     const persistence = new AvatarPersistence(createSupabaseServiceClient(), { circleId: session.circleId, profileId: session.profileId });
-    return NextResponse.json({ render: await persistence.softDeleteRender(renderId) });
+    await persistence.deleteRender(renderId);
+    return NextResponse.json({ deletedRenderId: renderId });
   } catch (error) {
     return NextResponse.json({ error: error instanceof Error ? error.message : "Could not delete avatar render." }, { status: 500 });
   }

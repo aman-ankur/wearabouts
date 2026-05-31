@@ -36,7 +36,6 @@ function AvatarPageContent() {
     markAvatarRenderReady,
     markAvatarRenderFailed,
     deleteAvatarRender,
-    softDeleteAvatarRender,
   } = useWardrobe();
   const [setupStep, setSetupStep] = useState<AvatarSetupStep>(avatarState.profile ? "review" : "face");
   const [isEditingAvatarProfile, setIsEditingAvatarProfile] = useState(false);
@@ -212,8 +211,8 @@ function AvatarPageContent() {
       return;
     }
 
-    const payload = (await response.json()) as { render: AvatarRender };
-    softDeleteAvatarRender(payload.render);
+    const payload = (await response.json()) as { deletedRenderId: string };
+    deleteAvatarRender(payload.deletedRenderId);
   }
 
   if (!savedOutfit) {

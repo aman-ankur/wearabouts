@@ -20,7 +20,7 @@ Implemented on `codex/phase8-avatar-studio`:
 - Supabase-backed `avatar-assets`, `avatar_profiles`, and `avatar_renders` persistence for saved avatar references and rendered avatar outputs.
 - Avatar face/body setup uses signed direct uploads to the private Supabase `avatar-assets` bucket; profile APIs persist metadata only and avoid Vercel function payload limits.
 - Cache lookup before paid rendering; explicit regenerate bypasses cache and remains limited by the reducer.
-- Soft delete for avatar renders: deleted renders remain in the library record and storage.
+- Permanent delete for avatar renders: deleted renders are removed from `avatar_renders`, with best-effort associated render storage cleanup after the row is deleted.
 - Stylist avatar render gallery for saved and deleted renders.
 - Outfit-board fallback remains available, now as a non-overlapping flat-lay board rather than a fake body overlay.
 - Compact Avatar Studio UI with subtle runtime mode indicator and no automatic render on page load.

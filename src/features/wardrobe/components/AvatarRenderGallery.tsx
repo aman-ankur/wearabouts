@@ -70,7 +70,7 @@ export function AvatarRenderGallery({ renders, onDelete }: AvatarRenderGalleryPr
         <div>
           <strong>Avatar renders</strong>
           <p className="subtle" style={{ margin: "4px 0 0" }}>
-            Saved real renders stay here. Deleted renders are kept for later review.
+            Saved real renders stay here until you delete them.
           </p>
         </div>
         <div style={{ display: "grid", gap: 10 }}>
