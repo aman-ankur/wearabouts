@@ -4,6 +4,8 @@
 
 **Goal:** Build the first Wearabouts account slice: public demo entry, email OTP login, minimal onboarding, and Circle/profile persistence.
 
+**Current status:** Implemented and followed by the temporary guest real-flow work in `docs/superpowers/plans/2026-05-31-temporary-guest-real-flows.md`. Public `/demo` is still fixture-backed. Real wardrobe/avatar flows now work either from a signed-in Circle/profile or from a browser-local temporary guest Circle/profile.
+
 **Architecture:** Keep the public demo fixture-backed and no-login. Add a focused `src/features/account/` layer for auth/session helpers, onboarding validation, Supabase account persistence, and browser auth client creation. Add account tables now, while leaving full wardrobe API ownership migration for the next implementation plan.
 
 **Tech Stack:** Next.js App Router, React client pages, TypeScript, Vitest, Supabase Auth email OTP, Supabase service-role server routes.
@@ -21,7 +23,7 @@ This plan implements:
 - `GET/POST /api/account/me` for authenticated onboarding state.
 - Supabase tables for `circles`, `circle_members`, and `wardrobe_profiles`.
 
-This plan does not migrate existing wardrobe/upload/avatar API routes away from `REAL_HOUSEHOLD_ID` and `REAL_PROFILE_ID`. That is Phase C from the design spec and should be its own implementation plan because it touches all real-mode data routes.
+This plan did not migrate existing wardrobe/upload/avatar API routes away from `REAL_HOUSEHOLD_ID` and `REAL_PROFILE_ID`. That follow-up is now covered by the temporary guest real-flow plan and merged route changes: real wardrobe/avatar APIs resolve owner IDs from the Supabase session or a validated temporary guest ID.
 
 ## File Structure
 

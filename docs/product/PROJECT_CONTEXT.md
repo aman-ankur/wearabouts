@@ -91,11 +91,14 @@ The current product language is **Circle**, not household. A Circle is the priva
 Current account slice:
 
 - Public `/demo` remains fixture-backed and requires no login.
-- Email-code login gates personal upload, private wardrobe mutations, avatar setup, and real saved data.
+- Temporary guest mode lets visitors try real upload, Wardrobe Prep, closet, and Avatar Studio flows without signing in.
+- Email-code login creates durable private account data.
 - Onboarding creates one Circle and one personal wardrobe profile.
-- Private real-mode API routes resolve Circle/profile from the Supabase access token.
+- Private real-mode API routes resolve Circle/profile from either the Supabase access token or a validated temporary guest ID.
 - New real assets are stored under `circleId/profileId/assetId.ext`.
 - Family sharing and invites are intentionally deferred.
+
+Temporary guest mode is not the same thing as the public demo. Demo stays fixture-backed, cheap, and resettable. Guest mode uses the real Supabase-backed wardrobe/avatar flows, but scopes rows and storage paths to a generated guest Circle/profile derived from browser localStorage. This lets a visitor upload and generate without seeing anyone else's results, while keeping signed-in accounts as the durable ownership model.
 
 ### Wardrobe Capture
 

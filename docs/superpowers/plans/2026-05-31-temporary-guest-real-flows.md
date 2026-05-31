@@ -8,6 +8,8 @@
 
 **Tech Stack:** Next.js App Router, React, TypeScript, Supabase service-role server routes, Vitest.
 
+**Status:** Implemented and merged. No Supabase migration was required for the temporary guest slice because the real wardrobe/avatar tables already carry text owner IDs and the service routes already write owner-prefixed storage paths.
+
 ---
 
 ### Task 1: Guest Session Helpers
@@ -18,10 +20,10 @@
 - Test: `src/features/account/accountSession.test.ts`
 - Test: `src/features/account/accountApiClient.test.ts`
 
-- [ ] Add constants for `X-Wearabouts-Guest-Id`, strict UUID validation, and deterministic guest owner IDs.
-- [ ] Add `allowGuest` to `requireAccountSession`; when enabled and no bearer token exists, return guest `circleId` and `profileId`.
-- [ ] Make wardrobe fetch helpers send an auth bearer when available, otherwise send a guest UUID header.
-- [ ] Keep account status and onboarding calls bearer-only.
+- [x] Add constants for `X-Wearabouts-Guest-Id`, strict UUID validation, and deterministic guest owner IDs.
+- [x] Add `allowGuest` to `requireAccountSession`; when enabled and no bearer token exists, return guest `circleId` and `profileId`.
+- [x] Make wardrobe fetch helpers send an auth bearer when available, otherwise send a guest UUID header.
+- [x] Keep account status and onboarding calls bearer-only.
 
 ### Task 2: Wardrobe And Avatar Routes
 
@@ -29,10 +31,10 @@
 - Modify all real wardrobe/avatar API routes under `app/api/wardrobe/**/route.ts`
 - Test: `src/features/wardrobe/real/wardrobeApiRoutes.test.ts`
 
-- [ ] Pass `{ allowGuest: true }` to `requireAccountSession` in real wardrobe/avatar routes.
-- [ ] Keep account routes unchanged.
-- [ ] Add tests showing unauthenticated wardrobe/avatar profile requests with a guest header reach route ownership instead of returning 401.
-- [ ] Add tests showing no bearer and no guest header still returns 401.
+- [x] Pass `{ allowGuest: true }` to `requireAccountSession` in real wardrobe/avatar routes.
+- [x] Keep account routes unchanged.
+- [x] Add tests showing unauthenticated wardrobe/avatar profile requests with a guest header reach route ownership instead of returning 401.
+- [x] Add tests showing no bearer and no guest header still returns 401.
 
 ### Task 3: Client Real Flows
 
@@ -43,16 +45,17 @@
 - Modify: `src/features/wardrobe/state/WardrobeContext.tsx`
 - Modify: `src/features/wardrobe/components/AvatarSetupFlow.tsx`
 
-- [ ] Replace auth-only fetch calls for wardrobe/avatar work with the guest-capable helper.
-- [ ] Keep login/onboarding/settings auth-only.
-- [ ] Ensure real mode upload, processing polling, review actions, closet loading, avatar upload URL creation, avatar profile persistence, render listing, rendering, and render deletion all use the same guest header when no user is signed in.
+- [x] Replace auth-only fetch calls for wardrobe/avatar work with the guest-capable helper.
+- [x] Keep login/onboarding/settings auth-only.
+- [x] Ensure real mode upload, processing polling, review actions, closet loading, avatar upload URL creation, avatar profile persistence, render listing, rendering, and render deletion all use the same guest header when no user is signed in.
 
 ### Task 4: Verification
 
 **Files:**
 - No production file changes expected.
 
-- [ ] Run `npm run test`.
-- [ ] Run `npm run typecheck`.
-- [ ] Run `npm run lint`.
-- [ ] Explain that no Supabase migration is required because existing owner columns are text and service-role routes already write owner-prefixed storage paths.
+- [x] Run `npm run test`.
+- [x] Run `npm run typecheck`.
+- [x] Run `npm run lint`.
+- [x] Run `npm run build`.
+- [x] Explain that no Supabase migration is required because existing owner columns are text and service-role routes already write owner-prefixed storage paths.

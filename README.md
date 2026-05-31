@@ -13,7 +13,8 @@ The current app is built around one simple idea: make the closet visible enough 
 ## What Works Today
 
 - A public no-login demo with fixture clothes, looks, packing, and avatar examples.
-- Email-code login for a private real closet.
+- Temporary guest mode for trying real upload, wardrobe prep, closet, and avatar flows without signing in.
+- Email-code login for a durable private closet and profile.
 - Minimal onboarding for name and style presentation.
 - Upload and review flows backed by Supabase storage and tables.
 - Outfit-photo decomposition into selectable review candidates.
@@ -22,13 +23,15 @@ The current app is built around one simple idea: make the closet visible enough 
 - Trip Looks and Packing List flows for day-by-day planning.
 - Avatar Studio for rendering selected saved outfits when a higher-fidelity preview is worth the wait.
 
-Demo mode stays open and sample-backed. Personal upload, wardrobe, profile, avatar, and saved real data require login.
+Demo mode stays open and sample-backed. Real-mode upload, wardrobe prep, closet, and avatar flows also work for temporary guests: each browser gets a local guest workspace so visitors can try the product before creating an account. Signing in creates the durable private Circle/profile model.
 
 ## Private Closets
 
 Wearabouts now has a real account boundary, but the product language stays human.
 
 A user's private space is a **Circle**. The first release creates one Circle and one personal wardrobe profile. That keeps today's experience simple while leaving room for partners, family, roommates, or shared travel groups later.
+
+When someone is not signed in, Wearabouts uses a temporary guest workspace derived from a browser-local guest ID. Guest assets and rows are still scoped under a generated Circle/profile pair, so one guest does not see another guest's wardrobe or avatar renders. It is intentionally temporary: clearing browser storage loses the pointer to that workspace, and there is no family sharing or guest-to-account migration yet.
 
 Family sharing is intentionally not built yet. One good closet boundary first; group logistics can wait their turn.
 
@@ -47,7 +50,7 @@ SUPABASE_SERVICE_ROLE_KEY=
 OPENAI_API_KEY=
 ```
 
-Before testing account/profile ownership on an existing Supabase project, apply `supabase/migrations/20260529000000_account_circles_profiles.sql`. If the same database is still serving older deployed code, use the compatible rollout notes from the account/profile PR and delay stricter storage-path constraints until the deployed app has the matching routes.
+Before testing account/profile ownership on an existing Supabase project, apply `supabase/migrations/20260529000000_account_circles_profiles.sql`. The temporary guest flow does not add another migration; it reuses the existing real wardrobe/avatar tables and writes owner-prefixed paths using the session-derived Circle/profile IDs. If the same database is still serving older deployed code, use the compatible rollout notes from the account/profile PR and delay stricter storage-path constraints until the deployed app has the matching routes.
 
 ## Documentation
 

@@ -2,7 +2,7 @@
 
 ## Summary
 
-Wearabouts needs a real account boundary before personal wardrobe, avatar, upload, and trip data can be private. The first version should use email OTP login, a minimal personal profile, and a public no-login demo that lets anyone understand the product before trusting it with photos.
+Wearabouts needs a real account boundary before personal wardrobe, avatar, upload, and trip data can be durable. The first version uses email OTP login, a minimal personal profile, a public no-login demo, and a temporary guest workspace so people can try real upload/avatar flows before creating an account.
 
 The product term for a shared account space is **Circle**, not household. A Circle can represent one person, partners, family, roommates, or a shared travel group. The first release creates one Circle and one wardrobe profile automatically, while keeping the data model ready for future partner, kid, and shared profiles.
 
@@ -10,19 +10,19 @@ The product term for a shared account space is **Circle**, not household. A Circ
 
 - Let visitors try Wearabouts without logging in.
 - Keep demo mode instant, polished, and free of model-provider cost.
-- Require login before any personal upload, avatar setup, saved real outfit, or private wardrobe mutation.
+- Let temporary guests try real upload, Wardrobe Prep, closet, and Avatar Studio flows without seeing other users' data.
+- Use login for durable private wardrobe/profile ownership.
 - Use email OTP code login only: no password and no magic-link-first product path.
 - Create a minimal profile with only name and gender/presentation.
 - Introduce Circle ownership so future shared profiles are natural rather than bolted on later.
-- Isolate private data by authenticated Circle and wardrobe profile.
+- Isolate real data by authenticated Circle/profile or temporary guest Circle/profile.
 
 ## Non-Goals
 
 - Partner invites or multi-login Circle sharing in the first account slice.
 - Password login.
 - Social features.
-- Guest uploads.
-- Guest generation.
+- Migrating a temporary guest workspace into a newly created account.
 - Complex style questionnaires during onboarding.
 - Family profile management UI in the first slice.
 
@@ -45,13 +45,32 @@ Users can:
 
 Users cannot:
 
-- Upload personal photos.
+- Upload personal photos into the fixture-backed demo.
 - Save permanent outfits.
 - Create avatar inputs.
 - Generate real model-backed outputs.
 - Mutate private Supabase data.
 
-When a demo user taps a personal action, Wearabouts should show a friendly auth prompt such as `Build your own closet` and take them to login.
+When a demo user taps a personal action, Wearabouts can move them into the temporary guest real flow or show a friendly auth prompt such as `Build your own closet`.
+
+### Try As A Temporary Guest
+
+Temporary guest mode is for visitors who want to see whether real Wardrobe Prep and Avatar Studio are worth trusting before they sign in.
+
+Guest behavior:
+
+- The browser creates a random guest UUID in localStorage.
+- Wardrobe/avatar API calls send that guest ID only when no Supabase session exists.
+- Server routes validate the guest ID and derive a synthetic Circle/profile pair from it.
+- Rows and storage paths are still scoped as `circleId/profileId/assetId.ext`.
+- A guest can upload, review, add to closet, use Mixer/Stylist from their generated closet, set up an avatar, render saved outfits, and delete their own renders.
+
+Guest limits:
+
+- Guest work is browser-local and temporary. Clearing localStorage loses the pointer to it.
+- Guest data is not yet migrated into an account after login.
+- Account APIs, onboarding, settings, and profile editing remain auth-only.
+- Public `/demo` remains fixture-backed and does not spend model-provider cost.
 
 ### Build Your Own
 
@@ -204,22 +223,23 @@ Shared assets can later use either a `shared` wardrobe profile or a separate own
 
 ## API And Session Flow
 
-Every private API route should:
+Every real wardrobe/avatar API route should:
 
-1. Read the Supabase auth session.
-2. Resolve the user's active Circle membership.
-3. Resolve the current wardrobe profile.
-4. Query or mutate only rows inside that Circle.
-5. Ignore client-submitted `circleId` for authorization.
+1. Prefer the Supabase auth session when a bearer token is present.
+2. Resolve the user's active Circle membership and current wardrobe profile.
+3. If no bearer token exists, accept only a validated temporary guest ID on guest-enabled wardrobe/avatar routes.
+4. Derive the guest Circle/profile server-side from that guest ID.
+5. Query or mutate only rows inside the resolved Circle/profile.
+6. Ignore client-submitted `circleId` for authorization.
 
-Client-submitted `profileId` can be accepted only after the server verifies the profile belongs to one of the user's Circles.
+Client-submitted `profileId` can be accepted only after the server verifies the profile belongs to the authenticated user's Circle or the derived guest profile.
 
 Current real-mode constants should be phased out:
 
 - `REAL_HOUSEHOLD_ID` should be replaced by a session-derived `circleId`.
 - `REAL_PROFILE_ID` should be replaced by the current selected `wardrobeProfileId`.
 
-During migration, the constants can remain only as a dev/demo fallback while account-aware routes are introduced.
+The constants can remain only as fixture/dev identifiers. Real wardrobe/avatar routes should use session-derived ownership.
 
 ## Storage Paths
 
@@ -231,7 +251,7 @@ circleId/profileId/assetId.ext
 
 This should apply to source images, closet assets, and avatar assets.
 
-Server routes should validate that persisted storage paths match the authenticated Circle/profile before saving metadata.
+Server routes should validate that persisted storage paths match the resolved Circle/profile before saving metadata.
 
 ## Public Demo Boundary
 
@@ -261,10 +281,11 @@ Once account-aware routes are in place, enable row level security for private ta
 
 Minimum security expectations:
 
-- No private route should work without an authenticated user.
-- No user should be able to access another Circle by guessing IDs.
+- Account routes should work only with an authenticated user.
+- Guest-enabled wardrobe/avatar routes should work only with an authenticated user or a valid temporary guest ID.
+- No user or guest should be able to access another Circle by guessing IDs.
 - Upload and avatar storage paths must be scoped to Circle/profile.
-- API responses should not return signed URLs for assets outside the authenticated Circle.
+- API responses should not return signed URLs for assets outside the resolved Circle/profile.
 - Demo routes and fixtures must not expose private production data.
 
 ## Error Handling
@@ -283,7 +304,7 @@ Onboarding:
 
 Demo:
 
-- Personal actions should lead to login instead of failing silently.
+- Personal actions should lead to temporary guest mode or login instead of failing silently.
 - Demo should make it clear when data is sample data.
 
 ## Implementation Phases
@@ -306,8 +327,8 @@ Demo:
 ### Phase C: Data Isolation
 
 - Replace hard-coded real-mode ownership constants in wardrobe, upload, closet, and avatar APIs.
-- Resolve Circle/profile from the authenticated session.
-- Migrate existing development rows into a default Circle/profile.
+- Resolve Circle/profile from the authenticated session or temporary guest ID.
+- Keep existing development rows available only when intentionally migrated into a default Circle/profile.
 - Add tests for route-level ownership checks and cross-user isolation.
 - Enable RLS or equivalent table policies after routes are account-aware.
 
@@ -329,8 +350,9 @@ Unit tests:
 
 Route tests:
 
-- Private routes reject unauthenticated requests.
-- Private routes use session Circle/profile instead of client-submitted Circle IDs.
+- Account routes reject unauthenticated requests.
+- Guest-enabled wardrobe/avatar routes accept a valid guest ID and reject requests with neither auth nor guest ID.
+- Private routes use resolved Circle/profile instead of client-submitted Circle IDs.
 - Cross-user access is rejected.
 
 UI tests:
@@ -359,7 +381,7 @@ Migration tests or SQL review:
 Build the demo-first account model:
 
 1. Let everyone explore a polished fixture-backed Wearabouts demo without login.
-2. Require email OTP before personal photos, real saves, avatar setup, or model-backed work.
+2. Let temporary guests try personal photos, real saves, avatar setup, and model-backed work in a browser-local workspace.
 3. Keep onboarding minimal with name and gender/presentation.
 4. Create a default Circle and personal wardrobe profile behind the scenes.
 5. Move all private data access to session-derived Circle/profile ownership before exposing multi-profile features.
