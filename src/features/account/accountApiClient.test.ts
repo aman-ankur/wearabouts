@@ -144,6 +144,14 @@ describe("accountApiClient", () => {
     await expect(fetchAccountStatus("expired", fetcher)).rejects.toThrow("Your session has expired. Sign in again.");
   });
 
+  it("throws a readable fallback when an account response body is empty", async () => {
+    const fetcher = async () => new Response("", { status: 500 });
+
+    await expect(
+      updateCircleProfile("token-1", "profile-2", { displayName: "Sara", genderPresentation: "women" }, fetcher),
+    ).rejects.toThrow("Could not update account.");
+  });
+
   it("creates authorization headers from the active Supabase browser session", async () => {
     const supabase = {
       auth: {

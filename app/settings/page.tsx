@@ -157,6 +157,7 @@ export default function SettingsPage() {
       const nextAccount = await updateCircleProfile(accessToken, activeProfileId, { displayName, genderPresentation });
       const updatedProfile = nextAccount.profiles.find((profile) => profile.id === activeProfileId) ?? nextAccount.profile;
       setAccount(nextAccount);
+      setActiveWardrobeProfileId(activeProfileId);
       if (updatedProfile) {
         setDisplayName(updatedProfile.displayName);
         setGenderPresentation(updatedProfile.genderPresentation);

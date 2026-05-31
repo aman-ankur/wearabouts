@@ -41,6 +41,13 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: validation.error }, { status: 400 });
   }
 
-  const account = await createCircleWardrobeProfile(auth.supabase, auth.user, validation.value);
-  return NextResponse.json({ account });
+  try {
+    const account = await createCircleWardrobeProfile(auth.supabase, auth.user, validation.value);
+    return NextResponse.json({ account });
+  } catch (error) {
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Could not add profile." },
+      { status: 500 },
+    );
+  }
 }

@@ -108,15 +108,33 @@ export async function createCircleWardrobeProfile(
   }
 
   const circle = await findCircleOrThrow(supabase, membership.circle_id);
-  await insertWardrobeProfile(supabase, {
-    circleId: circle.id,
-    userId: user.id,
-    displayName: profile.displayName,
-    genderPresentation: profile.genderPresentation,
-    profileType: "personal",
-  });
+  try {
+    await insertWardrobeProfile(supabase, {
+      circleId: circle.id,
+      userId: user.id,
+      displayName: profile.displayName,
+      genderPresentation: profile.genderPresentation,
+      profileType: "personal",
+    });
+  } catch (error) {
+    if (!isLegacyProfileTypeUniqueConstraintError(error)) {
+      throw error;
+    }
+
+    await insertWardrobeProfile(supabase, {
+      circleId: circle.id,
+      userId: user.id,
+      displayName: profile.displayName,
+      genderPresentation: profile.genderPresentation,
+      profileType: "shared",
+    });
+  }
 
   return getAccountStatusForUser(supabase, user);
+}
+
+function isLegacyProfileTypeUniqueConstraintError(error: unknown): boolean {
+  return error instanceof Error && error.message.includes("wardrobe_profiles_circle_id_owner_user_id_profile_type_key");
 }
 
 export async function updateCircleWardrobeProfile(

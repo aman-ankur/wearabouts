@@ -10,9 +10,12 @@ export const activeWardrobeProfileStorageKey = "wearabouts_active_profile_id";
 export const activeWardrobeProfileChangedEvent = "wearabouts-active-profile-changed";
 
 async function readAccountResponse(response: Response): Promise<AccountStatus> {
-  const payload = await response.json() as { account?: AccountStatus; error?: string };
+  const text = await response.text();
+  const payload = text
+    ? JSON.parse(text) as { account?: AccountStatus; error?: string }
+    : {};
   if (!response.ok || !payload.account) {
-    throw new Error(payload.error ?? "Could not load account.");
+    throw new Error(payload.error ?? "Could not update account.");
   }
 
   return payload.account;
