@@ -28,8 +28,16 @@ export function toAccountStatus(
   user: AccountUser,
   circle: CircleRow | null,
   profile: WardrobeProfileRow | null,
+  profiles: WardrobeProfileRow[] = profile ? [profile] : [],
 ): AccountStatus {
   const circleSummary: CircleSummary | null = circle ? { id: circle.id, name: circle.name } : null;
+  const toProfileSummary = (row: WardrobeProfileRow): WardrobeProfileSummary => ({
+    id: row.id,
+    circleId: row.circle_id,
+    displayName: row.display_name,
+    genderPresentation: row.gender_presentation,
+    profileType: row.profile_type,
+  });
   const profileSummary: WardrobeProfileSummary | null = profile
     ? {
         id: profile.id,
@@ -45,6 +53,7 @@ export function toAccountStatus(
     onboardingComplete: Boolean(circleSummary && profileSummary),
     circle: circleSummary,
     profile: profileSummary,
+    profiles: profiles.map(toProfileSummary),
   };
 }
 
@@ -54,12 +63,13 @@ export async function getAccountStatusForUser(supabase: SupabaseClient, user: Us
     return toAccountStatus(user, null, null);
   }
 
-  const [circle, profile] = await Promise.all([
+  const [circle, profile, profiles] = await Promise.all([
     findCircle(supabase, membership.circle_id),
-    findPersonalProfile(supabase, membership.circle_id, user.id),
+    findPrimaryPersonalProfile(supabase, membership.circle_id, user.id),
+    findCircleProfiles(supabase, membership.circle_id),
   ]);
 
-  return toAccountStatus(user, circle, profile);
+  return toAccountStatus(user, circle, profile, profiles);
 }
 
 export async function completeAccountOnboarding(
@@ -83,7 +93,58 @@ export async function completeAccountOnboarding(
     genderPresentation: profile.genderPresentation,
   });
 
-  return toAccountStatus(user, circle, wardrobeProfile);
+  const profiles = await findCircleProfiles(supabase, circle.id);
+  return toAccountStatus(user, circle, wardrobeProfile, profiles);
+}
+
+export async function createCircleWardrobeProfile(
+  supabase: SupabaseClient,
+  user: User,
+  profile: OnboardingProfile,
+): Promise<AccountStatus> {
+  const membership = await findPrimaryMembership(supabase, user.id);
+  if (!membership) {
+    throw new Error("Finish onboarding before adding another profile.");
+  }
+
+  const circle = await findCircleOrThrow(supabase, membership.circle_id);
+  await insertWardrobeProfile(supabase, {
+    circleId: circle.id,
+    userId: user.id,
+    displayName: profile.displayName,
+    genderPresentation: profile.genderPresentation,
+    profileType: "personal",
+  });
+
+  return getAccountStatusForUser(supabase, user);
+}
+
+export async function updateCircleWardrobeProfile(
+  supabase: SupabaseClient,
+  user: User,
+  profileId: string,
+  profile: OnboardingProfile,
+): Promise<AccountStatus> {
+  const membership = await findPrimaryMembership(supabase, user.id);
+  if (!membership) {
+    throw new Error("Finish onboarding before editing a profile.");
+  }
+
+  const circle = await findCircleOrThrow(supabase, membership.circle_id);
+  const existing = await findWardrobeProfileInCircle(supabase, circle.id, profileId);
+  if (!existing) {
+    throw new Error("That wardrobe profile is not available in your Circle.");
+  }
+
+  await updateWardrobeProfile(supabase, existing.id, {
+    circleId: circle.id,
+    userId: user.id,
+    displayName: profile.displayName,
+    genderPresentation: profile.genderPresentation,
+    profileType: existing.profile_type,
+  });
+
+  return getAccountStatusForUser(supabase, user);
 }
 
 async function findPrimaryMembership(supabase: SupabaseClient, userId: string): Promise<CircleMemberRow | null> {
@@ -146,7 +207,7 @@ async function insertCircleMember(supabase: SupabaseClient, circleId: string, us
   }
 }
 
-async function findPersonalProfile(
+async function findPrimaryPersonalProfile(
   supabase: SupabaseClient,
   circleId: string,
   userId: string,
@@ -157,6 +218,39 @@ async function findPersonalProfile(
     .eq("circle_id", circleId)
     .eq("owner_user_id", userId)
     .eq("profile_type", "personal")
+    .order("created_at", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as WardrobeProfileRow | null;
+}
+
+async function findCircleProfiles(supabase: SupabaseClient, circleId: string): Promise<WardrobeProfileRow[]> {
+  const { data, error } = await supabase
+    .from("wardrobe_profiles")
+    .select("id,circle_id,display_name,gender_presentation,profile_type")
+    .eq("circle_id", circleId)
+    .order("created_at", { ascending: true });
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as WardrobeProfileRow[];
+}
+
+async function findWardrobeProfileInCircle(
+  supabase: SupabaseClient,
+  circleId: string,
+  profileId: string,
+): Promise<WardrobeProfileRow | null> {
+  const { data, error } = await supabase
+    .from("wardrobe_profiles")
+    .select("id,circle_id,display_name,gender_presentation,profile_type")
+    .eq("id", profileId)
+    .eq("circle_id", circleId)
     .maybeSingle();
   if (error) {
     throw new Error(error.message);
@@ -174,20 +268,77 @@ async function upsertPersonalProfile(
     genderPresentation: GenderPresentation;
   },
 ): Promise<WardrobeProfileRow> {
-  const existing = await findPersonalProfile(supabase, input.circleId, input.userId);
+  const existing = await findPrimaryPersonalProfile(supabase, input.circleId, input.userId);
+  return existing
+    ? updateWardrobeProfile(supabase, existing.id, {
+        circleId: input.circleId,
+        userId: input.userId,
+        displayName: input.displayName,
+        genderPresentation: input.genderPresentation,
+        profileType: "personal",
+      })
+    : insertWardrobeProfile(supabase, {
+        circleId: input.circleId,
+        userId: input.userId,
+        displayName: input.displayName,
+        genderPresentation: input.genderPresentation,
+        profileType: "personal",
+      });
+}
+
+async function insertWardrobeProfile(
+  supabase: SupabaseClient,
+  input: {
+    circleId: string;
+    userId: string;
+    displayName: string;
+    genderPresentation: GenderPresentation;
+    profileType: WardrobeProfileSummary["profileType"];
+  },
+): Promise<WardrobeProfileRow> {
+  const { data, error } = await supabase
+    .from("wardrobe_profiles")
+    .insert({
+      circle_id: input.circleId,
+      owner_user_id: input.userId,
+      display_name: input.displayName,
+      gender_presentation: input.genderPresentation,
+      profile_type: input.profileType,
+    })
+    .select("id,circle_id,display_name,gender_presentation,profile_type")
+    .single();
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  return data as WardrobeProfileRow;
+}
+
+async function updateWardrobeProfile(
+  supabase: SupabaseClient,
+  profileId: string,
+  input: {
+    circleId: string;
+    userId: string;
+    displayName: string;
+    genderPresentation: GenderPresentation;
+    profileType: WardrobeProfileSummary["profileType"];
+  },
+): Promise<WardrobeProfileRow> {
   const values = {
     circle_id: input.circleId,
     owner_user_id: input.userId,
     display_name: input.displayName,
     gender_presentation: input.genderPresentation,
-    profile_type: "personal",
+    profile_type: input.profileType,
   };
 
-  const query = existing
-    ? supabase.from("wardrobe_profiles").update(values).eq("id", existing.id)
-    : supabase.from("wardrobe_profiles").insert(values);
-
-  const { data, error } = await query.select("id,circle_id,display_name,gender_presentation,profile_type").single();
+  const { data, error } = await supabase
+    .from("wardrobe_profiles")
+    .update(values)
+    .eq("id", profileId)
+    .select("id,circle_id,display_name,gender_presentation,profile_type")
+    .single();
   if (error) {
     throw new Error(error.message);
   }

@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Wearabouts Profile Settings Concepts</title>
+    <style>
+      :root {
+        --bg: #f6f3ee;
+        --paper: #fffefa;
+        --ink: #111;
+        --muted: #716b64;
+        --line: #e6ded4;
+        --soft: #efe9df;
+        --white: #fff;
+        --sage: #5d8176;
+        --blue: #315a7d;
+        --wine: #7d2637;
+        --shadow: 0 18px 45px rgba(20, 20, 20, 0.12);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      body {
+        margin: 0;
+        background: var(--bg);
+        color: var(--ink);
+        font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      main {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 34px 18px 48px;
+      }
+
+      h1,
+      h2,
+      h3,
+      p {
+        margin: 0;
+      }
+
+      .intro {
+        display: grid;
+        gap: 8px;
+        margin-bottom: 22px;
+      }
+
+      .intro h1 {
+        font-size: clamp(30px, 5vw, 56px);
+        line-height: 0.95;
+      }
+
+      .intro p {
+        max-width: 640px;
+        color: var(--muted);
+        font-size: 16px;
+        line-height: 1.45;
+      }
+
+      .grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(318px, 1fr));
+        gap: 18px;
+        align-items: start;
+      }
+
+      .concept {
+        display: grid;
+        gap: 12px;
+      }
+
+      .concept h2 {
+        font-size: 18px;
+      }
+
+      .phone {
+        width: min(100%, 390px);
+        min-height: 720px;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        background: var(--paper);
+        box-shadow: var(--shadow);
+        overflow: hidden;
+      }
+
+      .screen {
+        padding: 20px 16px 86px;
+        display: grid;
+        gap: 14px;
+      }
+
+      .top {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+      }
+
+      .title {
+        font-size: 30px;
+        line-height: 1;
+        letter-spacing: 0;
+      }
+
+      .subtle {
+        color: var(--muted);
+        font-size: 13px;
+        line-height: 1.35;
+      }
+
+      .icon-button,
+      .primary,
+      .secondary,
+      .chip,
+      .segment button {
+        border: 0;
+        font: inherit;
+      }
+
+      .icon-button {
+        width: 42px;
+        height: 42px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--white);
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+      }
+
+      .panel {
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--white);
+        padding: 14px;
+        display: grid;
+        gap: 13px;
+      }
+
+      .panel.soft {
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(239, 233, 223, 0.68));
+      }
+
+      .profile-row {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 10px;
+        min-height: 56px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        padding: 8px;
+      }
+
+      .person {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        background: var(--ink);
+        color: var(--white);
+        display: grid;
+        place-items: center;
+        font-weight: 850;
+      }
+
+      .avatar.alt {
+        background: var(--sage);
+      }
+
+      .meta {
+        display: grid;
+        gap: 2px;
+        min-width: 0;
+      }
+
+      .meta strong {
+        font-size: 15px;
+      }
+
+      .chip {
+        min-height: 30px;
+        border-radius: 999px;
+        padding: 6px 10px;
+        background: var(--soft);
+        font-size: 12px;
+        font-weight: 780;
+        white-space: nowrap;
+      }
+
+      .chip.dark {
+        background: var(--ink);
+        color: var(--white);
+      }
+
+      label {
+        display: grid;
+        gap: 6px;
+        font-weight: 760;
+        font-size: 13px;
+      }
+
+      input,
+      select {
+        width: 100%;
+        min-height: 44px;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--paper);
+        padding: 0 12px;
+        font: inherit;
+        font-weight: 680;
+      }
+
+      .segment {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+
+      .segment button {
+        min-height: 38px;
+        border-radius: 999px;
+        background: var(--soft);
+        font-weight: 780;
+      }
+
+      .segment .active {
+        background: var(--ink);
+        color: var(--white);
+      }
+
+      .primary,
+      .secondary {
+        min-height: 46px;
+        border-radius: 999px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        gap: 8px;
+        font-weight: 820;
+      }
+
+      .primary {
+        background: var(--ink);
+        color: var(--white);
+      }
+
+      .secondary {
+        background: var(--soft);
+        color: var(--ink);
+      }
+
+      .tabs {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 6px;
+        padding: 4px;
+        border-radius: 999px;
+        background: var(--soft);
+      }
+
+      .tabs span {
+        min-height: 34px;
+        border-radius: 999px;
+        display: grid;
+        place-items: center;
+        font-size: 12px;
+        font-weight: 820;
+      }
+
+      .tabs .active {
+        background: var(--white);
+        box-shadow: 0 8px 20px rgba(20, 20, 20, 0.1);
+      }
+
+      .split {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 8px;
+        align-items: end;
+      }
+
+      .mini-stack {
+        display: grid;
+        gap: 8px;
+      }
+
+      .footer {
+        color: var(--muted);
+        font-size: 12px;
+        line-height: 1.4;
+        margin-top: 10px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <section class="intro">
+        <h1>Profile Settings Concepts</h1>
+        <p>Three compact directions for Circle profile management. The production fix uses Concept A: a quiet dashboard with small profile rows and segmented style controls.</p>
+      </section>
+
+      <section class="grid">
+        <article class="concept">
+          <h2>Concept A: Circle Dashboard</h2>
+          <div class="phone">
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <h3 class="title">Profile</h3>
+                  <p class="subtle">Aman's Circle</p>
+                </div>
+                <button class="icon-button" aria-label="Add profile">+</button>
+              </div>
+
+              <section class="panel soft">
+                <div class="profile-row">
+                  <div class="person">
+                    <span class="avatar">A</span>
+                    <span class="meta"><strong>Aman</strong><small class="subtle">Active profile</small></span>
+                  </div>
+                  <span class="chip dark">Men</span>
+                </div>
+                <div class="profile-row">
+                  <div class="person">
+                    <span class="avatar alt">S</span>
+                    <span class="meta"><strong>Sara</strong><small class="subtle">Circle profile</small></span>
+                  </div>
+                  <span class="chip">Women</span>
+                </div>
+              </section>
+
+              <section class="panel">
+                <label>Name<input value="Aman" /></label>
+                <label>Style profile</label>
+                <div class="segment">
+                  <button class="active">Men</button>
+                  <button>Women</button>
+                  <button>Flexible</button>
+                  <button>Skip</button>
+                </div>
+                <button class="primary">Save profile</button>
+              </section>
+
+              <section class="panel">
+                <div class="split">
+                  <label>New profile<input placeholder="Female profile" /></label>
+                  <button class="icon-button" aria-label="Add">+</button>
+                </div>
+                <div class="segment">
+                  <button>Men</button>
+                  <button class="active">Women</button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <h2>Concept B: Profile Tabs</h2>
+          <div class="phone">
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <h3 class="title">Circle</h3>
+                  <p class="subtle">2 profiles</p>
+                </div>
+                <button class="secondary">Invite</button>
+              </div>
+              <div class="tabs"><span class="active">Aman</span><span>Sara</span><span>+</span></div>
+              <section class="panel soft">
+                <span class="avatar">A</span>
+                <h3>Aman</h3>
+                <p class="subtle">Wardrobe, avatar, saved looks, and suggestions stay scoped to this profile.</p>
+              </section>
+              <section class="panel">
+                <label>Name<input value="Aman" /></label>
+                <label>Presentation<select><option>Men</option></select></label>
+                <button class="primary">Save changes</button>
+              </section>
+            </div>
+          </div>
+        </article>
+
+        <article class="concept">
+          <h2>Concept C: Compact Control Center</h2>
+          <div class="phone">
+            <div class="screen">
+              <div class="top">
+                <div>
+                  <h3 class="title">Settings</h3>
+                  <p class="subtle">Aman's Circle</p>
+                </div>
+              </div>
+              <section class="panel">
+                <div class="mini-stack">
+                  <div class="profile-row">
+                    <div class="person"><span class="avatar">A</span><strong>Aman</strong></div>
+                    <span class="chip dark">Selected</span>
+                  </div>
+                  <button class="secondary">Switch profile</button>
+                </div>
+              </section>
+              <section class="panel">
+                <label>Display name<input value="Aman" /></label>
+                <label>Default styling<select><option>Men</option></select></label>
+                <button class="primary">Save</button>
+              </section>
+              <section class="panel soft">
+                <h3>Add profile</h3>
+                <div class="split">
+                  <input placeholder="Name" />
+                  <button class="icon-button" aria-label="Add">+</button>
+                </div>
+              </section>
+            </div>
+          </div>
+        </article>
+      </section>
+
+      <p class="footer">Saved as a static HTML mockup for quick browser review. Open this file directly; no dev server required.</p>
+    </main>
+  </body>
+</html>

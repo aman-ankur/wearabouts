@@ -3,6 +3,7 @@ import { getAccountStatusForUser } from "./accountPersistence";
 import { createSupabaseAccountServerClient } from "./supabaseAccountServerClient";
 
 export const wearaboutsGuestIdHeader = "x-wearabouts-guest-id";
+export const wearaboutsProfileIdHeader = "x-wearabouts-profile-id";
 
 const guestIdPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -97,7 +98,10 @@ export async function requireAccountSession(
     return { ok: false, status: 403, error: "Finish onboarding to build your wardrobe." };
   }
 
-  const requestedProfileId = typeof options.requestedProfileId === "string" ? options.requestedProfileId : null;
+  const requestedProfileId =
+    typeof options.requestedProfileId === "string"
+      ? options.requestedProfileId
+      : request.headers.get(wearaboutsProfileIdHeader)?.trim() || null;
   if (!requestedProfileId || requestedProfileId === account.profile.id) {
     return {
       ok: true,

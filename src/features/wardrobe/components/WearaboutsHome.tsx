@@ -86,7 +86,7 @@ function toHomeFeedCard(items: WardrobeItem[], suggestion: OutfitSuggestion): Ho
   };
 }
 
-function getHomeFeedCards(items: WardrobeItem[], savedOutfits: OutfitSuggestionContextSavedOutfits): HomeFeedCard[] {
+function getHomeFeedCards(items: WardrobeItem[], savedOutfits: OutfitSuggestionContextSavedOutfits, profileId: string): HomeFeedCard[] {
   const readyItems = items.filter((item) => item.readyForMixer);
   if (readyItems.length === 0) {
     return exampleCards;
@@ -96,7 +96,7 @@ function getHomeFeedCards(items: WardrobeItem[], savedOutfits: OutfitSuggestionC
   const cards = intents
     .flatMap((intent) =>
       getOutfitRecommendations({
-        profileId: "profile-aankur",
+        profileId,
         intent,
         closetItems: items,
         savedOutfits,
@@ -182,7 +182,11 @@ export function WearaboutsHome() {
   const { state, mixerState } = useWardrobe();
   const weekDays = useMemo(() => getWeekDays(), []);
   const feedCards = useMemo(
-    () => getHomeFeedCards(state.closetItems, mixerState.savedOutfits),
+    () => {
+      const readyItems = state.closetItems.filter((item) => item.readyForMixer);
+      const activeProfileId = readyItems[0]?.ownerProfileId ?? state.closetItems[0]?.ownerProfileId ?? "profile-aankur";
+      return getHomeFeedCards(state.closetItems, mixerState.savedOutfits, activeProfileId);
+    },
     [mixerState.savedOutfits, state.closetItems],
   );
   const hasClosetData = state.closetItems.some((item) => item.readyForMixer);

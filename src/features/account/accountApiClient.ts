@@ -1,11 +1,13 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AccountStatus, OnboardingProfile } from "./accountTypes";
-import { wearaboutsGuestIdHeader } from "./accountSession";
+import { wearaboutsGuestIdHeader, wearaboutsProfileIdHeader } from "./accountSession";
 import { getSupabaseBrowserClient } from "./supabaseBrowserClient";
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
 
 export const wearaboutsGuestIdStorageKey = "wearabouts_guest_id";
+export const activeWardrobeProfileStorageKey = "wearabouts_active_profile_id";
+export const activeWardrobeProfileChangedEvent = "wearabouts-active-profile-changed";
 
 async function readAccountResponse(response: Response): Promise<AccountStatus> {
   const payload = await response.json() as { account?: AccountStatus; error?: string };
@@ -32,6 +34,41 @@ export async function completeOnboarding(
   return readAccountResponse(
     await fetcher("/api/account/me", {
       method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(profile),
+    }),
+  );
+}
+
+export async function createCircleProfile(
+  accessToken: string,
+  profile: OnboardingProfile,
+  fetcher: Fetcher = fetch,
+): Promise<AccountStatus> {
+  return readAccountResponse(
+    await fetcher("/api/account/profiles", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(profile),
+    }),
+  );
+}
+
+export async function updateCircleProfile(
+  accessToken: string,
+  profileId: string,
+  profile: OnboardingProfile,
+  fetcher: Fetcher = fetch,
+): Promise<AccountStatus> {
+  return readAccountResponse(
+    await fetcher(`/api/account/profiles/${encodeURIComponent(profileId)}`, {
+      method: "PATCH",
       headers: {
         Authorization: `Bearer ${accessToken}`,
         "Content-Type": "application/json",
@@ -72,6 +109,36 @@ export function getOrCreateGuestId(): string {
   return guestId;
 }
 
+export function getActiveWardrobeProfileId(): string | null {
+  if (typeof window === "undefined") {
+    return null;
+  }
+
+  return window.localStorage.getItem(activeWardrobeProfileStorageKey);
+}
+
+export function setActiveWardrobeProfileId(profileId: string | null): void {
+  if (typeof window === "undefined") {
+    return;
+  }
+
+  if (profileId) {
+    window.localStorage.setItem(activeWardrobeProfileStorageKey, profileId);
+  } else {
+    window.localStorage.removeItem(activeWardrobeProfileStorageKey);
+  }
+  window.dispatchEvent(new CustomEvent(activeWardrobeProfileChangedEvent, { detail: { profileId } }));
+}
+
+export function subscribeToActiveWardrobeProfileChange(listener: () => void): () => void {
+  if (typeof window === "undefined") {
+    return () => undefined;
+  }
+
+  window.addEventListener(activeWardrobeProfileChangedEvent, listener);
+  return () => window.removeEventListener(activeWardrobeProfileChangedEvent, listener);
+}
+
 export async function createWardrobeSessionHeaders(
   supabase: Pick<SupabaseClient, "auth"> | null = getSupabaseBrowserClient(),
 ): Promise<Record<string, string>> {
@@ -79,7 +146,12 @@ export async function createWardrobeSessionHeaders(
     const { data } = await supabase.auth.getSession();
     const accessToken = data.session?.access_token;
     if (accessToken) {
-      return { Authorization: `Bearer ${accessToken}` };
+      const headers: Record<string, string> = { Authorization: `Bearer ${accessToken}` };
+      const activeProfileId = getActiveWardrobeProfileId();
+      if (activeProfileId) {
+        headers[wearaboutsProfileIdHeader] = activeProfileId;
+      }
+      return headers;
     }
   }
 
