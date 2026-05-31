@@ -93,10 +93,19 @@ Current account slice:
 - Public `/demo` remains fixture-backed and requires no login.
 - Temporary guest mode lets visitors try real upload, Wardrobe Prep, closet, and Avatar Studio flows without signing in.
 - Email-code login creates durable private account data.
-- Onboarding creates one Circle and one personal wardrobe profile.
-- Private real-mode API routes resolve Circle/profile from either the Supabase access token or a validated temporary guest ID.
+- Onboarding creates one Circle and the first wardrobe profile.
+- Signed-in Profile settings can add and edit additional wardrobe profiles inside the same Circle, such as partner, family, or second-closet profiles.
+- The browser stores the active wardrobe profile ID locally and sends it to real wardrobe/avatar API routes.
+- Private real-mode API routes resolve Circle/profile from either the Supabase access token plus selected profile ID, or a validated temporary guest ID.
 - New real assets are stored under `circleId/profileId/assetId.ext`.
 - Family sharing and invites are intentionally deferred.
+
+Current Circle profile boundaries:
+
+- One signed-in account owner manages the Circle profiles; profile invites and per-member auth are not built yet.
+- The active profile drives wardrobe upload, closet, Mixer, Stylist, and Avatar Studio reads/writes.
+- Account status returns the primary profile plus the Circle's profile list so the app shell and settings page can switch context.
+- Existing Supabase projects need `supabase/migrations/20260531000000_circle_multiple_profiles.sql` to remove the old one-profile uniqueness constraint. The server has a compatibility fallback for older databases, but the migration is the intended schema.
 
 Temporary guest mode is not the same thing as the public demo. Demo stays fixture-backed, cheap, and resettable. Guest mode uses the real Supabase-backed wardrobe/avatar flows, but scopes rows and storage paths to a generated guest Circle/profile derived from browser localStorage. This lets a visitor upload and generate without seeing anyone else's results, while keeping signed-in accounts as the durable ownership model.
 

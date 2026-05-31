@@ -28,4 +28,5 @@ export interface AccountStatus {
   onboardingComplete: boolean;
   circle: CircleSummary | null;
   profile: WardrobeProfileSummary | null;
+  profiles: WardrobeProfileSummary[];
 }

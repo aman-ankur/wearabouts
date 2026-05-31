@@ -14,6 +14,22 @@ describe("accountPersistence", () => {
           gender_presentation: "men",
           profile_type: "personal",
         },
+        [
+          {
+            id: "profile-1",
+            circle_id: "circle-1",
+            display_name: "Aankur",
+            gender_presentation: "men",
+            profile_type: "personal",
+          },
+          {
+            id: "profile-2",
+            circle_id: "circle-1",
+            display_name: "Partner",
+            gender_presentation: "women",
+            profile_type: "personal",
+          },
+        ],
       ),
     ).toEqual({
       email: "aankur@example.com",
@@ -26,6 +42,22 @@ describe("accountPersistence", () => {
         genderPresentation: "men",
         profileType: "personal",
       },
+      profiles: [
+        {
+          id: "profile-1",
+          circleId: "circle-1",
+          displayName: "Aankur",
+          genderPresentation: "men",
+          profileType: "personal",
+        },
+        {
+          id: "profile-2",
+          circleId: "circle-1",
+          displayName: "Partner",
+          genderPresentation: "women",
+          profileType: "personal",
+        },
+      ],
     });
   });
 
@@ -35,6 +67,7 @@ describe("accountPersistence", () => {
       onboardingComplete: false,
       circle: null,
       profile: null,
+      profiles: [],
     });
   });
 });

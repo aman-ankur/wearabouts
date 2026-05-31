@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, useReducer, useState, type ReactNode } from "react";
 import type {
   OutfitSlot,
   OutfitSlotSelection,
@@ -10,7 +10,7 @@ import type {
   WardrobeItem,
   WardrobeProfileId,
 } from "@/src/domain/wardrobe";
-import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
+import { fetchWithAccountSession, subscribeToActiveWardrobeProfileChange } from "@/src/features/account/accountApiClient";
 import type {
   AvatarInputKind,
   AvatarInputQualityCheck,
@@ -75,8 +75,11 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   const [mixerState, mixerDispatch] = useReducer(mixerReducer, initialMixerState);
   const [tripState, tripDispatch] = useReducer(tripReducer, initialTripState);
   const [avatarState, avatarDispatch] = useReducer(avatarReducer, initialAvatarState);
+  const [activeProfileVersion, setActiveProfileVersion] = useState(0);
   const provider = useMemo(() => createDemoWardrobeProvider(), []);
   const runtimeMode = useMemo(() => getRuntimeMode(), []);
+
+  useEffect(() => subscribeToActiveWardrobeProfileChange(() => setActiveProfileVersion((version) => version + 1)), []);
 
   useEffect(() => {
     if (runtimeMode !== "real" && runtimeMode !== "dev") {
@@ -100,7 +103,7 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
         });
         dispatch({ type: "realClosetLoaded", closetItems: [] });
       });
-  }, [runtimeMode]);
+  }, [activeProfileVersion, runtimeMode]);
 
   const loadRealBatch = useCallback(async (batchId: string) => {
     logWearaboutsClientEvent("wardrobe_context.batch_fetch.started", { batchId });

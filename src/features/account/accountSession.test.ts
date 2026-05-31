@@ -5,6 +5,7 @@ import {
   getGuestOwnerFromGuestId,
   requireAccountSession,
   wearaboutsGuestIdHeader,
+  wearaboutsProfileIdHeader,
 } from "./accountSession";
 
 describe("accountSession", () => {
@@ -104,6 +105,36 @@ describe("accountSession", () => {
       ok: false,
       status: 403,
       error: "That wardrobe profile is not available in your Circle.",
+    });
+  });
+
+  it("resolves an authenticated requested wardrobe profile from the profile header", async () => {
+    const supabase = createMockSupabase({
+      user: { id: "user-1", email: "aankur@example.com" },
+      membership: { circle_id: "circle-1" },
+      circle: { id: "circle-1", name: "Aankur's Circle" },
+      profile: {
+        id: "profile-1",
+        circle_id: "circle-1",
+        display_name: "Aankur",
+        gender_presentation: "men",
+        profile_type: "personal",
+      },
+      requestedProfile: { id: "profile-2", circle_id: "circle-1" },
+    });
+
+    await expect(
+      requireAccountSession(
+        new Request("https://wearabouts.test/api", {
+          headers: { Authorization: "Bearer token-1", [wearaboutsProfileIdHeader]: "profile-2" },
+        }),
+        { supabase },
+      ),
+    ).resolves.toMatchObject({
+      ok: true,
+      kind: "account",
+      circleId: "circle-1",
+      profileId: "profile-2",
     });
   });
 });
