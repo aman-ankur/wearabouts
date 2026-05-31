@@ -1,8 +1,11 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { AccountStatus, OnboardingProfile } from "./accountTypes";
+import { wearaboutsGuestIdHeader } from "./accountSession";
 import { getSupabaseBrowserClient } from "./supabaseBrowserClient";
 
 type Fetcher = (input: RequestInfo | URL, init?: RequestInit) => Promise<Response>;
+
+export const wearaboutsGuestIdStorageKey = "wearabouts_guest_id";
 
 async function readAccountResponse(response: Response): Promise<AccountStatus> {
   const payload = await response.json() as { account?: AccountStatus; error?: string };
@@ -54,12 +57,41 @@ export async function createAuthorizationHeaders(
   return { Authorization: `Bearer ${accessToken}` };
 }
 
+export function getOrCreateGuestId(): string {
+  if (typeof window === "undefined") {
+    throw new Error("Guest mode is only available in the browser.");
+  }
+
+  const existing = window.localStorage.getItem(wearaboutsGuestIdStorageKey);
+  if (existing) {
+    return existing;
+  }
+
+  const guestId = crypto.randomUUID();
+  window.localStorage.setItem(wearaboutsGuestIdStorageKey, guestId);
+  return guestId;
+}
+
+export async function createWardrobeSessionHeaders(
+  supabase: Pick<SupabaseClient, "auth"> | null = getSupabaseBrowserClient(),
+): Promise<Record<string, string>> {
+  if (supabase) {
+    const { data } = await supabase.auth.getSession();
+    const accessToken = data.session?.access_token;
+    if (accessToken) {
+      return { Authorization: `Bearer ${accessToken}` };
+    }
+  }
+
+  return { [wearaboutsGuestIdHeader]: getOrCreateGuestId() };
+}
+
 export async function fetchWithAccountSession(
   input: RequestInfo | URL,
   init: RequestInit = {},
   fetcher: Fetcher = fetch,
 ): Promise<Response> {
-  const authorizationHeaders = await createAuthorizationHeaders();
+  const authorizationHeaders = await createWardrobeSessionHeaders();
   const headers = new Headers(init.headers);
   for (const [key, value] of Object.entries(authorizationHeaders)) {
     headers.set(key, value);

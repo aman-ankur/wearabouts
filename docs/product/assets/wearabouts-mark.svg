@@ -1,0 +1,11 @@
+<svg width="160" height="160" viewBox="0 0 160 160" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-labelledby="title desc">
+  <title id="title">Wearabouts mark</title>
+  <desc id="desc">A simple hanger and route mark for Wearabouts.</desc>
+  <rect width="160" height="160" rx="34" fill="#F7F3EB"/>
+  <path d="M80 37C80 28 87 22 96 22C105 22 112 29 112 38C112 47 105 54 96 54" stroke="#252320" stroke-width="8" stroke-linecap="round"/>
+  <path d="M80 63L31 102C25 107 29 117 37 117H123C131 117 135 107 129 102L80 63Z" fill="#FFFFFF" stroke="#252320" stroke-width="8" stroke-linejoin="round"/>
+  <path d="M49 117C49 131 60 142 74 142H86C100 142 111 131 111 117" stroke="#D0643A" stroke-width="8" stroke-linecap="round"/>
+  <path d="M43 49C31 55 24 65 25 77C26 89 37 96 52 94" stroke="#5D8176" stroke-width="8" stroke-linecap="round" stroke-dasharray="1 15"/>
+  <circle cx="43" cy="49" r="7" fill="#5D8176"/>
+  <circle cx="52" cy="94" r="7" fill="#5D8176"/>
+</svg>
