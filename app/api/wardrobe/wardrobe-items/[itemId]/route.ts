@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function DELETE(request: Request, { params }: { params: Promise<{ itemId: string }> }) {
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }

@@ -5,7 +5,7 @@ import { createSupabaseServiceClient } from "@/src/features/wardrobe/real/supaba
 
 export async function DELETE(request: Request, context: { params: Promise<{ renderId: string }> }) {
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }

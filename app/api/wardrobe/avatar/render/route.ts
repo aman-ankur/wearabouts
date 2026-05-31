@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     );
   }
 
-  const session = await requireAccountSession(request);
+  const session = await requireAccountSession(request, { allowGuest: true });
   if (!session.ok) {
     return NextResponse.json({ error: session.error }, { status: session.status });
   }

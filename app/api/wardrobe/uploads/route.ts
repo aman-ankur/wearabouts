@@ -9,7 +9,7 @@ export const runtime = "nodejs";
 export async function POST(request: Request) {
   const timer = createTimer();
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
@@ -33,7 +33,7 @@ export async function POST(request: Request) {
       sourceType,
       extractionMode,
       skipExistingItems,
-      sessionKind: "account",
+      sessionKind: session.kind,
       circleId: session.circleId,
       profileId: session.profileId,
     });

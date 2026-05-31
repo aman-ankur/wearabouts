@@ -8,7 +8,7 @@ import { createSupabaseServiceClient } from "@/src/features/wardrobe/real/supaba
 
 export async function GET(request: Request) {
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const session = await requireAccountSession(request);
+    const session = await requireAccountSession(request, { allowGuest: true });
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
