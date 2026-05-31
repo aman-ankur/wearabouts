@@ -32,11 +32,13 @@ import {
 } from "@/src/features/wardrobe/outfits/outfitIntentDisplay";
 import { getRefinementAlternatives, refineOutfitSelection } from "@/src/features/wardrobe/outfits/outfitRefinement";
 import { getOutfitRecommendations } from "@/src/features/wardrobe/outfits/outfitRecommendationService";
+import { isOnePieceWardrobeItem } from "@/src/features/wardrobe/outfits/outfitSlots";
 import type { OutfitIntent, OutfitSuggestion } from "@/src/features/wardrobe/outfits/outfitTypes";
 import { getSelectedItem, mixerSlots } from "@/src/features/wardrobe/selectors/mixerSelectors";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
 const slotLabels: Record<OutfitSlot, string> = {
+  onePiece: "One-piece",
   top: "Top",
   bottom: "Bottom",
   shoes: "Shoes",
@@ -47,9 +49,10 @@ const slotLabels: Record<OutfitSlot, string> = {
 const promptLabels = ["More casual", "Dinner-ready", "Better for travel", "Less black", "Keep these pants"];
 
 type MixerMode = "smart" | "canvas";
-type ManualSlot = "top" | "bottom" | "shoes";
+type ManualSlot = "onePiece" | "top" | "bottom" | "shoes";
 
 const manualSlots: Array<{ slot: ManualSlot; label: string; emptyLabel: string }> = [
+  { slot: "onePiece", label: "One-piece", emptyLabel: "No dresses, jumpsuits, or one-piece swimwear yet" },
   { slot: "top", label: "Tops + layers", emptyLabel: "No tops or layers yet" },
   { slot: "bottom", label: "Bottoms", emptyLabel: "No bottoms yet" },
   { slot: "shoes", label: "Shoes", emptyLabel: "No shoes yet" },
@@ -81,6 +84,10 @@ function similarityScore(anchor: OutfitSuggestion, suggestion: OutfitSuggestion)
 }
 
 function getManualSlotForItem(item: WardrobeItem): OutfitSlot | null {
+  if (isOnePieceWardrobeItem(item)) {
+    return "onePiece";
+  }
+
   if (item.category === "tops" || item.category === "outerwear") {
     return "top";
   }
@@ -100,20 +107,22 @@ function getManualItemsBySlot(items: WardrobeItem[]): Record<ManualSlot, Wardrob
   return items.reduce<Record<ManualSlot, WardrobeItem[]>>(
     (grouped, item) => {
       const slot = getManualSlotForItem(item);
-      if (slot === "top" || slot === "bottom" || slot === "shoes") {
+      if (slot === "onePiece" || slot === "top" || slot === "bottom" || slot === "shoes") {
         grouped[slot].push(item);
       }
 
       return grouped;
     },
-    { top: [], bottom: [], shoes: [] },
+    { onePiece: [], top: [], bottom: [], shoes: [] },
   );
 }
 
 function getInitialManualSelections(itemsBySlot: Record<ManualSlot, WardrobeItem[]>) {
+  const onePiece = itemsBySlot.onePiece[0]?.id ?? null;
   return {
-    top: itemsBySlot.top[0]?.id ?? null,
-    bottom: itemsBySlot.bottom[0]?.id ?? null,
+    onePiece,
+    top: onePiece ? null : itemsBySlot.top[0]?.id ?? null,
+    bottom: onePiece ? null : itemsBySlot.bottom[0]?.id ?? null,
     shoes: itemsBySlot.shoes[0]?.id ?? null,
   };
 }
@@ -144,12 +153,17 @@ export default function MixerPage() {
   const [refiningSuggestion, setRefiningSuggestion] = useState<OutfitSuggestion | null>(null);
   const [activeSlot, setActiveSlot] = useState<OutfitSlot>("top");
   const [manualSelections, setManualSelections] = useState<Record<ManualSlot, string | null>>({
+    onePiece: null,
     top: null,
     bottom: null,
     shoes: null,
   });
   const [manualSavedOutfitId, setManualSavedOutfitId] = useState<string | null>(null);
   const readyItems = useMemo(() => state.closetItems.filter((item) => item.readyForMixer), [state.closetItems]);
+  const activeProfileId = useMemo(
+    () => readyItems[0]?.ownerProfileId ?? state.closetItems[0]?.ownerProfileId ?? "profile-aankur",
+    [readyItems, state.closetItems],
+  );
   const manualItemsBySlot = useMemo(() => getManualItemsBySlot(readyItems), [readyItems]);
   const manualSelectedItems = useMemo(
     () => getManualSelectedItems(readyItems, manualSelections),
@@ -158,7 +172,7 @@ export default function MixerPage() {
   const suggestions = useMemo(
     () => {
       const recommended = getOutfitRecommendations({
-        profileId: "profile-aankur",
+        profileId: activeProfileId,
         intent: selectedIntent,
         closetItems: state.closetItems,
         savedOutfits: mixerState.savedOutfits,
@@ -179,7 +193,7 @@ export default function MixerPage() {
         return similarityScore(anchor, second) - similarityScore(anchor, first) || second.score - first.score;
       });
     },
-    [dismissedSuggestionIds, mixerState.savedOutfits, selectedIntent, similarityAnchorId, state.closetItems],
+    [activeProfileId, dismissedSuggestionIds, mixerState.savedOutfits, selectedIntent, similarityAnchorId, state.closetItems],
   );
   const currentSuggestion = suggestions[Math.min(activeSuggestionIndex, Math.max(suggestions.length - 1, 0))] ?? null;
   const activeSuggestion = refiningSuggestion ?? currentSuggestion;
@@ -204,10 +218,18 @@ export default function MixerPage() {
   useEffect(() => {
     setManualSelections((current) => {
       const initial = getInitialManualSelections(manualItemsBySlot);
+      const onePiece =
+        current.onePiece && manualItemsBySlot.onePiece.some((item) => item.id === current.onePiece)
+          ? current.onePiece
+          : initial.onePiece;
       return {
-        top: current.top && manualItemsBySlot.top.some((item) => item.id === current.top) ? current.top : initial.top,
+        onePiece,
+        top:
+          !onePiece && current.top && manualItemsBySlot.top.some((item) => item.id === current.top)
+            ? current.top
+            : initial.top,
         bottom:
-          current.bottom && manualItemsBySlot.bottom.some((item) => item.id === current.bottom)
+          !onePiece && current.bottom && manualItemsBySlot.bottom.some((item) => item.id === current.bottom)
             ? current.bottom
             : initial.bottom,
         shoes:
@@ -295,7 +317,7 @@ export default function MixerPage() {
     const nameParts = selections
       .map((selection) => readyItems.find((item) => item.id === selection.wardrobeItemId)?.name)
       .filter(Boolean);
-    const outfitId = saveCurrentOutfit(nameParts.slice(0, 2).join(" + ") || "Canvas mix", "profile-aankur", selections, {
+    const outfitId = saveCurrentOutfit(nameParts.slice(0, 2).join(" + ") || "Canvas mix", activeProfileId, selections, {
       source: "manual",
       intent: "canvas_mix",
       rationale: "Built manually on the transparent mixer canvas.",
@@ -356,7 +378,7 @@ export default function MixerPage() {
           <p className="subtle" style={{ margin: 0 }}>
             {hasReviewedAllSuggestions
               ? "Bring the suggestions back to keep browsing, or add more closet items for fresh combinations."
-              : "Shoes, layers, and accessories are optional. Wearabouts can suggest starter looks once the core outfit pieces are in your closet."}
+              : "A dress or one-piece can start a look by itself. Otherwise, add one top and one bottom; shoes, layers, and accessories are optional."}
           </p>
           {hasReviewedAllSuggestions ? (
             <button
@@ -644,7 +666,17 @@ export default function MixerPage() {
                   items={manualItemsBySlot[slot]}
                   selectedItemId={manualSelections[slot]}
                   onSelect={(itemId) => {
-                    setManualSelections((selections) => ({ ...selections, [slot]: itemId }));
+                    setManualSelections((selections) => {
+                      if (slot === "onePiece") {
+                        return { ...selections, onePiece: itemId, top: null, bottom: null };
+                      }
+
+                      if ((slot === "top" || slot === "bottom") && itemId) {
+                        return { ...selections, [slot]: itemId, onePiece: null };
+                      }
+
+                      return { ...selections, [slot]: itemId };
+                    });
                     setManualSavedOutfitId(null);
                   }}
                 />

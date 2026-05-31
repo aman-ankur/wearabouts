@@ -13,6 +13,12 @@ import {
 } from "@/src/features/wardrobe/components/DetectedCandidatePhotoReference";
 import { CandidateGenerationProgress } from "@/src/features/wardrobe/components/CandidateGenerationProgress";
 import { DetectedGarmentCard } from "@/src/features/wardrobe/components/DetectedGarmentCard";
+import { logWearaboutsClientEvent } from "@/src/features/wardrobe/real/clientTelemetry";
+import {
+  getDefaultSelectedReviewCandidateIds,
+  getReviewCandidateStatusMessage,
+  shouldShowReviewCandidatePicker,
+} from "@/src/features/wardrobe/review/reviewCandidateSelection";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
 export default function ReviewPage() {
@@ -60,7 +66,12 @@ export default function ReviewPage() {
     [ungeneratedCandidateChoices],
   );
   const hasCandidatePicker =
-    isPersistentMode && isOutfitBatch && garments.length === 0 && primaryCandidates.length > 0;
+    shouldShowReviewCandidatePicker({
+      isPersistentMode,
+      isOutfitBatch,
+      garmentCount: garments.length,
+      candidates: candidateChoices,
+    });
   const [selectedCandidateIds, setSelectedCandidateIds] = useState<string[]>([]);
   const [isSourcePhotoExpanded, setIsSourcePhotoExpanded] = useState(false);
   const candidateIndexById = useMemo(
@@ -85,25 +96,49 @@ export default function ReviewPage() {
 
     setIsLoadingBatch(true);
     setReviewError(null);
+    logWearaboutsClientEvent("review.batch_load.started", {
+      batchId: params.batchId,
+      runtimeMode,
+    });
 
     void loadRealBatch(params.batchId)
+      .then((batch) => {
+        logWearaboutsClientEvent("review.batch_load.completed", {
+          batchId: batch.id,
+          sourceType: batch.sourceType,
+          garmentCount: batch.detectedGarments.length,
+          candidateCount: batch.garmentCandidates?.length ?? 0,
+          generatedCandidateCount: batch.candidateSummary?.generatedCount ?? 0,
+          skippedCandidateCount: batch.candidateSummary?.skippedCount ?? 0,
+          failedCandidateCount: batch.candidateSummary?.failedCount ?? 0,
+        });
+      })
       .catch((error) => {
+        logWearaboutsClientEvent("review.batch_load.failed", {
+          batchId: params.batchId,
+          error: error instanceof Error ? error.message : "Could not load review items.",
+        });
         setReviewError(error instanceof Error ? error.message : "Could not load review items.");
       })
       .finally(() => {
         setIsLoadingBatch(false);
       });
-  }, [isPersistentMode, loadRealBatch, params.batchId]);
+  }, [isPersistentMode, loadRealBatch, params.batchId, runtimeMode]);
 
   useEffect(() => {
     if (!hasCandidatePicker || isGeneratingCandidates) {
       return;
     }
 
-    setSelectedCandidateIds(
-      primaryCandidates.map((candidate) => candidate.id),
-    );
-  }, [hasCandidatePicker, isGeneratingCandidates, primaryCandidates]);
+    const defaultIds = getDefaultSelectedReviewCandidateIds(candidateChoices);
+    logWearaboutsClientEvent("review.candidate_picker.defaulted", {
+      batchId: params.batchId,
+      candidateCount: candidateChoices.length,
+      selectedCandidateCount: defaultIds.length,
+      selectedCandidateIds: defaultIds,
+    });
+    setSelectedCandidateIds(defaultIds);
+  }, [candidateChoices, hasCandidatePicker, isGeneratingCandidates, params.batchId]);
 
   useEffect(() => {
     if (!isPersistentMode || !isGeneratingCandidates) {
@@ -122,9 +157,20 @@ export default function ReviewPage() {
     if (isPersistentMode) {
       setIsUpdating(true);
       setReviewError(null);
+      logWearaboutsClientEvent("review.garment_add.started", { batchId: params.batchId, garmentId });
       try {
-        await addRealGarment(garmentId);
+        const wardrobeItem = await addRealGarment(garmentId);
+        logWearaboutsClientEvent("review.garment_add.completed", {
+          batchId: params.batchId,
+          garmentId,
+          wardrobeItemId: wardrobeItem.id,
+        });
       } catch (error) {
+        logWearaboutsClientEvent("review.garment_add.failed", {
+          batchId: params.batchId,
+          garmentId,
+          error: error instanceof Error ? error.message : "Could not add item.",
+        });
         setReviewError(error instanceof Error ? error.message : "Could not add item.");
       } finally {
         setIsUpdating(false);
@@ -143,9 +189,22 @@ export default function ReviewPage() {
     if (isPersistentMode) {
       setIsUpdating(true);
       setReviewError(null);
+      logWearaboutsClientEvent("review.add_all.started", {
+        batchId: params.batchId,
+        garmentCount: garments.length,
+      });
       try {
         await addAllRealGarments();
+        logWearaboutsClientEvent("review.add_all.completed", {
+          batchId: params.batchId,
+          garmentCount: garments.length,
+        });
       } catch (error) {
+        logWearaboutsClientEvent("review.add_all.failed", {
+          batchId: params.batchId,
+          garmentCount: garments.length,
+          error: error instanceof Error ? error.message : "Could not add all items.",
+        });
         setReviewError(error instanceof Error ? error.message : "Could not add all items.");
       } finally {
         setIsUpdating(false);
@@ -187,10 +246,27 @@ export default function ReviewPage() {
     setIsUpdating(true);
     setIsGeneratingCandidates(true);
     setReviewError(null);
+    logWearaboutsClientEvent("review.selected_candidates.started", {
+      batchId: params.batchId,
+      jobId,
+      selectedCandidateIds,
+    });
     try {
       await generateRealCandidates(jobId, selectedCandidateIds);
-      await loadRealBatch(params.batchId);
+      const batch = await loadRealBatch(params.batchId);
+      logWearaboutsClientEvent("review.selected_candidates.completed", {
+        batchId: params.batchId,
+        jobId,
+        selectedCandidateCount: selectedCandidateIds.length,
+        garmentCount: batch.detectedGarments.length,
+      });
     } catch (error) {
+      logWearaboutsClientEvent("review.selected_candidates.failed", {
+        batchId: params.batchId,
+        jobId,
+        selectedCandidateIds,
+        error: error instanceof Error ? error.message : "Could not generate selected items.",
+      });
       setReviewError(error instanceof Error ? error.message : "Could not generate selected items.");
     } finally {
       setIsGeneratingCandidates(false);
@@ -411,10 +487,11 @@ function CandidateChoiceList({
         const isSelected = selectedCandidateIds.includes(candidate.id);
         const isOptional = candidate.selectionStatus === "optional" || candidate.selectionStatus === "not_recommended";
         const isDuplicate = candidate.selectionStatus === "skipped_existing";
+        const isFailed = candidate.status === "failed";
         const candidateIndex = candidateIndexById.get(candidate.id) ?? 0;
         const rowBackground =
           isSelected || (!isOptional && !isDuplicate) ? "var(--paper)" : "rgba(255,255,255,0.72)";
-        const statusLabel = isDuplicate ? "Already saved" : isSelected ? "Selected" : "Optional";
+        const statusLabel = isFailed ? "Blocked" : isDuplicate ? "Already saved" : isSelected ? "Selected" : "Optional";
         return (
           <button
             key={candidate.id}
@@ -443,7 +520,7 @@ function CandidateChoiceList({
               <span className="subtle" style={{ fontSize: 13 }}>
                 {isDuplicate
                   ? "Looks like something already in Wardrobe. Select it if this is a different piece."
-                  : candidate.selectionReason}
+                  : getReviewCandidateStatusMessage(candidate)}
               </span>
               <span style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
                 <span

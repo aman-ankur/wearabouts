@@ -461,7 +461,6 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
 
     const values: Record<string, unknown> = {
       household_id: this.owner.circleId,
-      profile_id: this.owner.profileId,
       upload_batch_id: input.uploadBatchId,
       proposed_name: input.proposedName,
       brand: "",
@@ -491,7 +490,12 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
       values.source_bounding_box = input.sourceBoundingBox;
     }
 
-    const row = await this.insertSingle<SupabaseDetectedGarmentRow>("detected_garments", values);
+    const row = await this.insertSingleWithSchemaFallback<SupabaseDetectedGarmentRow>("detected_garments", values, [
+      "source_image_id",
+      "garment_candidate_id",
+      "visibility_state",
+      "source_bounding_box",
+    ]);
 
     return mapSupabaseDetectedGarment(row, input.asset.imageUrl);
   }
@@ -641,6 +645,7 @@ export class SupabaseRealWardrobeRepository implements RealWardrobeRepository {
           selectionReason: candidate.selectionReason,
           duplicateHint: candidate.duplicateHint,
           status: candidate.status,
+          errorMessage: candidate.errorMessage,
           detectedGarmentId: candidate.detectedGarmentId,
         })),
         source_image: sourceImage ?? undefined,

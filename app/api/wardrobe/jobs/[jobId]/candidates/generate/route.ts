@@ -28,6 +28,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
       jobId,
       candidateIds,
       selectedCandidateCount: candidateIds.length,
+      sessionKind: "account",
+      circleId: session.circleId,
+      profileId: session.profileId,
     });
     const result = await pipeline.generateOutfitCandidates(jobId, candidateIds);
 

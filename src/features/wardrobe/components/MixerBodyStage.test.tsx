@@ -89,6 +89,22 @@ describe("MixerBodyStage", () => {
     expect(html).toContain("left:26%;top:80%;width:48%;height:16%");
   });
 
+  it("renders a one-piece item as the main outfit piece", () => {
+    const html = renderToStaticMarkup(
+      <MixerBodyStage
+        selectedItems={{
+          onePiece: realItem({ id: "dress", name: "Black midi dress", category: "combo" }),
+          shoes: realItem({ id: "shoes", name: "Brown loafers", category: "footwear" }),
+        }}
+      />,
+    );
+
+    expect(html).toContain('data-mixer-board-item="onePiece"');
+    expect(html).toContain("left:17%;top:4%;width:66%;height:70%");
+    expect(html).toContain("One-piece:");
+    expect(html).toContain("Black midi dress");
+  });
+
   it("can tighten the vertical outfit stack for canvas previews", () => {
     const html = renderToStaticMarkup(
       <MixerBodyStage

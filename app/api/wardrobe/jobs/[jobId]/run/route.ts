@@ -15,7 +15,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ job
 
     const { jobId } = await params;
     const { pipeline } = createRealWardrobeServices({ circleId: session.circleId, profileId: session.profileId });
-    logWearaboutsTelemetry("api.job_run.started", { jobId });
+    logWearaboutsTelemetry("api.job_run.started", {
+      jobId,
+      sessionKind: "account",
+      circleId: session.circleId,
+      profileId: session.profileId,
+    });
     const result = await pipeline.runPrettifyJob(jobId);
 
     logWearaboutsTelemetry("api.job_run.completed", {

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PrettifyJobStatus } from "@/src/domain/wardrobe";
 import { fetchWithAccountSession } from "@/src/features/account/accountApiClient";
 import { AppShell } from "@/src/features/wardrobe/components/AppShell";
+import { logWearaboutsClientEvent } from "@/src/features/wardrobe/real/clientTelemetry";
 import { getPrettifyJobSteps, getPrettifyStepCaption } from "@/src/features/wardrobe/real/prettifyJobStatus";
 import type { PrettifyJobRecord } from "@/src/features/wardrobe/real/realWardrobePipeline";
 
@@ -35,6 +36,7 @@ export default function ProcessingPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadJob = useCallback(async () => {
+    logWearaboutsClientEvent("processing.job_load.started", { jobId, batchId });
     const response = await fetchWithAccountSession(`/api/wardrobe/jobs/${jobId}`);
     const payload = (await response.json()) as JobPayload;
 
@@ -45,12 +47,21 @@ export default function ProcessingPage() {
     setStatus(payload.job.status);
     setJobKind(payload.job.jobKind);
     setError(payload.job.errorMessage);
+    logWearaboutsClientEvent("processing.job_load.completed", {
+      jobId,
+      batchId: payload.job.uploadBatchId,
+      status: payload.job.status,
+      jobKind: payload.job.jobKind,
+      detectedGarmentId: payload.job.detectedGarmentId,
+      errorMessage: payload.job.errorMessage,
+    });
     return payload.job;
-  }, [jobId]);
+  }, [batchId, jobId]);
 
   const runJob = useCallback(async () => {
     setIsRunning(true);
     setError(null);
+    logWearaboutsClientEvent("processing.job_run.started", { jobId, batchId });
 
     try {
       const response = await fetchWithAccountSession(`/api/wardrobe/jobs/${jobId}/run`, { method: "POST" });
@@ -63,13 +74,26 @@ export default function ProcessingPage() {
       setStatus(payload.job.status);
       setJobKind(payload.job.jobKind);
       setError(payload.job.errorMessage);
+      logWearaboutsClientEvent("processing.job_run.completed", {
+        jobId,
+        batchId: payload.job.uploadBatchId,
+        status: payload.job.status,
+        jobKind: payload.job.jobKind,
+        generatedGarmentCount: payload.job.detectedGarmentId ? 1 : 0,
+        errorMessage: payload.job.errorMessage,
+      });
     } catch (caughtError) {
+      logWearaboutsClientEvent("processing.job_run.failed", {
+        jobId,
+        batchId,
+        error: caughtError instanceof Error ? caughtError.message : "Could not process this upload.",
+      });
       setStatus("failed");
       setError(caughtError instanceof Error ? caughtError.message : "Could not process this upload.");
     } finally {
       setIsRunning(false);
     }
-  }, [jobId]);
+  }, [batchId, jobId]);
 
   useEffect(() => {
     if (didStartRun.current) {
@@ -101,6 +125,7 @@ export default function ProcessingPage() {
 
     didNavigateToReview.current = true;
     const timeoutId = window.setTimeout(() => {
+      logWearaboutsClientEvent("processing.review_navigation.started", { jobId, batchId });
       router.push(`/review/${batchId}?jobId=${jobId}`);
     }, 900);
 

@@ -729,6 +729,14 @@ export class RealWardrobePipeline {
       return { job: readyJob, garment, garments: [garment] };
     } catch (error) {
       const message = error instanceof Error ? error.message : "Garment preparation failed";
+      logWearaboutsTelemetry("pipeline.candidate_generation.failed", {
+        jobId: job.id,
+        batchId: job.uploadBatchId,
+        candidateId: candidate.id,
+        proposedName: candidate.proposedName,
+        category: candidate.category,
+        error: message,
+      });
       await this.repository.updateGarmentCandidate(candidate.id, { status: "failed", errorMessage: message });
       const failedJob = await this.repository.updatePrettifyJob(job.id, {
         status: "failed",

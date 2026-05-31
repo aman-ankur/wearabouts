@@ -7,9 +7,10 @@ interface MixerSuggestionDetailsProps {
   closetItems: WardrobeItem[];
 }
 
-const pieceOrder: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
+const pieceOrder: OutfitSlot[] = ["layer", "onePiece", "top", "bottom", "shoes", "accessory"];
 
 const pieceLabels: Record<OutfitSlot, string> = {
+  onePiece: "One-piece",
   layer: "Layer",
   top: "Top",
   bottom: "Bottom",

@@ -33,6 +33,9 @@ export async function POST(request: Request) {
       sourceType,
       extractionMode,
       skipExistingItems,
+      sessionKind: "account",
+      circleId: session.circleId,
+      profileId: session.profileId,
     });
     const result =
       sourceType === "outfit_photo"

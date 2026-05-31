@@ -62,6 +62,7 @@ export interface GarmentCandidateChoice {
   selectionReason: string;
   duplicateHint: boolean;
   status: "detected" | "skipped" | "prettifying" | "ready" | "failed";
+  errorMessage?: string | null;
   detectedGarmentId: string | null;
 }
 
@@ -139,7 +140,7 @@ export interface WardrobeItem {
   rainSuitability?: "avoid" | "ok" | "good";
 }
 
-export type OutfitSlot = "top" | "bottom" | "shoes" | "layer" | "accessory";
+export type OutfitSlot = "onePiece" | "top" | "bottom" | "shoes" | "layer" | "accessory";
 
 export interface OutfitSlotSelection {
   slot: OutfitSlot;

@@ -7,6 +7,7 @@ interface MixerSlotControlsProps {
 }
 
 const slotLabels: Record<OutfitSlot, string> = {
+  onePiece: "One-piece",
   top: "Top",
   bottom: "Bottom",
   shoes: "Shoes",

@@ -1,18 +1,36 @@
-import type { GarmentCategory, OutfitSlot, OutfitSlotSelection, WardrobeItem } from "@/src/domain/wardrobe";
+import type { OutfitSlot, OutfitSlotSelection, WardrobeItem } from "@/src/domain/wardrobe";
+import { isOnePieceWardrobeItem } from "@/src/features/wardrobe/outfits/outfitSlots";
 
-const slotCategoryMap: Record<OutfitSlot, GarmentCategory[]> = {
-  top: ["tops"],
-  bottom: ["bottoms"],
-  shoes: ["footwear"],
-  layer: ["outerwear"],
-  accessory: ["accessories"],
-};
-
-export const mixerSlots: OutfitSlot[] = ["top", "bottom", "shoes", "layer", "accessory"];
+export const mixerSlots: OutfitSlot[] = ["onePiece", "top", "bottom", "shoes", "layer", "accessory"];
 
 export function getItemsForSlot(items: WardrobeItem[], slot: OutfitSlot): WardrobeItem[] {
-  const categories = slotCategoryMap[slot];
-  return items.filter((item) => item.readyForMixer && categories.includes(item.category));
+  return items.filter((item) => {
+    if (!item.readyForMixer) {
+      return false;
+    }
+
+    if (slot === "onePiece") {
+      return isOnePieceWardrobeItem(item);
+    }
+
+    if (slot === "top") {
+      return item.category === "tops";
+    }
+
+    if (slot === "bottom") {
+      return item.category === "bottoms";
+    }
+
+    if (slot === "shoes") {
+      return item.category === "footwear";
+    }
+
+    if (slot === "layer") {
+      return item.category === "outerwear";
+    }
+
+    return item.category === "accessories";
+  });
 }
 
 export function getInitialMixerSelections(items: WardrobeItem[]): OutfitSlotSelection[] {

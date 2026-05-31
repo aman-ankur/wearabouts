@@ -79,6 +79,31 @@ describe("buildOutfitSuggestions", () => {
     expect(suggestions[0]?.warnings).toContain("Add shoes to make this look easier to wear as a complete outfit.");
   });
 
+  it("builds complete looks from a one-piece item without requiring a separate top and bottom", () => {
+    const suggestions = buildOutfitSuggestions({
+      profileId: "profile-aankur",
+      intent: "dinner",
+      maxSuggestions: 1,
+      closetItems: [
+        item({ id: "black-dress", name: "Black Midi Dress", category: "combo", formality: "dressy" }),
+        item({ id: "loafers", name: "Brown Loafers", category: "footwear", formality: "smart" }),
+      ],
+      savedOutfits: [],
+      feedbackSignals: [],
+    });
+
+    expect(suggestions).toHaveLength(1);
+    expect(suggestions[0]?.title).toBe("Dinner-ready black midi dress");
+    expect(suggestions[0]?.selections).toEqual(
+      expect.arrayContaining([
+        { slot: "onePiece", wardrobeItemId: "black-dress", locked: false },
+        { slot: "top", wardrobeItemId: null, locked: false },
+        { slot: "bottom", wardrobeItemId: null, locked: false },
+        { slot: "shoes", wardrobeItemId: "loafers", locked: false },
+      ]),
+    );
+  });
+
   it("preserves locked item selections when generating new suggestions", () => {
     const suggestions = buildOutfitSuggestions({
       profileId: "profile-aankur",

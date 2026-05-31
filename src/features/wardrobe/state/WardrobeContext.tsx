@@ -20,6 +20,7 @@ import type {
 import { getRuntimeMode } from "@/src/features/runtime/runtimeMode";
 import { demoTrip } from "@/src/features/wardrobe/fixtures/demoTrip";
 import { createDemoWardrobeProvider } from "@/src/features/wardrobe/providers/demoWardrobeProvider";
+import { logWearaboutsClientEvent } from "@/src/features/wardrobe/real/clientTelemetry";
 import { getInitialMixerSelections } from "@/src/features/wardrobe/selectors/mixerSelectors";
 import { createSwappedTripLook, createTripLooks } from "@/src/features/wardrobe/selectors/tripSelectors";
 import { avatarReducer, initialAvatarState, type AvatarState } from "./avatarReducer";
@@ -82,34 +83,62 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
       return;
     }
 
+    logWearaboutsClientEvent("closet.load.started", { runtimeMode });
     void fetchWithAccountSession("/api/wardrobe/closet")
       .then((response) => (response.ok ? response.json() : Promise.reject(new Error("Could not load wardrobe."))))
       .then((payload: { closetItems: WardrobeItem[] }) => {
+        logWearaboutsClientEvent("closet.load.completed", {
+          runtimeMode,
+          closetItemCount: payload.closetItems.length,
+        });
         dispatch({ type: "realClosetLoaded", closetItems: payload.closetItems });
       })
-      .catch(() => {
+      .catch((error) => {
+        logWearaboutsClientEvent("closet.load.failed", {
+          runtimeMode,
+          error: error instanceof Error ? error.message : "Could not load wardrobe.",
+        });
         dispatch({ type: "realClosetLoaded", closetItems: [] });
       });
   }, [runtimeMode]);
 
   const loadRealBatch = useCallback(async (batchId: string) => {
+    logWearaboutsClientEvent("wardrobe_context.batch_fetch.started", { batchId });
     const response = await fetchWithAccountSession(`/api/wardrobe/batches/${batchId}`);
     if (!response.ok) {
+      logWearaboutsClientEvent("wardrobe_context.batch_fetch.failed", {
+        batchId,
+        status: response.status,
+      });
       throw new Error("Could not load upload batch.");
     }
 
     const payload = (await response.json()) as { batch: UploadBatch };
+    logWearaboutsClientEvent("wardrobe_context.batch_fetch.completed", {
+      batchId,
+      garmentCount: payload.batch.detectedGarments.length,
+      candidateCount: payload.batch.garmentCandidates?.length ?? 0,
+    });
     dispatch({ type: "realBatchLoaded", batch: payload.batch });
     return payload.batch;
   }, []);
 
   const addRealGarment = useCallback(async (garmentId: string) => {
+    logWearaboutsClientEvent("wardrobe_context.garment_add.started", { garmentId });
     const response = await fetchWithAccountSession(`/api/wardrobe/garments/${garmentId}/add`, { method: "POST" });
     if (!response.ok) {
+      logWearaboutsClientEvent("wardrobe_context.garment_add.failed", {
+        garmentId,
+        status: response.status,
+      });
       throw new Error("Could not add garment to wardrobe.");
     }
 
     const payload = (await response.json()) as { wardrobeItem: WardrobeItem };
+    logWearaboutsClientEvent("wardrobe_context.garment_add.completed", {
+      garmentId,
+      wardrobeItemId: payload.wardrobeItem.id,
+    });
     dispatch({ type: "realGarmentAdded", garmentId, wardrobeItem: payload.wardrobeItem });
     return payload.wardrobeItem;
   }, []);
@@ -144,14 +173,27 @@ export function WardrobeProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const generateRealCandidates = useCallback(async (jobId: string, candidateIds: string[]) => {
+    logWearaboutsClientEvent("wardrobe_context.candidates_generate.started", {
+      jobId,
+      selectedCandidateCount: candidateIds.length,
+      candidateIds,
+    });
     const response = await fetchWithAccountSession(`/api/wardrobe/jobs/${jobId}/candidates/generate`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ candidateIds }),
     });
     if (!response.ok) {
+      logWearaboutsClientEvent("wardrobe_context.candidates_generate.failed", {
+        jobId,
+        status: response.status,
+      });
       throw new Error("Could not prepare selected pieces.");
     }
+    logWearaboutsClientEvent("wardrobe_context.candidates_generate.completed", {
+      jobId,
+      selectedCandidateCount: candidateIds.length,
+    });
   }, []);
 
   const value: WardrobeContextValue = {

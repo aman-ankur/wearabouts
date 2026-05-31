@@ -128,4 +128,19 @@ describe("buildAvatarRenderPrompt", () => {
     expect(prompt).not.toContain("Base layer exception");
     expect(prompt).toContain("Do not add extra core garments");
   });
+
+  it("does not infer an inner layer when a one-piece outfit is already selected", () => {
+    const prompt = buildAvatarRenderPrompt({
+      savedOutfitName: "Dress look",
+      items: [
+        item("dress", "Black Midi Dress", "combo"),
+        item("jacket", "Black Blazer", "outerwear"),
+      ],
+      poseId: "studio-three-quarter",
+      quality: "final",
+    });
+
+    expect(prompt).not.toContain("Base layer exception");
+    expect(prompt).toContain("Do not add extra core garments");
+  });
 });

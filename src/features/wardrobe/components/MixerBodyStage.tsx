@@ -11,9 +11,10 @@ interface MixerBodyStageProps {
   layout?: "standard" | "compact";
 }
 
-const boardSlotOrder: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
+const boardSlotOrder: OutfitSlot[] = ["layer", "onePiece", "top", "bottom", "shoes", "accessory"];
 
 const boardSlotLabels: Record<OutfitSlot, string> = {
+  onePiece: "One-piece",
   layer: "Layer",
   top: "Top",
   bottom: "Bottom",
@@ -21,7 +22,7 @@ const boardSlotLabels: Record<OutfitSlot, string> = {
   accessory: "Accessory",
 };
 
-const slotOrderForLabels: OutfitSlot[] = ["layer", "top", "bottom", "shoes", "accessory"];
+const slotOrderForLabels: OutfitSlot[] = ["layer", "onePiece", "top", "bottom", "shoes", "accessory"];
 
 function getSlotStyle(
   slot: OutfitSlot,
@@ -29,11 +30,22 @@ function getSlotStyle(
   layout: MixerBodyStageProps["layout"],
 ): React.CSSProperties {
   const hasLayer = Boolean(selectedItems.layer);
+  const hasOnePiece = Boolean(selectedItems.onePiece);
   const hasTop = Boolean(selectedItems.top);
   const base: React.CSSProperties = { position: "absolute" };
   const isCompact = layout === "compact";
 
+  if (slot === "onePiece") {
+    return isCompact
+      ? { ...base, left: "18%", top: "2%", width: "64%", height: "70%" }
+      : { ...base, left: "17%", top: "4%", width: "66%", height: "70%" };
+  }
+
   if (slot === "layer") {
+    if (hasOnePiece) {
+      return { ...base, left: "3%", top: isCompact ? "2%" : "4%", width: "34%", height: isCompact ? "30%" : "28%" };
+    }
+
     return hasTop
       ? { ...base, left: "0%", top: isCompact ? "0%" : "1%", width: "48%", height: isCompact ? "34%" : "33%" }
       : { ...base, left: "22%", top: isCompact ? "0%" : "1%", width: "56%", height: isCompact ? "34%" : "33%" };
@@ -46,6 +58,10 @@ function getSlotStyle(
   }
 
   if (slot === "bottom") {
+    if (hasOnePiece) {
+      return { ...base, left: "23%", top: "42%", width: "54%", height: "34%" };
+    }
+
     return isCompact
       ? { ...base, left: "23%", top: "39%", width: "54%", height: "34%" }
       : { ...base, left: "23%", top: "42%", width: "54%", height: "34%" };

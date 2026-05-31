@@ -10,6 +10,7 @@ import { BottomNav } from "@/src/features/wardrobe/components/BottomNav";
 import { PrettifyExplainer } from "@/src/features/wardrobe/components/PrettifyExplainer";
 import { UploadChoiceCard } from "@/src/features/wardrobe/components/UploadChoiceCard";
 import { UploadPhotoInput } from "@/src/features/wardrobe/components/UploadPhotoInput";
+import { logWearaboutsClientEvent } from "@/src/features/wardrobe/real/clientTelemetry";
 import { getOutfitExtractionOption, outfitExtractionOptions } from "@/src/features/wardrobe/real/outfitExtractionOptions";
 import { useWardrobe } from "@/src/features/wardrobe/state/WardrobeContext";
 
@@ -44,6 +45,15 @@ export default function UploadPage() {
 
     setIsUploading(true);
     setUploadError(null);
+    logWearaboutsClientEvent("upload.started", {
+      filename: selectedFile.name,
+      sizeBytes: selectedFile.size,
+      contentType: selectedFile.type,
+      runtimeMode,
+      sourceType: "outfit_photo",
+      extractionMode,
+      skipExistingItems,
+    });
 
     try {
       const formData = new FormData();
@@ -52,8 +62,7 @@ export default function UploadPage() {
       formData.append("extraction_mode", extractionMode);
       formData.append("skip_existing_items", String(skipExistingItems));
 
-      const fetcher = isDevMode ? fetch : fetchWithAccountSession;
-      const response = await fetcher(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
+      const response = await fetchWithAccountSession(isDevMode ? "/api/wardrobe/dev/uploads" : "/api/wardrobe/uploads", {
         method: "POST",
         body: formData,
       });
@@ -63,8 +72,17 @@ export default function UploadPage() {
         throw new Error(payload.error ?? "Upload failed.");
       }
 
+      logWearaboutsClientEvent("upload.completed", {
+        batchId: payload.batchId,
+        jobId: payload.jobId ?? null,
+        runtimeMode,
+      });
       router.push(isDevMode ? `/review/${payload.batchId}` : `/processing/${payload.jobId}?batchId=${payload.batchId}`);
     } catch (error) {
+      logWearaboutsClientEvent("upload.failed", {
+        runtimeMode,
+        error: error instanceof Error ? error.message : "Upload failed.",
+      });
       setUploadError(error instanceof Error ? error.message : "Upload failed.");
     } finally {
       setIsUploading(false);

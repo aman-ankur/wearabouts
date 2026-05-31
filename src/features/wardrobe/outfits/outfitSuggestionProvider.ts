@@ -1,8 +1,9 @@
 import type { OutfitSlot, OutfitSlotSelection, WardrobeItem } from "@/src/domain/wardrobe";
 import { scoreItemForIntent } from "./outfitCompatibilityScorer";
+import { isOnePieceWardrobeItem } from "./outfitSlots";
 import type { OutfitIntent, OutfitSuggestion, OutfitSuggestionContext } from "./outfitTypes";
 
-const slots: OutfitSlot[] = ["top", "bottom", "shoes", "layer", "accessory"];
+const slots: OutfitSlot[] = ["onePiece", "top", "bottom", "shoes", "layer", "accessory"];
 const rainLayerWords = ["rain", "shell", "waterproof", "water-resistant", "technical"];
 
 function itemsForProfile(items: WardrobeItem[], profileId: OutfitSuggestionContext["profileId"]): WardrobeItem[] {
@@ -78,9 +79,10 @@ function titleAnchor(item: WardrobeItem | null): string {
 }
 
 function titleFor(suggestion: Pick<OutfitSuggestion, "intent" | "selections">, items: WardrobeItem[]): string {
+  const onePiece = itemForId(items, suggestion.selections.find((selection) => selection.slot === "onePiece")?.wardrobeItemId ?? null);
   const top = itemForId(items, suggestion.selections.find((selection) => selection.slot === "top")?.wardrobeItemId ?? null);
   const layer = itemForId(items, suggestion.selections.find((selection) => selection.slot === "layer")?.wardrobeItemId ?? null);
-  const anchor = titleAnchor(top ?? layer);
+  const anchor = titleAnchor(onePiece ?? top ?? layer);
 
   switch (suggestion.intent) {
     case "dinner":
@@ -122,6 +124,7 @@ function rationaleFor(intent: OutfitSuggestionContext["intent"], selections: Out
 export function buildOutfitSuggestions(context: OutfitSuggestionContext): OutfitSuggestion[] {
   const maxSuggestions = context.maxSuggestions ?? 5;
   const items = itemsForProfile(context.closetItems, context.profileId);
+  const onePieces = items.filter(isOnePieceWardrobeItem);
   const tops = items.filter((item) => item.category === "tops");
   const bottoms = items.filter((item) => item.category === "bottoms");
   const shoes = items.filter((item) => item.category === "footwear");
@@ -129,11 +132,12 @@ export function buildOutfitSuggestions(context: OutfitSuggestionContext): Outfit
   const accessories = items.filter((item) => item.category === "accessories");
   const locked = context.lockedSelections ?? [];
 
-  if ((tops.length === 0 && layers.length === 0) || bottoms.length === 0) {
+  if (onePieces.length === 0 && ((tops.length === 0 && layers.length === 0) || bottoms.length === 0)) {
     return [];
   }
 
   const candidates: OutfitSuggestion[] = [];
+  const onePieceOptions = optionsForSlot(onePieces, lockedItemForSlot(items, locked, "onePiece"), false).filter(Boolean);
   const topOptions = optionsForSlot(tops, lockedItemForSlot(items, locked, "top"), false);
   const bottomOptions = optionsForSlot(bottoms, lockedItemForSlot(items, locked, "bottom"), false).filter(Boolean);
   const shoeOptions = optionsForSlot(shoes.slice(0, 3), lockedItemForSlot(items, locked, "shoes"), true);
@@ -143,21 +147,24 @@ export function buildOutfitSuggestions(context: OutfitSuggestionContext): Outfit
     true,
   );
   const accessoryOptions = optionsForSlot(accessories.slice(0, 2), lockedItemForSlot(items, locked, "accessory"), true);
+  const hasLockedTop = lockedItemForSlot(items, locked, "top") !== undefined;
+  const hasLockedBottom = lockedItemForSlot(items, locked, "bottom") !== undefined;
+  const hasLockedOnePiece = lockedItemForSlot(items, locked, "onePiece") !== undefined;
 
-  for (const top of topOptions) {
-    for (const bottom of bottomOptions) {
+  if (!hasLockedTop && !hasLockedBottom) {
+    for (const onePiece of onePieceOptions) {
       for (const shoe of shoeOptions) {
         for (const layer of layerOptions) {
           for (const accessory of accessoryOptions) {
-            const selectedIds = [top, bottom, shoe, layer, accessory]
+            const selectedIds = [onePiece, shoe, layer, accessory]
               .filter((item): item is WardrobeItem => Boolean(item))
               .map((item) => item.id);
             if (new Set(selectedIds).size !== selectedIds.length) {
               continue;
             }
 
-            const selections = makeSelections({ top, bottom, shoes: shoe, layer, accessory }, locked);
-            const score = scoreCandidate([top, bottom, shoe, layer, accessory], context.intent);
+            const selections = makeSelections({ onePiece, top: null, bottom: null, shoes: shoe, layer, accessory }, locked);
+            const score = scoreCandidate([onePiece, shoe, layer, accessory], context.intent);
             const draft = {
               id: `suggestion-${context.intent}-${selectedIds.join("-")}`,
               profileId: context.profileId,
@@ -171,6 +178,41 @@ export function buildOutfitSuggestions(context: OutfitSuggestionContext): Outfit
             };
 
             candidates.push({ ...draft, title: titleFor(draft, items) });
+          }
+        }
+      }
+    }
+  }
+
+  if (!hasLockedOnePiece) {
+    for (const top of topOptions) {
+      for (const bottom of bottomOptions) {
+        for (const shoe of shoeOptions) {
+          for (const layer of layerOptions) {
+            for (const accessory of accessoryOptions) {
+              const selectedIds = [top, bottom, shoe, layer, accessory]
+                .filter((item): item is WardrobeItem => Boolean(item))
+                .map((item) => item.id);
+              if (new Set(selectedIds).size !== selectedIds.length) {
+                continue;
+              }
+
+              const selections = makeSelections({ onePiece: null, top, bottom, shoes: shoe, layer, accessory }, locked);
+              const score = scoreCandidate([top, bottom, shoe, layer, accessory], context.intent);
+              const draft = {
+                id: `suggestion-${context.intent}-${selectedIds.join("-")}`,
+                profileId: context.profileId,
+                intent: context.intent,
+                title: "",
+                score,
+                confidenceLabel: confidenceLabel(score),
+                rationale: rationaleFor(context.intent, selections, items),
+                selections,
+                warnings: shoes.length === 0 ? ["Add shoes to make this look easier to wear as a complete outfit."] : [],
+              };
+
+              candidates.push({ ...draft, title: titleFor(draft, items) });
+            }
           }
         }
       }

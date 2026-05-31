@@ -36,16 +36,40 @@ const items: WardrobeItem[] = [
     addedAtIso: "2026-05-26T00:00:00.000Z",
     readyForMixer: false,
   },
+  {
+    id: "wardrobe-dress",
+    sourceDetectedGarmentId: "detected-dress",
+    name: "Dress",
+    brand: "",
+    category: "combo",
+    ownerProfileId: "profile-aankur",
+    asset: { id: "asset-dress", kind: "prettified", label: "Dress", visualToken: "shirt-striped" },
+    addedAtIso: "2026-05-26T00:00:00.000Z",
+    readyForMixer: true,
+  },
+  {
+    id: "wardrobe-swimsuit",
+    sourceDetectedGarmentId: "detected-swimsuit",
+    name: "Teal One-Piece Swimsuit",
+    brand: "",
+    category: "swimwear" as WardrobeItem["category"],
+    ownerProfileId: "profile-aankur",
+    asset: { id: "asset-swimsuit", kind: "prettified", label: "Swimsuit", visualToken: "shirt-striped" },
+    addedAtIso: "2026-05-26T00:00:00.000Z",
+    readyForMixer: true,
+  },
 ];
 
 describe("mixerSelectors", () => {
   it("returns only mixer-ready items for a slot", () => {
     expect(getItemsForSlot(items, "top").map((item) => item.id)).toEqual(["wardrobe-top"]);
     expect(getItemsForSlot(items, "bottom").map((item) => item.id)).toEqual(["wardrobe-bottom"]);
+    expect(getItemsForSlot(items, "onePiece").map((item) => item.id)).toEqual(["wardrobe-dress", "wardrobe-swimsuit"]);
   });
 
   it("creates initial selections from available closet items", () => {
     expect(getInitialMixerSelections(items)).toEqual([
+      { slot: "onePiece", wardrobeItemId: "wardrobe-dress", locked: false },
       { slot: "top", wardrobeItemId: "wardrobe-top", locked: false },
       { slot: "bottom", wardrobeItemId: "wardrobe-bottom", locked: false },
       { slot: "shoes", wardrobeItemId: null, locked: false },

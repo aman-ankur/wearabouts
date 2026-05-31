@@ -1,4 +1,5 @@
 import type { WardrobeItem } from "@/src/domain/wardrobe";
+import { isOnePieceWardrobeItem } from "@/src/features/wardrobe/outfits/outfitSlots";
 import type { AvatarPoseId, AvatarRenderQuality } from "./avatarTypes";
 
 export const AVATAR_RENDER_PROMPT_VERSION = "avatar-studio-v1.6";
@@ -23,9 +24,10 @@ function itemDescription(item: WardrobeItem): string {
 
 function baseLayerInstruction(items: WardrobeItem[]): string {
   const hasTop = items.some((item) => item.category === "tops");
+  const hasOnePiece = items.some(isOnePieceWardrobeItem);
   const hasOuterwear = items.some((item) => item.category === "outerwear");
 
-  if (!hasOuterwear || hasTop) {
+  if (!hasOuterwear || hasTop || hasOnePiece) {
     return "Do not add extra core garments, shopping items, bags, hats, or accessories that are not in the selected saved outfit.";
   }
 
