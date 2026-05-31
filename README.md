@@ -1,53 +1,62 @@
-<p align="center">
-  <img src="docs/product/assets/wearabouts-mark.svg" alt="Wearabouts" width="96" />
-</p>
-
 # Wearabouts
 
-Wearabouts is a private closet companion for the clothes people actually own: daily outfits, trips, packing, saved looks, and the occasional "wait, do I even have shoes for this?" moment.
+Wearabouts helps turn a real closet into outfits you can actually use.
 
-It starts with real wardrobe photos. Upload a shirt, a full outfit, or the jacket hiding in yesterday's mirror selfie; Wearabouts turns the useful pieces into closet-ready assets, asks for review before saving, and then helps build looks from the wardrobe instead of from a shopping catalog.
+Most packing apps start with lists. Wearabouts starts with the clothes: the shirt on the chair, the jacket in yesterday's photo, the shoes you always forget until the taxi is downstairs. The product goal is simple: make your wardrobe visible, make outfits easier to choose, and make travel packing feel less like a small domestic audit.
 
-The current app is built around one simple idea: make the closet visible enough that getting dressed feels less like rummaging and more like choosing.
+## What It Solves
 
-## What Works Today
+Getting dressed for a trip has a few annoying steps:
 
-- A public no-login demo with fixture clothes, looks, packing, and avatar examples.
-- Email-code login for a private real closet.
-- Minimal onboarding for name and style presentation.
-- Upload and review flows backed by Supabase storage and tables.
-- Outfit-photo decomposition into selectable review candidates.
-- Closet Mixer for fast outfit browsing and refinement.
-- Stylist suggestions for closet-only daily looks.
-- Trip Looks and Packing List flows for day-by-day planning.
-- Avatar Studio for rendering selected saved outfits when a higher-fidelity preview is worth the wait.
+- remembering what you own
+- turning scattered clothing photos into a useful closet
+- finding combinations that work together
+- planning outfits by day, weather, and activity
+- packing only what supports those outfits
+- remembering what you actually wore
 
-Demo mode stays open and sample-backed. Personal upload, wardrobe, profile, avatar, and saved real data require login.
+Wearabouts ties those steps together. Upload clothes, review the cleaned-up pieces, build looks, plan a trip, and let the packing list fall out of the outfits instead of starting from a blank checklist.
 
-## Private Closets
+## Product Shape
 
-Wearabouts now has a real account boundary, but the product language stays human.
+The current product spine is:
 
-A user's private space is a **Circle**. The first release creates one Circle and one personal wardrobe profile. That keeps today's experience simple while leaving room for partners, family, roommates, or shared travel groups later.
+1. **Auto-Prettify**: turn messy clothing photos into clean closet assets.
+2. **Closet**: keep approved wardrobe items in one place.
+3. **Closet Mixer**: browse outfit combinations quickly, without pretending every swipe is a perfect try-on.
+4. **Stylist**: suggest closet-only looks for the day.
+5. **Trip Looks**: plan what to wear day by day.
+6. **Packing List**: derive what to pack from the approved looks.
+7. **Avatar Studio**: render selected saved outfits when a higher-fidelity preview is worth the wait.
 
-Family sharing is intentionally not built yet. One good closet boundary first; group logistics can wait their turn.
+The app is travel-first, but the same closet memory can support daily outfit help later.
 
-## Builder Notes
+## Account Model
 
-Older docs may still mention Travogue, the original working name. The product name is **Wearabouts**.
+Wearabouts now has a real private account boundary.
 
-The main app is Next.js, TypeScript, and Supabase. Demo mode and real mode share UI contracts where possible; providers and data sources change underneath. For real private testing, `.env.local` needs:
+- Visitors can explore a fixture-backed demo without signing in.
+- Personal upload, wardrobe, avatar, and profile data require login.
+- Login uses email codes, not passwords.
+- A user's private space is called a **Circle**.
+- The first release creates one Circle and one personal wardrobe profile.
 
-```bash
-NEXT_PUBLIC_TRAVOGUE_MODE=real
-NEXT_PUBLIC_SUPABASE_URL=
-NEXT_PUBLIC_SUPABASE_ANON_KEY=
-SUPABASE_URL=
-SUPABASE_SERVICE_ROLE_KEY=
-OPENAI_API_KEY=
-```
+Family sharing is intentionally not built yet. One good closet boundary first; party planning later.
 
-Before testing account/profile ownership on an existing Supabase project, apply `supabase/migrations/20260529000000_account_circles_profiles.sql`. If the same database is still serving older deployed code, use the compatible rollout notes from the account/profile PR and delay stricter storage-path constraints until the deployed app has the matching routes.
+## Current Build
+
+The app currently supports:
+
+- public entry screen and no-login demo
+- email-code login and minimal onboarding
+- profile/settings screen for name, style presentation, and sign out
+- private real-mode wardrobe ownership by authenticated Circle/profile
+- real upload and review flows backed by Supabase storage/tables
+- outfit-photo decomposition into selectable review candidates
+- cached dev upload mode for UI iteration without spending generation calls
+- Closet Mixer, Stylist, Trip Looks, Packing List, and Avatar Studio slices
+
+Older docs may still mention Travogue. The product name is **Wearabouts**.
 
 ## Documentation
 
@@ -73,6 +82,19 @@ Start the app on the project port:
 ```bash
 npm run dev -- -p 3000
 ```
+
+For real private upload/profile testing, `.env.local` needs:
+
+```bash
+NEXT_PUBLIC_TRAVOGUE_MODE=real
+NEXT_PUBLIC_SUPABASE_URL=
+NEXT_PUBLIC_SUPABASE_ANON_KEY=
+SUPABASE_URL=
+SUPABASE_SERVICE_ROLE_KEY=
+OPENAI_API_KEY=
+```
+
+Before testing the account/profile branch on an existing Supabase project, apply the account/Circle migration in `supabase/migrations/20260529000000_account_circles_profiles.sql`. For shared databases that are still serving older deployed code, use the compatible ownership setup from the PR notes and defer strict storage-path constraints until this branch is deployed.
 
 Run checks:
 

@@ -8,7 +8,7 @@ export const runtime = "nodejs";
 export async function GET(request: Request, { params }: { params: Promise<{ jobId: string }> }) {
   const timer = createTimer();
   try {
-    const session = await requireAccountSession(request, { allowGuest: true });
+    const session = await requireAccountSession(request);
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
@@ -17,7 +17,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ jobI
     const { repository } = createRealWardrobeServices({ circleId: session.circleId, profileId: session.profileId });
     logWearaboutsTelemetry("api.job_load.started", {
       jobId,
-      sessionKind: session.kind,
+      sessionKind: "account",
       circleId: session.circleId,
       profileId: session.profileId,
     });
@@ -26,7 +26,7 @@ export async function GET(request: Request, { params }: { params: Promise<{ jobI
     if (!job) {
       logWearaboutsTelemetry("api.job_load.not_found", {
         jobId,
-        sessionKind: session.kind,
+        sessionKind: "account",
         durationMs: timer.elapsedMs(),
       });
       return NextResponse.json({ error: "Processing job not found." }, { status: 404 });

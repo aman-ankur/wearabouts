@@ -1,11 +1,6 @@
 import { describe, expect, it } from "vitest";
-import {
-  getBearerTokenFromAuthorizationHeader,
-  getGuestIdFromHeader,
-  getGuestOwnerFromGuestId,
-  requireAccountSession,
-  wearaboutsGuestIdHeader,
-} from "./accountSession";
+import { getBearerTokenFromAuthorizationHeader } from "./accountSession";
+import { requireAccountSession } from "./accountSession";
 
 describe("accountSession", () => {
   it("returns the bearer token from an authorization header", () => {
@@ -20,37 +15,6 @@ describe("accountSession", () => {
     expect(getBearerTokenFromAuthorizationHeader(null)).toBeNull();
     expect(getBearerTokenFromAuthorizationHeader("Basic abc")).toBeNull();
     expect(getBearerTokenFromAuthorizationHeader("Bearer ")).toBeNull();
-  });
-
-  it("validates temporary guest ids from headers", () => {
-    expect(getGuestIdFromHeader("018f77c2-2e8b-4a69-9ac7-31d0f05d90aa")).toBe("018f77c2-2e8b-4a69-9ac7-31d0f05d90aa");
-    expect(getGuestIdFromHeader("not-a-uuid")).toBeNull();
-    expect(getGuestIdFromHeader("../bad")).toBeNull();
-  });
-
-  it("derives isolated owner ids for a temporary guest", () => {
-    expect(getGuestOwnerFromGuestId("018f77c2-2e8b-4a69-9ac7-31d0f05d90aa")).toEqual({
-      guestId: "018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-      circleId: "guest-018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-      profileId: "guest-profile-018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-    });
-  });
-
-  it("resolves a temporary guest session when allowed", async () => {
-    await expect(
-      requireAccountSession(
-        new Request("https://wearabouts.test/api", {
-          headers: { [wearaboutsGuestIdHeader]: "018f77c2-2e8b-4a69-9ac7-31d0f05d90aa" },
-        }),
-        { supabase: {} as never, allowGuest: true },
-      ),
-    ).resolves.toMatchObject({
-      ok: true,
-      kind: "guest",
-      guestId: "018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-      circleId: "guest-018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-      profileId: "guest-profile-018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-    });
   });
 
   it("resolves the authenticated user's active Circle and wardrobe profile", async () => {
@@ -73,7 +37,6 @@ describe("accountSession", () => {
       }),
     ).resolves.toMatchObject({
       ok: true,
-      kind: "account",
       userId: "user-1",
       circleId: "circle-1",
       profileId: "profile-1",

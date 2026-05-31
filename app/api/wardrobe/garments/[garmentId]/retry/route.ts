@@ -6,7 +6,7 @@ export const runtime = "nodejs";
 
 export async function POST(request: Request, { params }: { params: Promise<{ garmentId: string }> }) {
   try {
-    const session = await requireAccountSession(request, { allowGuest: true });
+    const session = await requireAccountSession(request);
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }

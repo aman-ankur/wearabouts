@@ -8,14 +8,14 @@ export const runtime = "nodejs";
 export async function GET(request: Request) {
   const timer = createTimer();
   try {
-    const session = await requireAccountSession(request, { allowGuest: true });
+    const session = await requireAccountSession(request);
     if (!session.ok) {
       return NextResponse.json({ error: session.error }, { status: session.status });
     }
 
     const { repository } = createRealWardrobeServices({ circleId: session.circleId, profileId: session.profileId });
     logWearaboutsTelemetry("api.closet_load.started", {
-      sessionKind: session.kind,
+      sessionKind: "account",
       circleId: session.circleId,
       profileId: session.profileId,
     });

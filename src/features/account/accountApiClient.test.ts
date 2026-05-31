@@ -1,12 +1,5 @@
-import { afterEach, describe, expect, it, vi } from "vitest";
-import { wearaboutsGuestIdHeader } from "./accountSession";
-import {
-  completeOnboarding,
-  createAuthorizationHeaders,
-  createWardrobeSessionHeaders,
-  fetchAccountStatus,
-  wearaboutsGuestIdStorageKey,
-} from "./accountApiClient";
+import { describe, expect, it } from "vitest";
+import { completeOnboarding, createAuthorizationHeaders, fetchAccountStatus } from "./accountApiClient";
 import type { AccountStatus } from "./accountTypes";
 
 const account: AccountStatus = {
@@ -23,10 +16,6 @@ const account: AccountStatus = {
 };
 
 describe("accountApiClient", () => {
-  afterEach(() => {
-    vi.unstubAllGlobals();
-  });
-
   it("fetches account status with a bearer token", async () => {
     const calls: Array<{ input: RequestInfo | URL; init?: RequestInit }> = [];
     const fetcher = async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -87,31 +76,5 @@ describe("accountApiClient", () => {
     };
 
     await expect(createAuthorizationHeaders(supabase as never)).resolves.toEqual({ Authorization: "Bearer token-1" });
-  });
-
-  it("creates wardrobe session headers from the active Supabase browser session", async () => {
-    const supabase = {
-      auth: {
-        getSession: async () => ({ data: { session: { access_token: "token-1" } }, error: null }),
-      },
-    };
-
-    await expect(createWardrobeSessionHeaders(supabase as never)).resolves.toEqual({ Authorization: "Bearer token-1" });
-  });
-
-  it("falls back to a temporary guest id for wardrobe session headers", async () => {
-    const storage = new Map<string, string>();
-    vi.stubGlobal("window", {
-      localStorage: {
-        getItem: (key: string) => storage.get(key) ?? null,
-        setItem: (key: string, value: string) => storage.set(key, value),
-      },
-    });
-    vi.stubGlobal("crypto", { randomUUID: () => "018f77c2-2e8b-4a69-9ac7-31d0f05d90aa" });
-
-    await expect(createWardrobeSessionHeaders(null)).resolves.toEqual({
-      [wearaboutsGuestIdHeader]: "018f77c2-2e8b-4a69-9ac7-31d0f05d90aa",
-    });
-    expect(storage.get(wearaboutsGuestIdStorageKey)).toBe("018f77c2-2e8b-4a69-9ac7-31d0f05d90aa");
   });
 });

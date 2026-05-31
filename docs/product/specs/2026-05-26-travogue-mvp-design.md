@@ -1,17 +1,17 @@
-# Wearabouts MVP Design
+# Travogue MVP Design
 
 ## Product Summary
 
-Wearabouts is a mobile-web-first personal wardrobe app for daily outfits, trips, saved looks, avatar previews, and packing. It helps a user upload real wardrobe photos, turn messy photos into clean closet assets, plan outfits by context, and derive packing lists when those outfits are for travel.
+Travogue is a mobile-web-first personal wardrobe and travel packing app for a household. It helps a user and their partner upload real wardrobe photos, turn messy photos into clean standardized closet assets, plan day-by-day trip outfits, and derive packing lists from those outfits.
 
-The first product bet is not generic packing. The first product bet is whether Wearabouts can reliably turn real clothing photos into clean, mixer-ready wardrobe assets. If that works, the rest of the product becomes possible: closet browsing, outfit boards, avatar previews, daily looks, trip looks, packing lists, and wear memory.
+The first product bet is not generic packing. The first product bet is whether Travogue can reliably turn real clothing photos into clean, mixer-ready wardrobe assets. If that works, the rest of the product becomes possible: closet browsing, outfit boards, avatar previews, trip looks, packing lists, and eventually daily outfit recommendations.
 
-The product is inspired by the category of apps like Alta Daily, but it should differentiate through real closet ownership, personal wear memory, trip-aware planning, and an interactive Closet Mixer rather than only a daily suggestion feed.
+The product is inspired by the category of apps like Alta Daily, but it should differentiate through a travel-first workflow, personal wear memory, and an interactive Closet Mixer rather than only a daily suggestion feed.
 
 ## Target Users
 
-- A private Circle with one or more wardrobe profiles.
-- People who want everyday outfit help and practical packing without treating style like an afterthought.
+- A household with multiple wardrobe profiles, initially the user and his wife.
+- People who want practical packing help but still care about looking stylish.
 - People who want a personal closet assistant that remembers what they wore, skipped, liked, and repeated.
 - People who want to experiment with outfits visually without paying for expensive image generation on every interaction.
 
@@ -20,7 +20,7 @@ The product is inspired by the category of apps like Alta Daily, but it should d
 - Build a real MVP with demo mode baked in from the start.
 - Support mobile web as the primary usage surface.
 - Let users upload outfit photos and item photos.
-- Auto-detect, prepare, and review wardrobe items before saving.
+- Auto-detect, prettify, and review wardrobe items before saving.
 - Create a clean closet of standardized assets.
 - Let users mix tops, bottoms, shoes, layers, and accessories in a fast visual preview.
 - Create trip-specific, day-by-day outfit plans.
@@ -41,26 +41,25 @@ The product is inspired by the category of apps like Alta Daily, but it should d
 
 ## Core Product Spine
 
-1. Wardrobe Prep
+1. Auto-Prettify
 2. Closet
 3. Closet Mixer
-4. Stylist
-5. Trip Looks
-6. Packing List
-7. Avatar Render
-8. Wear Memory
+4. Trip Looks
+5. Packing List
+6. Avatar Render
+7. Wear Memory
 
 ## Differentiation
 
-### Real Closet First
+### Travel-First Instead Of Daily-First
 
-The MVP should make a real private closet useful quickly. The same wardrobe assets should support daily suggestions, saved looks, trip planning, packing, and avatar previews.
+The MVP should focus on trips. A user creates a trip with destination, dates, travelers, activities, luggage preference, style mode, and conversational notes. The main output is a day-by-day outfit plan by traveler and occasion.
 
-Trips are still a sharp proof point: a user creates a trip with destination, dates, travelers, activities, luggage preference, style mode, and conversational notes. The output is a day-by-day outfit plan by traveler and occasion, with packing derived from the approved looks.
+Daily outfit recommendations are a later mode powered by the same engine.
 
-### Wardrobe Prep As The Core Engine
+### Auto-Prettify As The Core Engine
 
-Wardrobe Prep turns messy real-world clothing photos into clean, standardized assets. This unlocks the rest of the app.
+Auto-Prettify turns messy real-world clothing photos into clean, standardized assets. This unlocks the rest of the app.
 
 ### Closet Mixer
 
@@ -70,13 +69,14 @@ The Closet Mixer is the playful interaction: tops, bottoms, shoes, layers, and a
 
 The app should remember what the user wore, skipped, liked, rejected, repeated, and paired successfully. Future suggestions should use this memory.
 
-## Circle And Profiles
+## Household And Profiles
 
-The MVP uses one private Circle with one personal wardrobe profile. The data model can later support multiple profiles without exposing family sharing in the first slice.
+The MVP uses one household account with multiple wardrobe profiles.
 
 Initial profile types:
 
-- Personal
+- User
+- Wife
 - Shared
 
 Future profile types may include children, guest, or shared travel gear.
@@ -102,7 +102,7 @@ Users can upload:
 
 After upload, the app creates a Detected Items Review screen. Each detected item appears as a review card with:
 
-- Clean item image
+- Prettified image
 - Proposed item name
 - Editable brand field
 - Proposed category
@@ -116,15 +116,15 @@ After upload, the app creates a Detected Items Review screen. Each detected item
 
 The app must not save detected items directly into the closet without review.
 
-## Wardrobe Prep
+## Auto-Prettify
 
 ### Definition
 
-Wardrobe Prep is wardrobe asset normalization. It turns an uploaded clothing photo or detected garment crop into a clean, standardized closet asset.
+Auto-Prettify is wardrobe asset normalization. It turns an uploaded clothing photo or detected garment crop into a clean, standardized closet asset.
 
 ### Required Output
 
-Each prepared asset should be:
+Each prettified asset should be:
 
 - Front-facing when possible
 - Centered
@@ -146,7 +146,7 @@ Guiding principle:
 
 ### Pipeline
 
-Wardrobe Prep should be implemented as a staged model-backed pipeline, not an autonomous agent.
+Auto-Prettify should be implemented as a staged AI pipeline, not an autonomous agent.
 
 1. Image intake quality check
    - Blur
@@ -509,7 +509,7 @@ Demo mode uses the same UI and internal data contracts as real mode. Only provid
 Example provider pairs:
 
 - DemoWardrobeExtractionProvider / AIWardrobeExtractionProvider
-- DemoWardrobePrepProvider / AIWardrobePrepProvider
+- DemoPrettifyProvider / AIPrettifyProvider
 - DemoRecommendationProvider / AIRecommendationProvider
 - DemoAvatarProvider / AIAvatarProvider
 
@@ -518,7 +518,7 @@ Demo fixtures should include:
 - Upload batches
 - Raw photo references
 - Detected garments
-- Prepared closet assets
+- Prettified assets
 - Review cards
 - Closet items
 - Mixer combinations
@@ -537,7 +537,7 @@ Demo fixtures should include:
 - Supabase Postgres
 - Supabase Storage
 - Server routes or server actions for backend logic
-- Provider interfaces for model-backed wardrobe services
+- Provider interfaces for AI/prettify services
 
 This stack is recommended because it is fast for a real MVP and keeps the architecture close to a deployable product.
 
@@ -551,12 +551,12 @@ If more backend control is desired from day one:
 - S3-compatible storage
 - Worker queue
 
-This is cleaner for heavy model orchestration but slower to build.
+This is cleaner for heavy AI orchestration but slower to build.
 
 ### Backend Services
 
 - UploadService
-- WardrobePrepJobService
+- PrettifyJobService
 - WardrobeService
 - ClosetAssetService
 - TripService
@@ -567,7 +567,7 @@ This is cleaner for heavy model orchestration but slower to build.
 
 ### Data Objects
 
-- Circle
+- Household
 - WardrobeProfile
 - UploadBatch
 - SourceImage
@@ -580,9 +580,9 @@ This is cleaner for heavy model orchestration but slower to build.
 - PackingList
 - WearLog
 - AvatarProfile
-- ModelJob
+- AIJob
 
-## Processing Strategy
+## AI Strategy
 
 ### Provider Cascade
 
@@ -599,7 +599,7 @@ Use stronger or specialized models for:
 
 - Garment detection
 - Segmentation
-- Closet asset generation
+- Prettify generation
 - Output validation
 - Difficult layered outfits
 
@@ -607,7 +607,7 @@ Use expensive image generation only when it materially improves the closet asset
 
 ### Agents
 
-Wardrobe Prep should not be implemented as an autonomous agent in the MVP. It should be a staged job pipeline with model calls, validation gates, retries, caching, and structured outputs.
+Auto-Prettify should not be implemented as an autonomous agent in the MVP. It should be a staged job pipeline with model calls, validation gates, retries, caching, and structured outputs.
 
 Agent-like behavior may be useful later for:
 
@@ -647,8 +647,8 @@ Every provider should be evaluated against this set before becoming the default.
 - Closet Mixer feels fun and fast, even if not perfectly realistic.
 - Trip plans produce weather/activity-appropriate outfits that are stylish, not boring.
 - Packing lists are clearly derived from approved looks.
-- Demo mode exercises the full flow without model spend.
-- Model uncertainty is surfaced honestly.
+- Demo mode exercises the full flow without AI spend.
+- AI uncertainty is surfaced honestly.
 
 ## Phased Implementation Plan
 
@@ -656,7 +656,7 @@ This section is intentionally phased so LLM coding tools can build the MVP safel
 
 ### Phase 0: Project Foundation
 
-Goal: Create the app shell and core contracts without model-provider complexity.
+Goal: Create the app shell and core contracts without AI complexity.
 
 Build:
 
@@ -674,7 +674,7 @@ Verify:
 - App runs locally.
 - Demo mode flag is visible in development.
 - Domain types compile.
-- No real model-provider calls exist yet.
+- No real AI calls exist yet.
 
 ### Phase 1: Demo Upload And Review Flow
 
@@ -692,7 +692,7 @@ Build:
 
 Verify:
 
-- User can move from upload to review to closet with no real model-provider calls.
+- User can move from upload to review to closet with no AI calls.
 - Review card states work.
 - Add All works.
 - Retry can return an alternate fixture.
@@ -720,7 +720,7 @@ Verify:
 
 ### Phase 3: Trip Planning Demo
 
-Goal: Prove the trip-planning flow without making the whole product only about trips.
+Goal: Prove the travel-first product flow.
 
 Build:
 
@@ -747,35 +747,35 @@ Goal: Replace mock persistence with real user data storage.
 Build:
 
 - Supabase auth
-- Circle/profile schema
+- Household/profile schema
 - Upload batch schema
 - Wardrobe item schema
 - Closet asset schema
 - Trip schema
 - Outfit schema
 - Packing list schema
-- Storage buckets for original and prepared closet assets
+- Storage buckets for original and prettified assets
 
 Verify:
 
 - User can sign in.
-- Data is scoped to Circle/profile.
+- Data is scoped to household/profile.
 - Images upload to storage.
 - Approved items persist after refresh.
 
-### Phase 5: Real Wardrobe Prep Alpha
+### Phase 5: Real Auto-Prettify Alpha
 
-Goal: Integrate the first real model-backed pipeline behind the existing provider interface.
+Goal: Integrate the first real AI pipeline behind the existing provider interface.
 
 Build:
 
 - Real upload service
-- Model job records
+- AI job records
 - Image quality check
 - Initial garment detection provider
 - Initial segmentation provider
 - Initial metadata extraction provider
-- Initial Wardrobe Prep provider
+- Initial prettify provider
 - Validation result object
 - Retry path
 
@@ -786,7 +786,7 @@ Verify:
 - Failed or low-confidence jobs do not break the flow.
 - Outputs are cached.
 
-### Phase 6: Wardrobe Prep Quality Iteration
+### Phase 6: Auto-Prettify Quality Iteration
 
 Goal: Improve output quality before adding more product surface.
 
@@ -864,7 +864,7 @@ Verify:
 
 ## Implementation Guardrails For LLM Coding Tools
 
-- Do not build real model providers before demo providers.
+- Do not build real AI providers before demo providers.
 - Do not build avatar rendering before Closet Mixer.
 - Do not build trip recommendations before wardrobe item contracts exist.
 - Keep demo and real providers behind the same interfaces.
@@ -872,4 +872,4 @@ Verify:
 - Prefer typed domain objects over ad hoc JSON blobs.
 - Add tests around provider contracts and packing-list derivation early.
 - Avoid styling-heavy rewrites while building backend contracts.
-- Never let low-confidence model output auto-save to the closet.
+- Never let low-confidence AI output auto-save to the closet.

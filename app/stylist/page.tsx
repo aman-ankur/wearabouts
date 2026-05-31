@@ -54,10 +54,6 @@ export default function StylistPage() {
   const [rejectedLookIds, setRejectedLookIds] = useState<string[]>([]);
   const [avatarRenders, setAvatarRenders] = useState<AvatarRender[]>([]);
   const readyItems = useMemo(() => state.closetItems.filter((item) => item.readyForMixer), [state.closetItems]);
-  const activeProfileId = useMemo(
-    () => readyItems[0]?.ownerProfileId ?? state.closetItems[0]?.ownerProfileId ?? "profile-aankur",
-    [readyItems, state.closetItems],
-  );
   const chips = useMemo(
     () => generateStylistChips({ now, weather: stylistWeather.weather, closetItems: state.closetItems }),
     [now, state.closetItems, stylistWeather.weather],
@@ -88,7 +84,7 @@ export default function StylistPage() {
 
   function buildLooks(nextIncludeIdeas: boolean) {
     const request = parseStylistRequest({
-      profileId: activeProfileId,
+      profileId: "profile-aankur",
       selectedChipIds,
       note,
       includeIdeas: nextIncludeIdeas,

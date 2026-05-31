@@ -9,7 +9,7 @@ The product term for a shared account space is **Circle**, not household. A Circ
 ## Goals
 
 - Let visitors try Wearabouts without logging in.
-- Keep demo mode instant, polished, and free of model-provider cost.
+- Keep demo mode instant, polished, and free of AI cost.
 - Require login before any personal upload, avatar setup, saved real outfit, or private wardrobe mutation.
 - Use email OTP code login only: no password and no magic-link-first product path.
 - Create a minimal profile with only name and gender/presentation.
@@ -22,7 +22,7 @@ The product term for a shared account space is **Circle**, not household. A Circ
 - Password login.
 - Social features.
 - Guest uploads.
-- Guest generation.
+- Guest AI generation.
 - Complex style questionnaires during onboarding.
 - Family profile management UI in the first slice.
 
@@ -48,7 +48,7 @@ Users cannot:
 - Upload personal photos.
 - Save permanent outfits.
 - Create avatar inputs.
-- Generate real model-backed outputs.
+- Generate real AI outputs.
 - Mutate private Supabase data.
 
 When a demo user taps a personal action, Wearabouts should show a friendly auth prompt such as `Build your own closet` and take them to login.
@@ -190,7 +190,7 @@ This applies to:
 
 - Upload batches.
 - Source images.
-- Wardrobe Prep jobs.
+- Prettify jobs.
 - Garment candidates.
 - Detected garments.
 - Wardrobe items.
@@ -242,7 +242,7 @@ It should not:
 - Read private Supabase tables.
 - Write private Supabase tables.
 - Upload user files.
-- Call paid model providers.
+- Call paid AI providers.
 - Create a real anonymous user account.
 
 This keeps the demo cheap, fast, privacy-safe, and easy to reset.
@@ -257,7 +257,7 @@ The demo should still feel complete. It should showcase the product's strongest 
 
 ## Security
 
-Once account-aware routes are in place, enable row level security for private tables where practical. Service-role access can still be used server-side for model and storage workflows, but application logic must check Circle membership before using the service-role client to read or mutate user data.
+Once account-aware routes are in place, enable row level security for private tables where practical. Service-role access can still be used server-side for AI and storage workflows, but application logic must check Circle membership before using the service-role client to read or mutate user data.
 
 Minimum security expectations:
 
@@ -359,7 +359,7 @@ Migration tests or SQL review:
 Build the demo-first account model:
 
 1. Let everyone explore a polished fixture-backed Wearabouts demo without login.
-2. Require email OTP before personal photos, real saves, avatar setup, or model-backed work.
+2. Require email OTP before personal photos, real saves, avatar setup, or AI work.
 3. Keep onboarding minimal with name and gender/presentation.
 4. Create a default Circle and personal wardrobe profile behind the scenes.
 5. Move all private data access to session-derived Circle/profile ownership before exposing multi-profile features.
